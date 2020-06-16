@@ -259,11 +259,8 @@ class PhotoFrameAPIHandler(APIHandler):
                         
                         try:
                         
-                            try:
-                                cmd = 'DISPLAY=:0 xset dpms force on'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("Error while trying to keep the display from sleeping")
+                            cmd = 'DISPLAY=:0 xset dpms force on'
+                            os.system(cmd)
                             
                             
                             return APIResponse(
