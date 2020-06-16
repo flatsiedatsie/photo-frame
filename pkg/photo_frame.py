@@ -10,8 +10,10 @@ import re
 from time import sleep
 import datetime
 import subprocess
+import threading
 import requests
 import base64
+#from pynput.keyboard import Key, Controller
 
 try:
     from gateway_addon import APIHandler, APIResponse
@@ -46,6 +48,12 @@ class PhotoFrameAPIHandler(APIHandler):
             
         self.interval = 30
         self.contain = 1
+        
+        self.clock = False
+        
+        
+        #os.environ["DISPLAY"] = ":0.0"
+        
             
         try:
             manifest_fname = os.path.join(
@@ -91,9 +99,12 @@ class PhotoFrameAPIHandler(APIHandler):
         # Respond to gateway version
         try:
             if self.DEBUG:
-                print(self.gateway_version)
+                print("Gateway version deteted: " + self.gateway_version)
         except:
-            print("self.gateway_version did not exist")
+            if self.DEBUG:
+                print("self.gateway_version did not exist")
+            
+        #self.keyboard = Controller()
             
         while(True):
             sleep(1)
@@ -138,6 +149,12 @@ class PhotoFrameAPIHandler(APIHandler):
             if self.DEBUG:
                 print("-Contain photo preference was in config: " + str(self.contain))
 
+        if 'Clock' in config:
+            self.clock = int(config['Clock'])
+            if self.DEBUG:
+                print("-Clock preference was in config: " + str(self.clock))
+
+
 
 
 
@@ -153,13 +170,13 @@ class PhotoFrameAPIHandler(APIHandler):
             if request.method != 'POST':
                 return APIResponse(status=404)
             
-            if request.path == '/init' or request.path == '/list' or request.path == '/delete' or request.path == '/save':
+            if request.path == '/init' or request.path == '/list' or request.path == '/delete' or request.path == '/save' or request.path == '/wake':
 
                 try:
                     
                     if request.path == '/list':
                         print("LISTING")
-                        # Get the list of properties that are being logged
+                        # Get the list of photos
                         try:
                             data = self.scan_photo_dir()
                             if isinstance(data, str):
@@ -170,7 +187,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=200,
                               content_type='application/json',
-                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval, 'contain':self.contain } }),
+                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval, 'contain':self.contain, 'clock' : self.clock } }),
                             )
                         except Exception as ex:
                             print("Error getting init data: " + str(ex))
@@ -234,6 +251,128 @@ class PhotoFrameAPIHandler(APIHandler):
                               content_type='application/json',
                               content=json.dumps("Error while deleting point(s): " + str(ex)),
                             )
+                        
+
+                    elif request.path == '/wake':
+                        if self.DEBUG:
+                            print("WAKING")
+                        
+                        try:
+                        
+                            try:
+                                print("> DISPLAY=:0 xset dpms force on")
+                                cmd = 'DISPLAY=:0 xset dpms force on'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("1")
+                            
+                            try:
+                                print("DISPLAY=\":0.0\" sudo xdotool key space")
+                                cmd = 'DISPLAY=":0.0" sudo xdotool key space'
+                                os.system(cmd)
+                            
+                            except Exception as ex:
+                                print("2")
+                                
+                            try:
+                                print("xdotool key space")
+                                cmd = 'xdotool key space'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("2")
+                                
+                            try:
+                                print("sudo xdotool key space")
+                                cmd = 'sudo xdotool key space'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("2")
+                        
+                        
+                            try:
+                                cmd = 'DISPLAY=":10" xdotool key space'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("2")
+                                
+                                
+                            try:
+                                cmd = 'DISPLAY="localhost:10.0" sudo xdotool mousemove_relative 1 1'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("3")
+                                
+                            try:
+                                cmd = 'DISPLAY="localhost:10.0" xdotool key space'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("3")
+
+
+                            try:
+                                cmd = 'DISPLAY=":10.0" xdotool key space'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("3")
+
+
+                            try:
+                                print("sudo bash test is next")
+                                #cmd = 'setterm -blank poke'
+                                cmd = "sudo bash -c 'echo -ne \"\033[9;0]\" > /dev/tty1'"
+                                #sudo bash -c 'echo -ne \"\033[9;0]\" > /dev/tty1'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("4")
+                            
+                            try:
+                                cmd = 'DISPLAY=":0.0"  xset dpms force on'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("5")
+                            
+                            try:
+                                cmd = 'xset -display :0 dpms force on'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("6")
+                                
+                                
+                            try:
+                                cmd = 'xset s reset'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("6")
+                            try:
+                                cmd = 'xset s reset'
+                                os.system(cmd)
+                            except Exception as ex:
+                                print("6")
+                                
+                            
+                            try:
+                                cmd = 'DISPLAY=":0" xset s on s 60'
+                                os.system(cmd)
+                                #self.keyboard.press(Key.cmd)
+                            except Exception as ex:
+                                print("7")
+                            
+                           
+                            
+                            
+                            return APIResponse(
+                              status=200,
+                              content_type='application/json',
+                              content=json.dumps({'state' : 'woken'}),
+                            )
+                        except Exception as ex:
+                            print("Error waking dispay: " + str(ex))
+                            return APIResponse(
+                              status=500,
+                              content_type='application/json',
+                              content=json.dumps("Error while waking up the display: " + str(ex)),
+                            )
+
                         
                         
                     else:

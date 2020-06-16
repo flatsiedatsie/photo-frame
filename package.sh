@@ -4,6 +4,7 @@ version=$(grep '"version":' manifest.json | cut -d: -f2 | cut -d\" -f2)
 
 rm -rf SHA256SUMS package
 rm -rf ._*
+rm -rf .tgz
 rm -rf *.pyc
 rm -rf photos
 mkdir photos

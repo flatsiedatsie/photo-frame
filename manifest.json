@@ -28,6 +28,7 @@
     "default": {
       "Interval": 30,
       "Contain": true,
+	  "Clock": true,
       "Debug": false
     },
     "schema": {
@@ -38,6 +39,10 @@
         },
         "Contain": {
           "description": "If enabled, pictures will be shown in full, with black bars around them. If disabled, they will fit the screen fully, but parts may be cut-off.",
+          "type": "boolean"
+        },
+        "Clock": {
+          "description": "Show the time on top of the photos.",
           "type": "boolean"
         },
         "Debug": {
@@ -52,7 +57,7 @@
     }
   },
   "short_name": "Photo",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "web_accessible_resources": [
     "css/*.css",
     "images/*.svg",

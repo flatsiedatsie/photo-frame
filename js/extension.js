@@ -1,26 +1,28 @@
 (function() {
   class PhotoFrame extends window.Extension {
     constructor() {
-      super('photo-frame');
+      	super('photo-frame');
 			//console.log("Adding Photo frame to menu");
-      this.addMenuEntry('Photo Frame');
+      	  this.addMenuEntry('Photo Frame');
 
-      this.content = '';
-			//var filenames = [];
-			this.filenames = [];
-			window.photo_frame_filenames = [];
+      	this.content = '';
+		//var filenames = [];
+		this.filenames = [];
+		window.photo_frame_filenames = [];
+
+
+		this.interval = 30;
+		this.contain = true;
+		this.clock = false;
 			
-			
-			this.interval = 30;
-			this.contain = true;
-			
-      fetch(`/extensions/${this.id}/views/content.html`)
-        .then((res) => res.text())
-        .then((text) => {
-          this.content = text;
-        })
-        .catch((e) => console.error('Failed to fetch content:', e));
+		fetch(`/extensions/${this.id}/views/content.html`)
+		.then((res) => res.text())
+		.then((text) => {
+			this.content = text;
+		})
+		.catch((e) => console.error('Failed to fetch content:', e));
     }
+		
 		
 		
 		change_picture(){
@@ -72,8 +74,6 @@
 		// HELPER METHODS
 		
 		hasClass(ele,cls) {
-			//console.log(ele);
-			//console.log(cls);
 		  return !!ele.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));
 		}
 
@@ -91,34 +91,6 @@
 		
 		thing_list_click(the_target){
 			const pre = document.getElementById('extension-photo-frame-response-data');
-			
-			// Update CSS
-			/*
-			var remove_click_css_list = document.querySelectorAll('#extension-photo-frame-thing-list > *');
-			for (var i=0, max=remove_click_css_list.length; i < max; i++) {
-				this.removeClass(remove_click_css_list[i],"clicked");
-			}
-			this.addClass(the_target,"clicked");
-			
-			var target_property_id = the_target.getAttribute('data-property-id');
-			var target_data_type = the_target.getAttribute('data-data-type');
-			//console.log(target_data_type);
-			document.getElementById('extension-photo-frame-input-change-data-type').value = target_data_type; // Make sure this is always populated with the correct data type. Bit of a clumsy use of hidden fields, should improve later.
-			//console.log(target_thing_id);
-			
-			// Get data for selected thing
-      window.API.postJson(
-        `/extensions/${this.id}/api/get_property_data`,
-        {'property_id': target_property_id, 'data_type':target_data_type}
-      ).then((body) => {
-            this.display_thing_data(target_property_id, target_data_type, body['data']);
-        		//pre.innerText = JSON.stringify(body, null, 2);
-            //pre.innerText = body['state'];
-      }).catch((e) => {
-				console.log("Photo frame: error getting property data");
-        pre.innerText = e.toString();
-      });
-			*/
     
     }
 
@@ -126,66 +98,17 @@
 
     show() {
       this.view.innerHTML = this.content;
-
-			const pre = document.getElementById('extension-photo-frame-response-data');
-	  	const thing_list = document.getElementById('extension-photo-frame-thing-list');
+	  
+	  const clock_element = document.getElementById('extension-photo-frame-clock');
+	  const pre = document.getElementById('extension-photo-frame-response-data');
+	  const thing_list = document.getElementById('extension-photo-frame-thing-list');
 
 			pre.innerText = "";
 			
 			var this_object = this;
-			//var photo_interval = setInterval(this.change_picture, 10000);
 			
 			this.createDropzoneMethods();
 			
-			
-			//console.log(this._filenames);
-			//console.log("this.filenames 1 = " + window.photo_frame_filenames);
-
-			/*
-			if(document.readyState === "complete") {
-				console.log("Document ready");
-			    createDropzoneMethods();
-			} else {
-			    document.addEventListener("DOMContentLoaded", createDropzoneMethods);
-			}
-			*/
-
-			// TABS
-
-			// Data sculptor
-      /*
-			tab_button_sculptor.addEventListener('click', () => {
-				this.addClass(tab_button_sculptor,"extension-photo-frame-button-active");
-				this.removeClass(tab_button_internal,"extension-photo-frame-button-active");
-				
-				this.addClass(tab_internal,"extension-photo-frame-hidden");
-				this.removeClass(tab_sculptor,"extension-photo-frame-hidden");
-      });
-
-			// Internal logs tab
-      tab_button_internal.addEventListener('click', () => {
-				this.addClass(tab_button_internal,"extension-photo-frame-button-active");
-				this.removeClass(tab_button_sculptor,"extension-photo-frame-button-active");
-				
-				this.addClass(tab_sculptor,"extension-photo-frame-hidden");
-				this.removeClass(tab_internal,"extension-photo-frame-hidden");
-				
-	      window.API.postJson(
-	        `/extensions/${this.id}/api/internal_logs`,
-					{'action':'get' ,'filename':'all'}
-        
-	      ).then((body) => {
-	      	//thing_list.innerText = body['data'];
-	        this.show_internal_logs(body['data']);
-
-	      }).catch((e) => {
-	        //pre.innerText = e.toString();
-					console.log("Photo frame: error in show function");
-					console.log(e.toString());
-	      });
-				
-      });
-			*/
 
 			// EVENT LISTENERS
 
@@ -204,47 +127,14 @@
 			
 			document.getElementById("extension-photo-frame-picture-holder").addEventListener('click', () => {
 
-				/*
-				const picture = document.getElementById('extension-photo-frame-picture-holder');
-				const overview = document.getElementById('extension-photo-frame-overview');
-				this.removeClass(overview,"extension-photo-frame-hidden");
-				this.addClass(picture,"extension-photo-frame-hidden");
-				*/
-				
-				
-				/*
-				try {
-					window.clearInterval(this.photo_interval);
-				}
-				catch (e) {
-					console.log(e); //logMyErrors(e); // pass exception object to error handler
-				}
-				*/
-				
-				
-				//window.Extension.showMenuButton();
 				var menu_button = document.getElementById("menu-button");
 				menu_button.click();//dispatchEvent('click');
 				
-				/*
-				const eventAwesome = new CustomEvent('awesome', {
-				  bubbles: true,
-				  detail: { text: () => textarea.value }
-				});
-				*/
-				//console.log(window.API);
-				//console.log(window.Extension.showMenuButton);
-				//console.log(App);
-				//console.log(window.Menu);
-				//window.App.Menu.show();
-				
-				
-				//window.location = "/things";
 				
       });
 			
 
-			// Get list of properties for sculptor
+	// Get list of photos (as well as other variables)
 			
       window.API.postJson(
         `/extensions/${this.id}/api/list`,
@@ -257,15 +147,19 @@
 				this_object.settings = body['settings'];
 				this_object.interval = body['settings']['interval'];
 				this_object.contain = body['settings']['contain'];
+				this_object.clock = body['settings']['clock'];
 				console.log("interval: " + this_object.interval);
 				console.log("contain: " + this_object.contain);
-        
-				if( this.contain ){
-					//console.log("contain");
+        		console.log("clock: " + this_object.clock);
+		
+		
+		
+				if( this_object.contain ){
+					console.log("contain");
 					document.getElementById('extension-photo-frame-picture-holder').style.backgroundSize = "contain";
 				}
 				else{
-					//console.log("Do not contain");
+					console.log("Do not contain");
 					document.getElementById('extension-photo-frame-picture-holder').style.backgroundSize = "cover";
 				}
 				
@@ -275,6 +169,7 @@
 				this_object.photo_interval = setInterval(function () {
 						//console.log("intervallo");
 						this_object.change_picture();
+	
 				}, this_object.interval * 1000);
 				
 				if( body['data'].length > 0 ){
@@ -299,31 +194,135 @@
 					}, 10 * 1000); // 60 * 1000 milliseconds
 					*/
 				}
+				
+	
+				if(this_object.clock){
+					// Start clock
+					clearInterval(window.photo_frame_clock_interval); 
+					
+					window.photo_frame_clock_interval = setInterval(function () {
+						//console.log("Clock tick");
+						var date = new Date(); /* creating object of Date class */
+						var hour = date.getHours();
+						var min = date.getMinutes();
+						var sec = date.getSeconds();
+			
+						clock_element.innerText = hour + ":" + min;
+			
+					}, 1000);
+				}
+				
+				
+				
 
 
       }).catch((e) => {
         //pre.innerText = e.toString();
 				console.log("Photo frame: error in show list function: " + e.toString());
       });
+	  
+	  
+	  
+	  
+	  // Set interval to keep the screen awake
+	this_object.wake_interval = setInterval(function () {
+		console.log("Sending wake command");
+	        window.API.postJson(
+	          `/extensions/photo-frame/api/wake`,
+	  				{'init':1}
+
+	        ).then((body) => {
+	  			//console.log("wake returned:");
+	  			//console.log(body);
+	        }).catch((e) => {
+	        	//pre.innerText = e.toString();
+	  			console.log("Photo frame: error in keep awake function: " + e.toString());
+	        });
 			
-    }
+	}, 30000);
+	  
+	  
+	
+	
+	
+
+	  
+	/*
+	if ('wakeLock' in navigator) {
+		console.log("wakelock exists");
+	  // Screen Wake Lock API supported 🎉
+		
+		// The wake lock sentinel.
+		var wakeLock = null;
+
+		// Function that attempts to request a screen wake lock.
+		function requestWakeLock(){
+		  try {
+		    this_object.wakeLock = navigator.wakeLock.request('screen');
+		    this_object.wakeLock.addEventListener('release', () => {
+		      console.log('Screen Wake Lock was released');
+		    });
+		    console.log('Screen Wake Lock is active');
+		  } catch (err) {
+		    console.error(`${err.name}, ${err.message}`);
+		  }
+		};
+
+		// Request a screen wake lock…
+		requestWakeLock();
+
+	}
+	else{
+		console.log("WakeLock does not exist")
+		
+	}
+	*/
+	  
+	  
+	  
+	  
+			
+    } // and of show function
 		
 		
-		hide(){
-			try {
-				window.clearInterval(this.photo_interval);
-			}
-			catch (e) {
-				//console.log(e); //logMyErrors(e); // pass exception object to error handler
-			}
+	hide(){
+		
+		try {
+			window.clearInterval(this.photo_interval);
+		}
+		catch (e) {
+			console.log("Could not clear photo rotation interval");
+			console.log(e); //logMyErrors(e); // pass exception object to error handler
 		}
 		
+		try {
+			window.clearInterval(this.wake_interval);
+		}
+		catch (e) {
+			console.log("Could not clear keep awake interval");
+			console.log(e); //logMyErrors(e); // pass exception object to error handler
+		}
 		
+		/*
+		try {
+		  	this.wakeLock.release();
+		  	this.wakeLock = null;
+		}
+		catch (e) {
+			console.log("Could not release wake lock");
+			console.log(e); //logMyErrors(e); // pass exception object to error handler
+		}
+		*/
+	  	
 		
-		
-		//
-		//  SHOW LIST
-		//
+	}
+
+
+
+
+	//
+	//  SHOW LIST
+	//
 		
 
     show_list(file_list){
@@ -348,6 +347,10 @@
 				node.setAttribute("class", "extension-photo-frame-list-item" ); 
 				node.setAttribute("data-filename", file_list[key] );
 				
+				var img_container_node = document.createElement("div");                 					// Create a <li> node
+				img_container_node.setAttribute("class", "extension-photo-frame-list-thumbnail-container" ); 
+				
+				
 				var imgnode = document.createElement("IMG");         // Create a text node
 				imgnode.setAttribute("class","extension-photo-frame-list-thumbnail");
 				imgnode.setAttribute("data-filename",file_list[key]);
@@ -358,7 +361,8 @@
 					this_object.removeClass(picture,"extension-photo-frame-hidden");
 				};
 				//console.log(imgnode);
-				node.appendChild(imgnode); 
+				img_container_node.appendChild(imgnode); 
+				node.appendChild(img_container_node); 
 				
 				var textnode = document.createElement("span"); 
 				textnode.setAttribute("class","extension-photo-frame-deletable_item");
