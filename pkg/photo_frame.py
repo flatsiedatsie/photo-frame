@@ -260,104 +260,10 @@ class PhotoFrameAPIHandler(APIHandler):
                         try:
                         
                             try:
-                                print("> DISPLAY=:0 xset dpms force on")
                                 cmd = 'DISPLAY=:0 xset dpms force on'
                                 os.system(cmd)
                             except Exception as ex:
-                                print("1")
-                            
-                            try:
-                                print("DISPLAY=\":0.0\" sudo xdotool key space")
-                                cmd = 'DISPLAY=":0.0" sudo xdotool key space'
-                                os.system(cmd)
-                            
-                            except Exception as ex:
-                                print("2")
-                                
-                            try:
-                                print("xdotool key space")
-                                cmd = 'xdotool key space'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("2")
-                                
-                            try:
-                                print("sudo xdotool key space")
-                                cmd = 'sudo xdotool key space'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("2")
-                        
-                        
-                            try:
-                                cmd = 'DISPLAY=":10" xdotool key space'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("2")
-                                
-                                
-                            try:
-                                cmd = 'DISPLAY="localhost:10.0" sudo xdotool mousemove_relative 1 1'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("3")
-                                
-                            try:
-                                cmd = 'DISPLAY="localhost:10.0" xdotool key space'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("3")
-
-
-                            try:
-                                cmd = 'DISPLAY=":10.0" xdotool key space'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("3")
-
-
-                            try:
-                                print("sudo bash test is next")
-                                #cmd = 'setterm -blank poke'
-                                cmd = "sudo bash -c 'echo -ne \"\033[9;0]\" > /dev/tty1'"
-                                #sudo bash -c 'echo -ne \"\033[9;0]\" > /dev/tty1'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("4")
-                            
-                            try:
-                                cmd = 'DISPLAY=":0.0"  xset dpms force on'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("5")
-                            
-                            try:
-                                cmd = 'xset -display :0 dpms force on'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("6")
-                                
-                                
-                            try:
-                                cmd = 'xset s reset'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("6")
-                            try:
-                                cmd = 'xset s reset'
-                                os.system(cmd)
-                            except Exception as ex:
-                                print("6")
-                                
-                            
-                            try:
-                                cmd = 'DISPLAY=":0" xset s on s 60'
-                                os.system(cmd)
-                                #self.keyboard.press(Key.cmd)
-                            except Exception as ex:
-                                print("7")
-                            
-                           
+                                print("Error while trying to keep the display from sleeping")
                             
                             
                             return APIResponse(
