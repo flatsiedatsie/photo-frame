@@ -270,8 +270,7 @@ LIST
 	
 	#extension-photo-frame-view{
 		top:0;
-		/*left:9.6rem;*/
-		left:0;
+		left:9.6rem;
 	}
 	
 	#extension-photo-frame-content-container{
