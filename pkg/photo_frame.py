@@ -5,6 +5,8 @@ import functools
 import json
 import os
 import re
+import sys
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib'))
 #from os import listdir
 #from os.path import isfile, join
 from time import sleep
@@ -27,6 +29,18 @@ except:
     print("Gateway not loaded?!")
 
 print = functools.partial(print, flush=True)
+
+
+_TIMEOUT = 3
+
+_CONFIG_PATHS = [
+    os.path.join(os.path.expanduser('~'), '.webthings', 'config'),
+]
+
+if 'WEBTHINGS_HOME' in os.environ:
+    _CONFIG_PATHS.insert(0, os.path.join(os.environ['WEBTHINGS_HOME'], 'config'))
+
+
 
 
 class PhotoFrameAPIHandler(APIHandler):
@@ -83,8 +97,8 @@ class PhotoFrameAPIHandler(APIHandler):
             print("Failed to init UX extension API handler: " + str(e))
         
         try:
-            self.addon_path = os.path.join(os.path.expanduser('~'), '.mozilla-iot', 'addons', self.addon_name)
-            self.persistence_file_folder = os.path.join(os.path.expanduser('~'), '.mozilla-iot', 'data', self.addon_name)
+            self.addon_path =  os.path.join(self.user_profile['addonsDir'], self.addon_name)
+            #self.persistence_file_folder = os.path.join(self.user_profile['configDir'])
             self.photos_dir_path = os.path.join(self.addon_path, 'photos')
         except Exception as e:
             print("Failed to make paths: " + str(e))
@@ -99,7 +113,7 @@ class PhotoFrameAPIHandler(APIHandler):
         # Respond to gateway version
         try:
             if self.DEBUG:
-                print("Gateway version deteted: " + self.gateway_version)
+                print("Gateway version: " + self.gateway_version)
         except:
             if self.DEBUG:
                 print("self.gateway_version did not exist")
