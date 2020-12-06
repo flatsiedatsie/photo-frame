@@ -1,7 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 
 version=$(grep '"version"' manifest.json | cut -d: -f2 | cut -d\" -f2)
-
 # Setup environment for building inside Dockerized toolchain
 [ $(id -u) = 0 ] && umask 0
 
@@ -25,13 +24,14 @@ rm -rf photos
 mkdir -p photos
 
 mkdir -p lib package
-mkdir package/photos
-
+mkdir -p package/photos
 # Pull down Python dependencies
 pip3 install -r requirements.txt -t lib --no-binary :all: --prefix ""
 
 cp *.py manifest.json LICENSE README.md package/
 cp -r pkg lib css images js views package/
+find package -type f -name '*.pyc' -delete
+find package -type f -name '._*' -delete
 
 echo "generating checksums"
 cd package
@@ -39,9 +39,12 @@ find . -type f \! -name SHA256SUMS -exec shasum --algorithm 256 {} \; >> SHA256S
 cd -
 
 echo "creating archive"
-TARFILE="photo-frame-${version}${TARFILE_SUFFIX}.tgz"
-tar czf ${TARFILE} package
 
+# Make the tarball
+sha256sum "photo-frame-${version}.tgz"	echo "creating archive"
+TARFILE="photo-frame-${version}.tgz"
+tar czf ${TARFILE} package
 
 shasum --algorithm 256 ${TARFILE} > ${TARFILE}.sha256sum
 cat ${TARFILE}.sha256sum
+
