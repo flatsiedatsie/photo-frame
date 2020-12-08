@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 version=$(grep '"version"' manifest.json | cut -d: -f2 | cut -d\" -f2)
+
 # Setup environment for building inside Dockerized toolchain
 [ $(id -u) = 0 ] && umask 0
 
@@ -16,6 +17,7 @@ fi
 
 mkdir -p lib package
 mkdir -p package/photos
+
 # Pull down Python dependencies
 pip3 install -r requirements.txt -t lib --no-binary :all: --prefix ""
 
@@ -29,9 +31,10 @@ cd package
 find . -type f \! -name SHA256SUMS -exec shasum --algorithm 256 {} \; >> SHA256SUMS
 cd -
 
-echo "creating archive"
+
 
 # Make the tarball
+echo "creating archive"
 TARFILE="photo-frame-${version}.tgz"
 tar czf ${TARFILE} package
 
