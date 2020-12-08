@@ -189,7 +189,8 @@ class PhotoFrameAPIHandler(APIHandler):
                 try:
                     
                     if request.path == '/list':
-                        print("LISTING")
+                        if self.DEBUG:
+                            print("LISTING")
                         # Get the list of photos
                         try:
                             data = self.scan_photo_dir()
@@ -214,7 +215,8 @@ class PhotoFrameAPIHandler(APIHandler):
                             
                             
                     elif request.path == '/delete':
-                        print("DELETING")
+                        if self.DEBUG:
+                            print("DELETING")
                         try:
                             data = []
                             #target_data_type = self.data_types_lookup_table[int(request.body['property_id'])]
@@ -243,7 +245,8 @@ class PhotoFrameAPIHandler(APIHandler):
                             
                             
                     elif request.path == '/save':
-                        print("SAVING")
+                        if self.DEBUG:
+                            print("SAVING")
                         try:
                             data = []
                             
@@ -368,7 +371,8 @@ class PhotoFrameAPIHandler(APIHandler):
 
 
     def save_photo(self,filename, filedata, parts_total, parts_current):
-        print("in file save method. Filename: " + str(filename))
+        if self.DEBUG:
+            print("in file save method. Filename: " + str(filename))
 
         result = []
         save_path = os.path.join(self.photos_dir_path, str(filename))
@@ -397,7 +401,8 @@ class PhotoFrameAPIHandler(APIHandler):
         # Save file
         try:
             if filename.endswith('.jpg') or filename.endswith('.jpeg') or filename.endswith('.gif'):
-                print("saving to file: " + str(save_path))
+                if self.DEBUG:
+                    print("saving to file: " + str(save_path))
                 with open(save_path, "wb") as fh:
                     fh.write(base64.b64decode(base64_data))
                 result = self.scan_photo_dir()
