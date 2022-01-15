@@ -84,7 +84,12 @@
 
 
     show() {
-    	this.view.innerHTML = this.content;
+		if(this.content == ''){
+			return;
+		}
+		else{
+			this.view.innerHTML = this.content;
+		}	
 	  
 		const clock_element = document.getElementById('extension-photo-frame-clock');
 		const pre = document.getElementById('extension-photo-frame-response-data');
