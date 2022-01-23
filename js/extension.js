@@ -14,6 +14,7 @@
 			this.interval = 30;
 			this.contain = true;
 			this.clock = false;
+            this.seconds_counter = 0; // if it reaches the interval value, then it will show another picture.
 			
 			fetch(`/extensions/${this.id}/views/content.html`)
 			.then((res) => res.text())
@@ -158,11 +159,20 @@
 		
 		
 		// Interval
-		this_object.photo_interval = setInterval(function () {
+		this_object.photo_interval = setInterval(() => {
 				//console.log("intervallo");
-				this_object.change_picture();
+				
+                
+                if(this_object.seconds_counter > this_object.interval){
+                    this_object.change_picture();
+                }
+                else{
+                    this_object.seconds_counter++;
+                }
+                
+                console.log(this_object.seconds_counter);
 
-		}, this_object.interval * 1000);
+		}, 1000);
 		
 		if( body['data'].length > 0 ){
 			
@@ -300,42 +310,56 @@
 			node.appendChild(img_container_node); 
 			
 			var textnode = document.createElement("span"); 
-			textnode.setAttribute("class","extension-photo-frame-deletable_item");
+			textnode.setAttribute("class","extension-photo-frame-thumbnail-name");
 			textnode.setAttribute("data-filename", file_list[key]);
 			//console.log(textnode);
-			textnode.innerHTML = file_list[key];         // Create a text node
-			textnode.onclick = function() { 
-				//this_object.delete_file( file_list[key] );
-				//console.log(this.getAttribute("data-filename"));
-				this_object.delete_file( this.getAttribute("data-filename") );
-			};
+            var file_name_human_readable = file_list[key].substring(0, file_list[key].lastIndexOf('.')) || file_list[key]
+			textnode.innerHTML = file_name_human_readable.replace(/\_/g , " ");         // Create a text node
+
+
 			node.appendChild(textnode); 
 			
+            // Add delete button
+            var delete_button = document.createElement("div");
+            delete_button.setAttribute("class","extension-photo-frame-thumbnail-delete-button");
+            delete_button.setAttribute("data-filename", file_list[key]);
+            
+			delete_button.onclick = function() { 
+				//this_object.delete_file( file_list[key] );
+				//console.log(this.getAttribute("data-filename"));
+                if( confirm("Are you sure?")){
+                    this_object.delete_file( this.getAttribute("data-filename") );
+                }
+				
+			};
+            node.appendChild(delete_button); 
+            
+            
 			photo_list.appendChild(node);
 		}
 		pre.innerText = "";
 	}
 
 		
-		
+	
 	delete_file(filename){
-    //console.log("Deleting file:" + filename);
+        //console.log("Deleting file:" + filename);
 			
-	const pre = document.getElementById('extension-photo-frame-response-data');
-	const photo_list = document.getElementById('extension-photo-frame-photo-list');
+    	const pre = document.getElementById('extension-photo-frame-response-data');
+    	const photo_list = document.getElementById('extension-photo-frame-photo-list');
 		
-    window.API.postJson(
-        `/extensions/${this.id}/api/delete`,
-        {'action':'delete', 'filename':filename}
+        window.API.postJson(
+            `/extensions/${this.id}/api/delete`,
+            {'action':'delete', 'filename':filename}
 				
-      ).then((body) => { 
-				//console.log(body);
-        this.show_list(body['data']);
+          ).then((body) => { 
+    		//console.log(body);
+            this.show_list(body['data']);
 
-      }).catch((e) => {
-				console.log("Photo frame: error in delete response");
-        pre.innerText = e.toString();
-      });
+          }).catch((e) => {
+    		console.log("Photo frame: error in delete response");
+            pre.innerText = e.toString();
+          });
     
     }
 		
@@ -346,36 +370,75 @@
 		const overview = document.getElementById('extension-photo-frame-overview');
 		//console.log("showing photo: " + filename);
 		picture.style.backgroundImage="url(/extensions/photo-frame/photos/" + filename + ")";
+        this.seconds_counter = 0;
 	}
 
 
 	upload_files(files){
 		if (files && files[0]) {
 			
-			var filename = files[0]['name'];
-				//console.log(filename);
-		    var FR = new FileReader();
+			var filename = files[0]['name'].replace(/\s/g , "_");
+            var filetype = files[0].type;
+            console.log("filename and type: ", filename, filetype);
+            
+		    var reader = new FileReader();
 
-				var this_object = this;
-		    FR.addEventListener("load", function(e) {
-			
-				var this_object2 = this_object;
-				window.API.postJson(
-		        	`/extensions/photo-frame/api/save`,
-		        	{'action':'upload', 'filename':filename, 'filedata':e.target.result, 'parts_total':1, 'parts_current':1}
+			var this_object = this;
+		    reader.addEventListener("load", (e) => {
+			    
+                var image = new Image();
+                    image.src = reader.result;
 
-			      ).then((body) => {
-			        this_object.show_list(body['data']);
+                image.onload = function() {
+                    var maxWidth = 1270,
+                        maxHeight = 1270,
+                        imageWidth = image.width,
+                        imageHeight = image.height;
 
-			      }).catch((e) => {
-					  document.getElementById('extension-photo-frame-response-data').innerText = e.toString();
-			      });
+                  if (imageWidth > imageHeight) {
+                      if (imageWidth > maxWidth) {
+                          imageHeight *= maxWidth / imageWidth;
+                          imageWidth = maxWidth;
+                      }
+                  }
+                  else {
+                      if (imageHeight > maxHeight) {
+                        imageWidth *= maxHeight / imageHeight;
+                        imageHeight = maxHeight;
+                      }
+                  }
+
+                  var canvas = document.createElement('canvas');
+                  canvas.width = imageWidth;
+                  canvas.height = imageHeight;
+
+                  var ctx = canvas.getContext("2d");
+                  ctx.drawImage(this, 0, 0, imageWidth, imageHeight);
+
+                  // The resized file ready for upload
+                  var finalFile = canvas.toDataURL(filetype);
+                  
+                  //var this_object2 = this_object;
+                  
+                  window.API.postJson(
+    		        	`/extensions/photo-frame/api/save`,
+                      {'action':'upload', 'filename':filename, 'filedata': finalFile, 'parts_total':1, 'parts_current':1} //e.target.result
+
+    			      ).then((body) => {
+    			          this_object.show_list(body['data']);
+
+    			      }).catch((e) => {
+    					  console.log("Error uploading image: ", e);
+                          alert("Error, could not upload the image. Perhaps it's too big.");     
+    			      });
+                }
 			
 		    }); 
 
-		    FR.readAsDataURL( files[0] );
+		    reader.readAsDataURL( files[0] );
 	  	}
 	}
+
 
 
 
