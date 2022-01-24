@@ -113,7 +113,7 @@
 				this.upload_files(filesSelected);
 			});
 			
-			this.createDropzoneMethods();
+			//this.createDropzoneMethods(); //  disabled, as files could be too big. For now users can just upload an image one at a time.
 		}
 			
 			
@@ -309,16 +309,16 @@
 			img_container_node.appendChild(imgnode); 
 			node.appendChild(img_container_node); 
 			
+            /*
 			var textnode = document.createElement("span"); 
 			textnode.setAttribute("class","extension-photo-frame-thumbnail-name");
 			textnode.setAttribute("data-filename", file_list[key]);
 			//console.log(textnode);
             var file_name_human_readable = file_list[key].substring(0, file_list[key].lastIndexOf('.')) || file_list[key]
 			textnode.innerHTML = file_name_human_readable.replace(/\_/g , " ");         // Create a text node
-
-
 			node.appendChild(textnode); 
-			
+            */
+            
             // Add delete button
             var delete_button = document.createElement("div");
             delete_button.setAttribute("class","extension-photo-frame-thumbnail-delete-button");
@@ -377,7 +377,7 @@
 	upload_files(files){
 		if (files && files[0]) {
 			
-			var filename = files[0]['name'].replace(/\s/g , "_");
+			var filename = files[0]['name'].replace(/[^a-zA-Z0-9\.]/gi, '_').toLowerCase(); //.replace(/\s/g , "_");
             var filetype = files[0].type;
             console.log("filename and type: ", filename, filetype);
             
@@ -441,7 +441,7 @@
 
 
 
-
+    /*
 	createDropzoneMethods() {
 	    let dropzone = document.getElementById("extension-photo-frame-dropzone");
 			const pre = document.getElementById('extension-photo-frame-response-data');
@@ -466,6 +466,7 @@
 			this_object.upload_files(files);
 	    }    
 	}
+    */
 	
 	
 }
