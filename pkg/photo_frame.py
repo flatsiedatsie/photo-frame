@@ -9,7 +9,8 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib'))
 #from os import listdir
 #from os.path import isfile, join
-from time import sleep
+from time import sleep, time
+import random
 import datetime
 import subprocess
 import threading
@@ -29,6 +30,10 @@ except:
     print("Gateway not loaded?!")
 
 print = functools.partial(print, flush=True)
+
+
+
+
 
 
 _TIMEOUT = 3
@@ -100,6 +105,8 @@ class PhotoFrameAPIHandler(APIHandler):
             self.addon_path =  os.path.join(self.user_profile['addonsDir'], self.addon_name)
             #self.persistence_file_folder = os.path.join(self.user_profile['configDir'])
             self.photos_dir_path = os.path.join(self.addon_path, 'photos')
+            #self.photos_dir_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'photos')
+            
         except Exception as e:
             print("Failed to make paths: " + str(e))
             
@@ -375,9 +382,21 @@ class PhotoFrameAPIHandler(APIHandler):
             print("in file save method. Filename: " + str(filename))
 
         result = []
-        save_path = os.path.join(self.photos_dir_path, str(filename))
-
         
+        filename = re.sub("[^a-zA-Z0-9.]","_",filename)
+        
+        #filename = "".join([c for c in filename if re.match(r'\w\.', c)])
+        #re.sub("^[a-zA-Z0-9.]","_",filename)
+        print("2: " + str(filename))
+        filename = str(int(time())) + "-" + filename
+        print("3: " + str(filename))
+        
+        #filename = str(int(time())) + "-" + re.sub("[ˆa-zA-Z0-9\.]","_",filename)
+        if self.DEBUG:
+            print("in file save method. Cleaned filename: " + str(filename))
+        save_path = os.path.join(self.photos_dir_path, str(filename))
+        if self.DEBUG:
+            print("file will be saved to: " + str(save_path))
         base64_data = re.sub('^data:image/.+;base64,', '', filedata)
         
 
