@@ -35,7 +35,7 @@
       "properties": {
         "Interval": {
           "description": "How many seconds between changing to another random photo.",
-          "type": "string"
+          "type": "integer"
         },
         "Contain": {
           "description": "If enabled, pictures will be shown in full, with black bars around them. If disabled, they will fit the screen fully, but parts may be cut-off.",
@@ -57,13 +57,13 @@
     }
   },
   "short_name": "Photo",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "web_accessible_resources": [
     "css/*.css",
     "images/*.svg",
-		"photos/*.gif",
-		"photos/*.jpg",
-		"photos/*.jpeg",
+	"photos/*.gif",
+	"photos/*.jpg",
+	"photos/*.jpeg",
     "js/*.js",
     "views/*.html"
   ]
