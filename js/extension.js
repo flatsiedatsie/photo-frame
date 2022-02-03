@@ -103,7 +103,7 @@
 		if( window.innerHeight == screen.height) {
 			//console.log("fullscreen");
 			document.getElementById('extension-photo-frame-photos-file-selector').outerHTML = "";
-			document.getElementById('extension-photo-frame-dropzone').outerHTML = "";
+			//document.getElementById('extension-photo-frame-dropzone').outerHTML = "";
 			
 		}
 		else{
@@ -170,7 +170,7 @@
                     this_object.seconds_counter++;
                 }
                 
-                console.log(this_object.seconds_counter);
+                //console.log(this_object.seconds_counter);
 
 		}, 1000);
 		
@@ -217,7 +217,7 @@
 
       	}).catch((e) => {
         	//pre.innerText = e.toString();
-			console.log("Photo frame: error in show list function: " + e.toString());
+			//console.log("Photo frame: error in show list function: " + e.toString());
       	});
 	  
 	  
@@ -235,7 +235,7 @@
 	  			//console.log(body);
 	        }).catch((e) => {
 	        	//pre.innerText = e.toString();
-	  			console.log("Photo frame: error in keep awake function: " + e.toString());
+	  			//console.log("Photo frame: error in keep awake function: " + e.toString());
 	        });
 			
 		}, 30000);
@@ -249,16 +249,16 @@
 			window.clearInterval(this.photo_interval);
 		}
 		catch (e) {
-			console.log("Could not clear photo rotation interval");
-			console.log(e); //logMyErrors(e); // pass exception object to error handler
+			//console.log("Could not clear photo rotation interval");
+			//console.log(e); //logMyErrors(e); // pass exception object to error handler
 		}
 		
 		try {
 			window.clearInterval(this.wake_interval);
 		}
 		catch (e) {
-			console.log("Could not clear keep awake interval");
-			console.log(e); //logMyErrors(e); // pass exception object to error handler
+			//console.log("Could not clear keep awake interval");
+			//console.log(e); //logMyErrors(e); // pass exception object to error handler
 		}
 	}
 
@@ -357,7 +357,7 @@
             this.show_list(body['data']);
 
           }).catch((e) => {
-    		console.log("Photo frame: error in delete response");
+    		//console.log("Photo frame: error in delete response");
             pre.innerText = e.toString();
           });
     
@@ -379,7 +379,7 @@
 			
 			var filename = files[0]['name'].replace(/[^a-zA-Z0-9\.]/gi, '_').toLowerCase(); //.replace(/\s/g , "_");
             var filetype = files[0].type;
-            console.log("filename and type: ", filename, filetype);
+            //console.log("filename and type: ", filename, filetype);
             
 		    var reader = new FileReader();
 
@@ -428,7 +428,7 @@
     			          this_object.show_list(body['data']);
 
     			      }).catch((e) => {
-    					  console.log("Error uploading image: ", e);
+    					  //console.log("Error uploading image: ", e);
                           alert("Error, could not upload the image. Perhaps it's too big.");     
     			      });
                 }
