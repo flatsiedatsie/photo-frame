@@ -12,6 +12,7 @@
 
 
 			this.interval = 30;
+            this.screensaver_delay = 0;
 			this.contain = true;
 			this.clock = false;
             this.seconds_counter = 0; // if it reaches the interval value, then it will show another picture.
@@ -26,8 +27,65 @@
 			})
 			.catch((e) => console.error('Failed to fetch content:', e));
 			
+            
+            // Check if screensaver should be active
+	        window.API.postJson(
+	          `/extensions/photo-frame/api/list`,
+	  				{'init':1}
+
+	        ).then((body) => {
+	  			console.log("photo frame: init returned:");
+                console.log(body);
+	  			console.log(body.settings.screensaver_delay);
+                if(body.settings.screensaver_delay > 0){
+                    this.screensaver_delay = body.settings.screensaver_delay;
+                
+                    this.start_screensaver_listeners(this.screensaver_delay);
+                }
+                
+                
+                
+	        }).catch((e) => {
+	  			console.log("Photo frame: error in init function: " + e.toString());
+	        });
+            
+            
 	    }
 		
+        
+        
+        start_screensaver_listeners(delay_seconds) {
+            //console.log('starting activity timeout check for screensaver');
+            var t;
+            window.onload = resetTimer.bind(this);
+            window.onmousemove = resetTimer.bind(this);
+            window.onmousedown = resetTimer.bind(this);  // catches touchscreen presses as well      
+            window.ontouchstart = resetTimer.bind(this); // catches touchscreen swipes as well      
+            window.ontouchmove = resetTimer.bind(this);  // required by some devices 
+            window.onclick = resetTimer.bind(this);      // catches touchpad clicks as well
+            window.onkeydown = resetTimer.bind(this);   
+            window.addEventListener('scroll', resetTimer.bind(this), true); // improved; see comments
+
+
+            function resetTimer() {
+                //console.log("resetTimer delay_seconds: ", delay_seconds);
+                clearTimeout(this.t);
+                this.t = setTimeout(this.start_screensaver, delay_seconds * 1000);  // time is in milliseconds
+            }
+        }
+        
+        
+        start_screensaver() {
+            //console.log("starting screensaver");
+    
+			const photo_frame_menu_button = document.getElementById("extension-photo-frame-menu-item");
+			photo_frame_menu_button.click();
+    
+                
+        }
+        
+        
+        
 		
 		
 		change_picture(){
@@ -85,6 +143,7 @@
 
 
     show() {
+        console.log("in photo frame show");
 		if(this.content == ''){
 			return;
 		}
@@ -148,68 +207,68 @@
 				this_object.contain = body['settings']['contain'];
 				this_object.clock = body['settings']['clock'];
 		
-		if( this_object.contain ){
-			//console.log("Contain the image");
-			document.getElementById('extension-photo-frame-picture-holder').style.backgroundSize = "contain";
-		}
-		else{
-			//console.log("Do not contain the image");
-			document.getElementById('extension-photo-frame-picture-holder').style.backgroundSize = "cover";
-		}
+        		if( this_object.contain ){
+        			//console.log("Contain the image");
+        			document.getElementById('extension-photo-frame-picture-holder').style.backgroundSize = "contain";
+        		}
+        		else{
+        			//console.log("Do not contain the image");
+        			document.getElementById('extension-photo-frame-picture-holder').style.backgroundSize = "cover";
+        		}
 		
 		
-		// Interval
-		this_object.photo_interval = setInterval(() => {
-				//console.log("intervallo");
+        		// Interval
+        		this_object.photo_interval = setInterval(() => {
+        				//console.log("intervallo");
 				
                 
-                if(this_object.seconds_counter > this_object.interval){
-                    this_object.change_picture();
-                }
-                else{
-                    this_object.seconds_counter++;
-                }
+                        if(this_object.seconds_counter > this_object.interval){
+                            this_object.change_picture();
+                        }
+                        else{
+                            this_object.seconds_counter++;
+                        }
                 
-                //console.log(this_object.seconds_counter);
+                        //console.log(this_object.seconds_counter);
 
-		}, 1000);
+        		}, 1000);
 		
-		if( body['data'].length > 0 ){
+        		if( body['data'].length > 0 ){
 			
-			this_object.filenames = body['data'];
-			this_object.show_list(body['data']);
-			this_object.change_picture();
+        			this_object.filenames = body['data'];
+        			this_object.show_list(body['data']);
+        			this_object.change_picture();
 
-		}
+        		}
 		
 
-		if(this_object.clock){
-			// Start clock
-			clearInterval(window.photo_frame_clock_interval); 
+        		if(this_object.clock){
+        			// Start clock
+        			clearInterval(window.photo_frame_clock_interval); 
 			
-			window.photo_frame_clock_interval = setInterval(function () {
-				//console.log("Clock tick");
+        			window.photo_frame_clock_interval = setInterval(function () {
+        				//console.log("Clock tick");
 				
-				var hour_padding = "";
-				var minute_padding = "";
+        				var hour_padding = "";
+        				var minute_padding = "";
 				
-				var date = new Date(); /* creating object of Date class */
-				var hour = date.getHours();
-				var min = date.getMinutes();
-				var sec = date.getSeconds();
+        				var date = new Date(); /* creating object of Date class */
+        				var hour = date.getHours();
+        				var min = date.getMinutes();
+        				var sec = date.getSeconds();
 	
 	
-				if( min < 10 ){
-					minute_padding = "0";
-				}
-				if( hour < 10 ){
-					hour_padding = "0";
-				}
+        				if( min < 10 ){
+        					minute_padding = "0";
+        				}
+        				if( hour < 10 ){
+        					hour_padding = "0";
+        				}
 				
-				clock_element.innerText = hour + ":" + minute_padding + min;
+        				clock_element.innerText = hour + ":" + minute_padding + min;
 	
-			}, 1000);
-		}
+        			}, 1000);
+        		}
 				
 				
 				

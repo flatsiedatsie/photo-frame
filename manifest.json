@@ -27,6 +27,7 @@
   "options": {
     "default": {
       "Interval": 30,
+	  "Screensaver delay": "60",
       "Contain": true,
 	  "Clock": true,
       "Debug": false
@@ -36,6 +37,21 @@
         "Interval": {
           "description": "How many seconds between changing to another random photo.",
           "type": "integer"
+        },
+        "Screensaver delay": {
+          "description": "After how many seconds of inactivity should the photo frame switch itself on as a screensaver? Select 0 if you don't want photo frame to act as a screensaver. The default is 60 seconds. The maximum is 600 (10 minutes)",
+          "enum": [
+              "0",
+              "20",
+              "40",
+			  "60",
+              "120",
+			  "180",
+              "240",
+			  "300",
+              "600"
+          ],
+          "type": "string"
         },
         "Contain": {
           "description": "If enabled, pictures will be shown in full, with black bars around them. If disabled, they will fit the screen fully, but parts may be cut-off.",
@@ -57,7 +73,7 @@
     }
   },
   "short_name": "Photo",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "web_accessible_resources": [
     "css/*.css",
     "images/*.svg",

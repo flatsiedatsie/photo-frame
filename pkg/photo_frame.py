@@ -59,13 +59,14 @@ class PhotoFrameAPIHandler(APIHandler):
         
         self.addon_name = 'photo-frame'
         self.server = 'http://127.0.0.1:8080'
-        self.DEV = True
-        self.DEBUG = True
+        self.DEV = False
+        self.DEBUG = False
             
         self.things = [] # Holds all the things, updated via the API. Used to display a nicer thing name instead of the technical internal ID.
         self.data_types_lookup_table = {}
             
         self.interval = 30
+        self.screensaver_delay = 60
         self.contain = 1
         
         self.clock = False
@@ -164,6 +165,11 @@ class PhotoFrameAPIHandler(APIHandler):
             self.interval = int(config['Interval'])
             if self.DEBUG:
                 print("-Interval preference was in config: " + str(self.interval))
+                
+        if 'Screensaver delay' in config:
+            self.screensaver_delay = int(config['Screensaver delay'])
+            if self.DEBUG:
+                print("-Screensaver delay preference was in config: " + str(self.screensaver_delay))
 
         if 'Contain' in config:
             self.contain = bool(config['Contain'])
@@ -209,7 +215,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=200,
                               content_type='application/json',
-                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval, 'contain':self.contain, 'clock' : self.clock } }),
+                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval,'screensaver_delay': self.screensaver_delay, 'contain':self.contain, 'clock' : self.clock } }),
                             )
                         except Exception as ex:
                             print("Error getting init data: " + str(ex))
