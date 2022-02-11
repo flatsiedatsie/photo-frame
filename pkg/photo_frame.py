@@ -69,8 +69,8 @@ class PhotoFrameAPIHandler(APIHandler):
         self.screensaver_delay = 60
         self.contain = 1
         
-        self.clock = False
-        
+        self.show_clock = False
+        self.show_date = False
         
         #os.environ["DISPLAY"] = ":0.0"
         
@@ -148,6 +148,7 @@ class PhotoFrameAPIHandler(APIHandler):
             
         except:
             print("Error! Failed to open settings database.")
+            self.close_proxy()
         
         if not config:
             print("Error loading config from database")
@@ -176,10 +177,15 @@ class PhotoFrameAPIHandler(APIHandler):
             if self.DEBUG:
                 print("-Contain photo preference was in config: " + str(self.contain))
 
-        if 'Clock' in config:
-            self.clock = int(config['Clock'])
+        if 'Show clock' in config:
+            self.show_clock = int(config['Show clock'])
             if self.DEBUG:
-                print("-Clock preference was in config: " + str(self.clock))
+                print("-Clock preference was in config: " + str(self.show_clock))
+
+        if 'Show date' in config:
+            self.show_date = int(config['Show date'])
+            if self.DEBUG:
+                print("-Date preference was in config: " + str(self.show_date))
 
 
 
@@ -215,7 +221,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=200,
                               content_type='application/json',
-                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval,'screensaver_delay': self.screensaver_delay, 'contain':self.contain, 'clock' : self.clock } }),
+                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval,'screensaver_delay': self.screensaver_delay, 'contain':self.contain, 'show_clock' : self.show_clock, 'show_date' : self.show_date } }),
                             )
                         except Exception as ex:
                             print("Error getting init data: " + str(ex))

@@ -5,6 +5,7 @@
 
 #extension-photo-frame-overview{
 	margin-top:6rem;
+    /*max-width: calc(100% - 2rem);*/
 }
 
 #extension-photo-frame-picture-holder{
@@ -14,9 +15,6 @@
 	position:fixed;
 	top:0;
 	left:0;
-    background-repeat: no-repeat;
-    background-size: contain;
-	background-position: center; 
 	display:flex;
 	flex-wrap:wrap;
 	align-content: space-between;
@@ -25,6 +23,7 @@
     z-index:3;
 }
 
+/*
 #extension-photo-frame-picture-exit{
 	border:1px solid white;
 	opacity:.4;
@@ -41,14 +40,15 @@
 	opacity:1;
 	background-color:#5288af;
 }
-
+*/
 
 #extension-photo-frame-photos-list{
-	background-color:rgba(255,255,255,.1);
+	background-color:rgba(0,0,0,.2);
 	display:flex;
 	flex-wrap:wrap;
     padding:2rem;
     border-radius:.5rem;
+    box-sizing:border-box;
 }
 
 
@@ -147,6 +147,9 @@
     opacity:1;
 }
 
+.kiosk #extension-photo-frame-photos-file-selector{
+    display:none;
+}
 
 
 #extension-photo-frame-icon{
@@ -235,16 +238,40 @@
 
 
 #extension-photo-frame-clock-container{
-    text-align:right;
+    position:absolute;
+    top:0;
+    right:0;
+    display:flex;
+    flex-direction:column;
 }
 
 #extension-photo-frame-clock{
+    display:none;
 	padding:1rem 2rem;
 	font-size:6rem;
 	font-weight: bold;
 	text-shadow: 2px 2px 4px rgba(0,0,0,.2);
 	cursor:default;
 }
+
+#extension-photo-frame-date{
+    display:none;
+}
+
+#extension-photo-frame-date-day{
+    text-align:center;
+    padding: .5rem 2rem 0 2rem;
+    font-size:3rem;
+    
+}
+
+#extension-photo-frame-date-container{
+    display:flex;
+    justify-content:center;
+    padding: .5rem 2rem;
+}
+
+
 
 /*
 
@@ -301,7 +328,7 @@ LIST
 }
 
 
-#extension-photo-frame-clock-container,
+/*#extension-photo-frame-clock-container,
 #extension-photo-frame-picture-exit-container{
 	width:100%;
 }
@@ -309,7 +336,61 @@ LIST
 #extension-photo-frame-picture-exit-container{
 	text-align:center;
 }
+*/
 
+#extension-photo-frame-more-button{
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: no-repeat center/100% url(/images/overflow.svg);
+    cursor:pointer;
+}
+/*
+#extension-photo-frame-more-button::after {
+    content: '';
+    position: absolute;
+    bottom: -1rem;
+    right: 1rem;
+    border-width: 1rem 1rem 0;
+    border-style: solid;
+    border-color: #5288af transparent;
+    display: block;
+    width: 0;
+}
+
+*/
+
+
+/*  picture fade in and out  */
+
+.extension-photo-frame-picture{
+    opacity:0;
+    transition:opacity 1s; 
+    width:100vw;
+    height:100vh;
+    position:absolute;
+    top:0;
+    left:0;
+    background-repeat: no-repeat;
+    background-size: contain;
+	background-position: center; 
+}
+
+.extension-photo-frame-current-picture{
+    opacity:1;
+}
+
+
+@media screen and (max-width: 640px) {
+
+    #extension-photo-frame-photos-list{
+        padding:2rem 0;
+    }
+    
+    #extension-photo-frame-view li{
+        margin:.5rem;
+    }
+}
 
 
 @media screen and (min-width: 801px) {
