@@ -67,8 +67,7 @@ class PhotoFrameAPIHandler(APIHandler):
             
         self.interval = 30
         self.screensaver_delay = 60
-        self.contain = 1
-        
+        self.fit_to_screen = "mix"
         self.show_clock = False
         self.show_date = False
         
@@ -172,11 +171,11 @@ class PhotoFrameAPIHandler(APIHandler):
             if self.DEBUG:
                 print("-Screensaver delay preference was in config: " + str(self.screensaver_delay))
 
-        if 'Contain' in config:
-            self.contain = bool(config['Contain'])
+        if 'Fit to screen' in config:
+            self.fit_to_screen = str(config['Fit to screen'])
             if self.DEBUG:
-                print("-Contain photo preference was in config: " + str(self.contain))
-
+                print("-Fit to screen preference was in config: " + str(self.fit_to_screen))
+                
         if 'Show clock' in config:
             self.show_clock = int(config['Show clock'])
             if self.DEBUG:
@@ -222,7 +221,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=200,
                               content_type='application/json',
-                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval,'screensaver_delay': self.screensaver_delay, 'contain':self.contain, 'show_clock' : self.show_clock, 'show_date' : self.show_date } }),
+                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval,'screensaver_delay': self.screensaver_delay, 'fit_to_screen':self.fit_to_screen, 'show_clock' : self.show_clock, 'show_date' : self.show_date } }),
                             )
                         except Exception as ex:
                             print("Error getting init data: " + str(ex))

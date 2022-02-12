@@ -28,7 +28,7 @@
     "default": {
       "Interval": 30,
 	  "Screensaver delay": "60",
-      "Contain": true,
+      "Fit to screen": "mix",
 	  "Clock": true,
 	  "Date": true,
       "Debug": false
@@ -54,9 +54,14 @@
           ],
           "type": "string"
         },
-        "Contain": {
-          "description": "If enabled, pictures might be shown with black bars around them. If disabled, they will cover the screen fully, but parts may be cut-off.",
-          "type": "boolean"
+        "Fit to screen": {
+          "description": "Pictures might can contained within the screen edges, with black bars around them. Alternatively, pictures could cover the screen fully, but then parts may not be visible. It also possible to mix this randomly.",
+          "enum": [
+              "Contain",
+              "Cover",
+              "Mix"
+          ],
+          "type": "string"
         },
         "Show clock": {
           "description": "Show the current time on top of the photos.",
@@ -78,7 +83,7 @@
     }
   },
   "short_name": "Photo",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "web_accessible_resources": [
     "css/*.css",
     "images/*.svg",

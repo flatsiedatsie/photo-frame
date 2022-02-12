@@ -17,7 +17,7 @@
 
 			this.interval = 30;
             this.screensaver_delay = 0;
-			this.contain = true;
+			this.fit_to_screen = "mix";
 			this.clock = false;
             this.show_date = false;
             
@@ -208,20 +208,24 @@
             
 				this.settings = body['settings'];
 				this.interval = body['settings']['interval'];
-				this.contain = body['settings']['contain'];
+				this.fit_to_screen = body['settings']['fit_to_screen'];
 				this.show_clock = body['settings']['show_clock'];
                 this.show_date = body['settings']['show_date'];
 	
-        		if( this.contain ){
+        		if( this.fit_to_screen == 'contain' ){
         			//console.log("Contain the image");
         			document.getElementById('extension-photo-frame-picture1').style.backgroundSize = "contain";
                     document.getElementById('extension-photo-frame-picture2').style.backgroundSize = "contain";
         		}
-        		else{
+        		else if( this.fit_to_screen == 'cover' ){
         			//console.log("Do not contain the image");
         			document.getElementById('extension-photo-frame-picture1').style.backgroundSize = "cover";
                     document.getElementById('extension-photo-frame-picture2').style.backgroundSize = "cover";
         		}
+                else{
+        			document.getElementById('extension-photo-frame-picture1').style.backgroundSize = "cover";
+                    document.getElementById('extension-photo-frame-picture2').style.backgroundSize = "contain";
+                }
 	
 	
         		// Interval
