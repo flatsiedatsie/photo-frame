@@ -201,6 +201,7 @@ class PhotoFrameAPIHandler(APIHandler):
         try:
         
             if request.method != 'POST':
+                print("not post")
                 return APIResponse(status=404)
             
             if request.path == '/init' or request.path == '/list' or request.path == '/delete' or request.path == '/save' or request.path == '/wake':
@@ -264,8 +265,8 @@ class PhotoFrameAPIHandler(APIHandler):
                             
                             
                     elif request.path == '/save':
-                        if self.DEBUG:
-                            print("SAVING")
+                        #if self.DEBUG:
+                        print("SAVING")
                         try:
                             data = []
                             
@@ -274,18 +275,18 @@ class PhotoFrameAPIHandler(APIHandler):
                                 state = 'error'
                             else:
                                 state = 'ok'
-                            
+                            print("return state: " + str(state))
                             return APIResponse(
                               status=200,
                               content_type='application/json',
                               content=json.dumps({'state' : state, 'data' : data}),
                             )
                         except Exception as ex:
-                            print("Error deleting point(s): " + str(ex))
+                            print("Error saving photo: " + str(ex))
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("Error while deleting point(s): " + str(ex)),
+                              content=json.dumps("Error while saving photo: " + str(ex)),
                             )
                         
 
@@ -331,6 +332,7 @@ class PhotoFrameAPIHandler(APIHandler):
                     )
                     
             else:
+                print("unknown API path")
                 return APIResponse(status=404)
                 
         except Exception as e:
@@ -399,19 +401,19 @@ class PhotoFrameAPIHandler(APIHandler):
         
         #filename = "".join([c for c in filename if re.match(r'\w\.', c)])
         #re.sub("^[a-zA-Z0-9.]","_",filename)
-        print("2: " + str(filename))
+        #print("2: " + str(filename))
         filename = str(int(time())) + "-" + filename
-        print("3: " + str(filename))
+        #print("3: " + str(filename))
         
         #filename = str(int(time())) + "-" + re.sub("[ˆa-zA-Z0-9\.]","_",filename)
         if self.DEBUG:
             print("in file save method. Cleaned filename: " + str(filename))
         save_path = os.path.join(self.photos_dir_path, str(filename))
-        if self.DEBUG:
-            print("file will be saved to: " + str(save_path))
+        #if self.DEBUG:
+        #print("file will be saved to: " + str(save_path))
         base64_data = re.sub('^data:image/.+;base64,', '', filedata)
         
-
+        #print("4")
         # DEBUG save extra file with base64 data:
         #try: 
         #    with open(save_path + ".txt", "w") as fh:
@@ -440,5 +442,7 @@ class PhotoFrameAPIHandler(APIHandler):
         except Exception as ex:
             print("Error saving data to file: " + str(ex))
 
+        #print("foto saved")
+        
         return result
 

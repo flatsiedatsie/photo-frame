@@ -43,7 +43,7 @@
 	        ).then((body) => {
 	  			console.log("photo frame: init returned:");
                 console.log(body);
-	  			console.log(body.settings.screensaver_delay);
+	  			//console.log(body.settings.screensaver_delay);
                 if(body.settings.screensaver_delay > 0){
                     this.screensaver_delay = body.settings.screensaver_delay;
                 
@@ -87,11 +87,8 @@
         
         start_screensaver() {
             //console.log("starting screensaver");
-    
 			const photo_frame_menu_button = document.getElementById("extension-photo-frame-menu-item");
 			photo_frame_menu_button.click();
-    
-                
         }
         
         
@@ -150,7 +147,7 @@
 
 
         show() {
-            console.log("in photo frame show");
+            //console.log("in photo frame show");
     		if(this.content == ''){
     			return;
     		}
@@ -423,14 +420,15 @@
                 delete_button.setAttribute("class","extension-photo-frame-thumbnail-delete-button");
                 delete_button.setAttribute("data-filename", file_list[key]);
             
-    			delete_button.onclick = function() { 
+    			//delete_button.onclick = () => { 
+                delete_button.addEventListener('click', (event) => {
     				//this.delete_file( file_list[key] );
     				//console.log(this.getAttribute("data-filename"));
                     if( confirm("Are you sure?")){
-                        this.delete_file( this.getAttribute("data-filename") );
+                        this.delete_file( event.target.getAttribute("data-filename") );
                     }
 				
-    			};
+    			});
                 node.appendChild(delete_button); 
             
             
@@ -501,6 +499,7 @@
                 var filetype = files[0].type;
                 //console.log("filename and type: ", filename, filetype);
             
+                //console.log("this1: ", this);
     		    var reader = new FileReader();
 
     		    reader.addEventListener("load", (e) => {
@@ -508,49 +507,53 @@
                     var image = new Image();
                         image.src = reader.result;
 
-                    image.onload = function() {
+
+                    var this2 = this;
+                    
+                    image.onload = function(){
                         var maxWidth = 1270,
                             maxHeight = 1270,
                             imageWidth = image.width,
                             imageHeight = image.height;
 
-                      if (imageWidth > imageHeight) {
-                          if (imageWidth > maxWidth) {
-                              imageHeight *= maxWidth / imageWidth;
-                              imageWidth = maxWidth;
-                          }
-                      }
-                      else {
-                          if (imageHeight > maxHeight) {
-                            imageWidth *= maxHeight / imageHeight;
-                            imageHeight = maxHeight;
-                          }
-                      }
+                            if (imageWidth > imageHeight) {
+                                if (imageWidth > maxWidth) {
+                                    imageHeight *= maxWidth / imageWidth;
+                                    imageWidth = maxWidth;
+                                }
+                            }
+                            else {
+                                if (imageHeight > maxHeight) {
+                                    imageWidth *= maxHeight / imageHeight;
+                                    imageHeight = maxHeight;
+                                }
+                            }
 
-                      var canvas = document.createElement('canvas');
-                      canvas.width = imageWidth;
-                      canvas.height = imageHeight;
+                            var canvas = document.createElement('canvas');
+                            canvas.width = imageWidth;
+                            canvas.height = imageHeight;
 
-                      var ctx = canvas.getContext("2d");
-                      ctx.drawImage(this, 0, 0, imageWidth, imageHeight);
+                            var ctx = canvas.getContext("2d");
+                            ctx.drawImage(this, 0, 0, imageWidth, imageHeight);
 
-                      // The resized file ready for upload
-                      var finalFile = canvas.toDataURL(filetype);
+                            // The resized file ready for upload
+                            var finalFile = canvas.toDataURL(filetype);
                   
-                      //var this2 = this;
                   
-                      window.API.postJson(
-        		        	`/extensions/photo-frame/api/save`,
-                          {'action':'upload', 'filename':filename, 'filedata': finalFile, 'parts_total':1, 'parts_current':1} //e.target.result
+                            window.API.postJson(
+              		        	`/extensions/photo-frame/api/save`,
+                                {'action':'upload', 'filename':filename, 'filedata': finalFile, 'parts_total':1, 'parts_current':1} //e.target.result
 
-        			      ).then((body) => {
-        			          this.show_list(body['data']);
+              			      ).then((body) => {
+                                    //console.log("saved");
+                                    this2.show_list(body['data']);
 
-        			      }).catch((e) => {
-        					  //console.log("Error uploading image: ", e);
-                              alert("Error, could not upload the image. Perhaps it's too big.");     
-        			      });
-                    }
+              			      }).catch((e) => {
+              					    console.log("Error uploading image: ", e);
+                                    //alert("Error, could not upload the image. Perhaps it's too big.");     
+              			      });
+                              
+                    };
 			
     		    }); 
 
