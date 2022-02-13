@@ -113,6 +113,7 @@ class PhotoFrameAPIHandler(APIHandler):
             
             soft_link = 'ln -s ' + str(self.photos_data_dir_path) + " " + str(self.photos_dir_path)
             print("linking: " + soft_link)
+            os.system('rm -rf ' + str(self.photos_dir_path))
             os.system(soft_link)
             
         except Exception as e:
