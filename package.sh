@@ -16,7 +16,6 @@ else
 fi
 
 mkdir -p lib package
-mkdir -p package/photos
 
 # Pull down Python dependencies
 pip3 install -r requirements.txt -t lib --no-binary :all: --prefix ""
