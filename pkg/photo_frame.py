@@ -377,7 +377,7 @@ class PhotoFrameAPIHandler(APIHandler):
         result = []
         try:
             for fname in os.listdir(self.photos_dir_path):
-                if fname.endswith(".jpg") or fname.endswith(".jpeg") or fname.endswith(".gif"):
+                if fname.endswith(".jpg") or fname.endswith(".jpeg") or fname.endswith(".gif")  or fname.endswith(".png"):
                     result.append(fname)    
         except:
             print("Error scanning photo directory")
