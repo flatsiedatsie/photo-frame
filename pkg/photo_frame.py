@@ -105,16 +105,19 @@ class PhotoFrameAPIHandler(APIHandler):
             self.addon_path =  os.path.join(self.user_profile['addonsDir'], self.addon_name)
             #self.persistence_file_folder = os.path.join(self.user_profile['configDir'])
             self.photos_dir_path = os.path.join(self.addon_path, 'photos')
-            #self.photos_dir_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'photos')
+            self.photos_data_dir_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'photos')
+            
+            if not os.path.isdir(self.photos_data_dir_path):
+                print("creating photos directory in data path")
+                os.mkdir(self.photos_data_dir_path)
+            
+            soft_link = 'ln -s ' + str(self.photos_data_dir_path) + " " + str(self.photos_dir_path)
+            print("linking: " + soft_link)
+            os.system(soft_link)
             
         except Exception as e:
             print("Failed to make paths: " + str(e))
             
-        try:
-            if not os.path.isdir( self.photos_dir_path ):
-                os.mkdir( self.photos_dir_path )
-        except:
-            print("Error making photos directory")
                 
             
         # Respond to gateway version
