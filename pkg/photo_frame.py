@@ -409,7 +409,7 @@ class PhotoFrameAPIHandler(APIHandler):
             print("in file save method. Cleaned filename: " + str(filename))
         save_path = os.path.join(self.photos_dir_path, str(filename))
         #if self.DEBUG:
-        #print("file will be saved to: " + str(save_path))
+        #    print("file will be saved to: " + str(save_path))
         base64_data = re.sub('^data:image/.+;base64,', '', filedata)
         
         #print("4")
@@ -432,7 +432,7 @@ class PhotoFrameAPIHandler(APIHandler):
 
         # Save file
         try:
-            if filename.endswith('.jpg') or filename.endswith('.jpeg') or filename.endswith('.gif'):
+            if filename.endswith('.jpg') or filename.endswith('.jpeg') or filename.endswith('.gif') or filename.endswith('.png'):
                 if self.DEBUG:
                     print("saving to file: " + str(save_path))
                 with open(save_path, "wb") as fh:
@@ -441,7 +441,8 @@ class PhotoFrameAPIHandler(APIHandler):
         except Exception as ex:
             print("Error saving data to file: " + str(ex))
 
-        #print("foto saved")
+        if self.DEBUG:
+            print("photo saved")
         
         return result
 

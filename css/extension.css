@@ -272,6 +272,20 @@
 }
 
 
+/*  fade in animation  */
+
+@keyframes extension-photo-frame-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+#extension-photo-frame-clock.show,
+#extension-photo-frame-date.show {
+  display: block;
+  animation: extension-photo-frame-fade-in 2s;
+}
+
+
 
 /*
 
@@ -290,8 +304,8 @@ LIST
 	word-wrap: break-word;
 }
 
+/*
 .extension-photo-frame-deletable_item{
-	/*background-color:rgba(255,255,255,.1);*/
 	border-radius:.5rem;
 	display:block;
 	cursor: pointer;
@@ -324,9 +338,9 @@ LIST
 
 .extension-photo-frame-deletable_item:hover::before{
 	color:red;
-	background-color:	white;
+	background-color:white;
 }
-
+*/
 
 /*#extension-photo-frame-clock-container,
 #extension-photo-frame-picture-exit-container{

@@ -41,8 +41,8 @@
 	  				{'init':1}
 
 	        ).then((body) => {
-	  			console.log("photo frame: init returned:");
-                console.log(body);
+	  			//console.log("photo frame: init returned:");
+                //console.log(body);
 	  			//console.log(body.settings.screensaver_delay);
                 if(body.settings.screensaver_delay > 0){
                     this.screensaver_delay = body.settings.screensaver_delay;
@@ -155,7 +155,7 @@
     			this.view.innerHTML = this.content;
     		}	
 	  
-    		const clock_element = document.getElementById('extension-photo-frame-clock');
+    		
     		const pre = document.getElementById('extension-photo-frame-response-data');
     		const thing_list = document.getElementById('extension-photo-frame-thing-list');
 
@@ -204,7 +204,7 @@
     				{'init':1}
 			
     		).then((body) => {
-                console.log(body);
+                //console.log(body);
             
 				this.settings = body['settings'];
 				this.interval = body['settings']['interval'];
@@ -253,13 +253,15 @@
         		}
 	
                 if(this.show_date){
-                    document.getElementById('extension-photo-frame-date').style.display = 'block';
+                    document.getElementById('extension-photo-frame-date').classList.add('show');
                 }
                 
                 
         		if(this.show_clock){
-                    document.getElementById('extension-photo-frame-clock').style.display = 'block';
+                    document.getElementById('extension-photo-frame-clock').classList.add('show');
                 }
+                
+                this.update_clock();
                 
                 if(this.show_clock || this.show_date){
                     
@@ -269,47 +271,7 @@
         			window.photo_frame_clock_interval = setInterval(() => {
         				//console.log("Clock tick");
 			
-        				var hour_padding = "";
-        				var minute_padding = "";
-			
-        				var date = new Date(); /* creating object of Date class */
-        				
-                        
-                        if(this.show_clock){
-                        
-                            var hour = date.getHours();
-            				var min = date.getMinutes();
-            				//const sec = date.getSeconds();
-                            
-            				if( min < 10 ){
-            					minute_padding = "0";
-            				}
-            				if( hour < 10 ){
-            					hour_padding = "0";
-            				}
-			
-            				clock_element.innerText = hour + ":" + minute_padding + min;
-                            
-                        }
-                        
-                        
-                        if(this.show_date){
-                        
-                            //this.show_date = true;
-                        
-                            // Day name
-                            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-                            document.getElementById('extension-photo-frame-date-day').innerText = days[date.getDay()];
-                        
-                            // Day of month
-                            document.getElementById('extension-photo-frame-date-date').innerText = date.getDate();
-                        
-                            // Month name
-                            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                            document.getElementById('extension-photo-frame-date-month').innerText  = months[date.getMonth()];
-                        
-                        }
-                    
+        				this.update_clock();
 
         			}, 1000);
         		}
@@ -322,22 +284,25 @@
 	  
 	  
 	  
-    	  	// Set interval to keep the screen awake
-    		this.wake_interval = setInterval(function () {
-    			//console.log("Sending wake command");
-    	        window.API.postJson(
-    	          `/extensions/photo-frame/api/wake`,
-    	  				{'init':1}
+    	  	// If on the kiosk, use set interval to keep the screen awake
+            if( document.body.classList.contains('kiosk') ){
+        		this.wake_interval = setInterval(function () {
+        			//console.log("Sending wake command");
+        	        window.API.postJson(
+        	          `/extensions/photo-frame/api/wake`,
+        	  				{'init':1}
 
-    	        ).then((body) => {
-    	  			//console.log("wake returned:");
-    	  			//console.log(body);
-    	        }).catch((e) => {
-    	        	//pre.innerText = e.toString();
-    	  			console.log("Photo frame: error in keep awake function: ", e);
-    	        });
+        	        ).then((body) => {
+        	  			//console.log("wake returned:");
+        	  			//console.log(body);
+        	        }).catch((e) => {
+        	        	//pre.innerText = e.toString();
+        	  			console.log("Photo frame: error in keep awake function: ", e);
+        	        });
 			
-    		}, 30000);
+        		}, 30000);
+            }
+    		
 	  
         } // and of show function
 		
@@ -361,6 +326,49 @@
     		}
     	}
 
+
+
+        update_clock(){
+			var hour_padding = "";
+			var minute_padding = "";
+
+			var date = new Date(); /* creating object of Date class */
+            
+            if(this.show_clock){
+            
+                var hour = date.getHours();
+				var min = date.getMinutes();
+				//const sec = date.getSeconds();
+                
+				if( min < 10 ){
+					minute_padding = "0";
+				}
+				if( hour < 10 ){
+					hour_padding = "0";
+				}
+
+				document.getElementById('extension-photo-frame-clock').innerText = hour + ":" + minute_padding + min;
+                
+            }
+            
+            
+            if(this.show_date){
+            
+                //this.show_date = true;
+            
+                // Day name
+                const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                document.getElementById('extension-photo-frame-date-day').innerText = days[date.getDay()];
+            
+                // Day of month
+                document.getElementById('extension-photo-frame-date-date').innerText = date.getDate();
+            
+                // Month name
+                const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                document.getElementById('extension-photo-frame-date-month').innerText  = months[date.getMonth()];
+            
+            }
+        }
 
 
 
@@ -387,14 +395,12 @@
 		
     		for (var key in file_list) {
 			
-			
     			var node = document.createElement("LI");                 					// Create a <li> node
     			node.setAttribute("class", "extension-photo-frame-list-item" ); 
     			node.setAttribute("data-filename", file_list[key] );
 			
     			var img_container_node = document.createElement("div");                 					// Create a <li> node
     			img_container_node.setAttribute("class", "extension-photo-frame-list-thumbnail-container" ); 
-			
 			
     			var imgnode = document.createElement("IMG");         // Create a text node
     			imgnode.setAttribute("class","extension-photo-frame-list-thumbnail");
