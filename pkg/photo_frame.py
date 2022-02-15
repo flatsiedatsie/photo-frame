@@ -391,6 +391,7 @@ class PhotoFrameAPIHandler(APIHandler):
     def unload(self):
         if self.DEBUG:
             print("Shutting down")
+        return True
 
 
 
