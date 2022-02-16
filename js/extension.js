@@ -196,6 +196,15 @@
     			menu_button.click();//dispatchEvent('click');
     		});
 			
+            /*
+    		document.getElementById("extension-photo-frame-back-button").addEventListener('click', () => {
+    			const picture_holder = document.getElementById('extension-photo-frame-picture-holder');
+    			const overview = document.getElementById('extension-photo-frame-overview');
+    			this.addClass(overview,"extension-photo-frame-hidden");
+    			this.removeClass(picture_holder,"extension-photo-frame-hidden");
+    		});
+            */
+            
 
     		// Get list of photos (as well as other variables)
 			
@@ -285,7 +294,9 @@
 	  
 	  
     	  	// If on the kiosk, use set interval to keep the screen awake
+            /*
             if( document.body.classList.contains('kiosk') ){
+            
         		this.wake_interval = setInterval(function () {
         			//console.log("Sending wake command");
         	        window.API.postJson(
@@ -302,6 +313,7 @@
 			
         		}, 30000);
             }
+            */
     		
 	  
         } // and of show function

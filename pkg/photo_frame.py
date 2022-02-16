@@ -106,6 +106,7 @@ class PhotoFrameAPIHandler(APIHandler):
             #self.persistence_file_folder = os.path.join(self.user_profile['configDir'])
             self.photos_dir_path = os.path.join(self.addon_path, 'photos')
             self.photos_data_dir_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'photos')
+            self.demo_photo_file_path = os.path.join(self.addon_path, 'demo_photo.jpg')
             
             if not os.path.isdir(self.photos_data_dir_path):
                 print("creating photos directory in data path")
@@ -120,6 +121,10 @@ class PhotoFrameAPIHandler(APIHandler):
             print("Failed to make paths: " + str(e))
             
                 
+        if self.screensaver_delay > 0:
+            os.system('xset -display :0 s off')
+            os.system('xset -display :0 s noblank')
+            os.system('xset -display :0 -dpms')
             
         # Respond to gateway version
         try:
@@ -128,11 +133,16 @@ class PhotoFrameAPIHandler(APIHandler):
         except:
             if self.DEBUG:
                 print("self.gateway_version did not exist")
-            
+        
+        
+        if len(self.scan_photo_dir()) == 0:
+            if self.DEBUG:
+                print("no photos yet. Copying demo photo")
+            os.system('cp ' + str(self.demo_photo_file_path) + ' ' + str(self.photos_data_dir_path))
         #self.keyboard = Controller()
             
-        while(True):
-            sleep(1)
+        #while(True):
+        #    sleep(1)
         
 
 
@@ -299,8 +309,8 @@ class PhotoFrameAPIHandler(APIHandler):
                         
                         try:
                         
-                            cmd = 'DISPLAY=:0 xset dpms force on'
-                            os.system(cmd)
+                            #cmd = 'DISPLAY=:0 xset dpms force on'
+                            #os.system(cmd)
                             
                             
                             return APIResponse(
