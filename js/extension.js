@@ -10,13 +10,22 @@
             }
 
 	      	this.content = '';
-			//var filenames = [];
+            
+            // Screensaver
+            this.showing_screensaver = false;
+            this.previous_last_activity_time = 0;
+			this.screensaver_path = 'photo-frame';
+            
+            this.filenames = [];
 			this.filenames = [];
-			window.photo_frame_filenames = [];
 
-
+            // Printer
+            this.printer_available = false;
+            this.last_activity_time = new Date().getTime()
+            
+            this.debug = false;
 			this.interval = 30;
-            this.screensaver_delay = 0;
+            this.screensaver_delay = 60;
 			this.fit_to_screen = "mix";
 			this.clock = false;
             this.show_date = false;
@@ -33,7 +42,7 @@
 				}
 			})
 			.catch((e) => console.error('Failed to fetch content:', e));
-			
+            
             
             // Check if screensaver should be active
 	        window.API.postJson(
@@ -41,64 +50,161 @@
 	  				{'init':1}
 
 	        ).then((body) => {
-	  			//console.log("photo frame: init returned:");
-                //console.log(body);
-	  			//console.log(body.settings.screensaver_delay);
                 if(body.settings.screensaver_delay > 0){
-                    this.screensaver_delay = body.settings.screensaver_delay;
+                    
+                    if(typeof body.settings.screensaver_delay != 'undefined'){
+                        this.screensaver_delay = body.settings.screensaver_delay;
+                        this.start_screensaver_listeners();
+                    }
+                }
+                this.debug = body.debug;
                 
-                    this.start_screensaver_listeners(this.screensaver_delay);
+                if(this.debug){
+    	  			console.log("photo frame: init returned:");
+                    console.log(body);
                 }
                 
-                
+                if( typeof body.printer != 'undefined'){
+                    this.printer_available = body.printer;
+                    if(this.printer_available){
+                        document.getElementById('extension-photo-frame-content').classList.add('extension-photo-frame-printer-available');
+                    }
+                }
                 
 	        }).catch((e) => {
 	  			console.log("Photo frame: error in init function: " + e.toString());
 	        });
-            
       
-
+            this.screensaver_ignore_click = false;
             
+            
+            
+            //
+            //  SCREENSAVER
+            //
+            
+            //this.screensaver_interval = setInterval(myCallback, 500);
+            this.screensaver_interval = setInterval( () => {
+                
+                const current_time = new Date().getTime();
+                const delta = current_time - this.last_activity_time;
+                //console.log('delta: ', delta);
+                if(delta > this.screensaver_delay * 1000){
+                    if(this.showing_screensaver == false){
+                        this.screensaver_ignore_click = true;
+                        window.setTimeout(() => {
+                            this.screensaver_ignore_click = false;
+                        });
+                        //console.log('should start screensaver');
+                        this.screensaver_path = window.location.pathname;
+                        //console.log("remembered path: ", this.screensaver_path);
+                        this.showing_screensaver = true;
+            			const photo_frame_menu_button = document.getElementById("extension-photo-frame-menu-item");
+                        if(photo_frame_menu_button != null){
+                            photo_frame_menu_button.click();
+                        }
+                    }
+                }
+                else{
+                    if(this.showing_screensaver == true){
+                        //console.log("resetting path: ", this.screensaver_path);
+                        
+                        var short_path = "photo-frame";
+                        if(this.screensaver_path.startsWith('/extensions')){
+                            var short_path = this.screensaver_path.split('/')[2]
+                        }
+                        else{
+                            this.screensaver_path.split('/')[1]
+                        }
+                        
+                        
+                        var spotted_in_menu = false;
+                        const addon_name_css = short_path.replace(/_/g, "-");
+                        const menu_elements = document.querySelectorAll('#main-menu li a');
+                        var id_to_click_on = "photo-frame";
+                        menu_elements.forEach(element => {
+                            var link_id = element.getAttribute('id');
+                            const short_link_id = link_id.replace("-menu-item", "");
+                            if(short_link_id.endsWith(addon_name_css)){
+                                spotted_in_menu = true;
+                                id_to_click_on = link_id;
+                            }
+                        });
+                        
+                        if(spotted_in_menu == false){
+                            //window.location.pathname = this.screensaver_path;
+                        }
+                        else{
+                			const menu_link = document.getElementById(id_to_click_on);
+                			menu_link.click(); //dispatchEvent('click');
+                        }
+                        
+                        
+                    }
+                    this.showing_screensaver = false;
+                }
+                
+                if(delta < 1500){
+                    if(document.body.classList.contains('developer')){
+                        const indicator = document.getElementById("extension-photo-frame-screensaver-indicator");
+                        if(indicator != null){
+                            indicator.parentNode.removeChild(indicator);
+                        }
+                        let indicator_element = document.createElement("div");
+                        indicator_element.setAttribute('id','extension-photo-frame-screensaver-indicator');
+                        document.body.append(indicator_element);
+                    }
+                }
+                
+            },1000);
             
 	    }
 		
         
         
-        start_screensaver_listeners(delay_seconds) {
-            //console.log('starting activity timeout check for screensaver');
-            var t;
-            window.onload = resetTimer.bind(this);
-            window.onmousemove = resetTimer.bind(this);
-            window.onmousedown = resetTimer.bind(this);  // catches touchscreen presses as well      
-            window.ontouchstart = resetTimer.bind(this); // catches touchscreen swipes as well      
-            window.ontouchmove = resetTimer.bind(this);  // required by some devices 
-            window.onclick = resetTimer.bind(this);      // catches touchpad clicks as well
-            window.onkeydown = resetTimer.bind(this);   
-            window.addEventListener('scroll', resetTimer.bind(this), true); // improved; see comments
+        start_screensaver_listeners() {
+            console.log('starting activity timeout check for screensaver. Delay seconds: ', this.screensaver_delay);
 
-
-            function resetTimer() {
-                //console.log("resetTimer delay_seconds: ", delay_seconds);
-                clearTimeout(this.t);
-                this.t = setTimeout(this.start_screensaver, delay_seconds * 1000);  // time is in milliseconds
-            }
+            // Mouse
+            window.addEventListener('mousemove', () => {
+                this.last_activity_time = new Date().getTime();
+            },{ passive: true });
+            window.addEventListener('mousedown', () => {
+                this.last_activity_time = new Date().getTime();
+            },{ passive: true });
+            window.addEventListener('click', () => {
+                if(this.screensaver_ignore_click){
+                    console.log('ignoring click');
+                }
+                else{
+                    this.last_activity_time = new Date().getTime();
+                }
+                
+            },{ passive: true });
+            
+            // Touch
+            window.addEventListener('touchstart', () => {
+                this.last_activity_time = new Date().getTime();
+            },{ passive: true });
+            window.addEventListener('touchmove', () => {
+                this.last_activity_time = new Date().getTime();
+            },{ passive: true });
+            
+            // Scroll
+            window.addEventListener('scroll', () => {
+                this.last_activity_time = new Date().getTime();
+            }, true);
+            
+             
         }
-        
-        
-        start_screensaver() {
-            //console.log("starting screensaver");
-			const photo_frame_menu_button = document.getElementById("extension-photo-frame-menu-item");
-			photo_frame_menu_button.click();
-        }
-        
         
         
 		
 		
 		change_picture(){
 			
-			if( window.photo_frame_filenames.length > 0 ){
-				var random_file = window.photo_frame_filenames[Math.floor(Math.random() * window.photo_frame_filenames.length)];
+			if( this.filenames.length > 0 ){
+				var random_file = this.filenames[Math.floor(Math.random() * this.filenames.length)];
 				//console.log("new picture: " + random_file);
 				this.show_file(random_file);
 			}
@@ -116,7 +222,6 @@
 				var dataline = JSON.parse(body['data'][key]['name']);
 				var node = document.createElement("LI");
 			}
-			//pre.innerText = "";
 		}
 		
 	
@@ -182,7 +287,7 @@
 
     		// EVENT LISTENERS
 
-    		document.getElementById("extension-photo-frame-more-button").addEventListener('click', () => {
+    		document.getElementById("extension-photo-frame-more-button-container").addEventListener('click', () => {
     			event.stopImmediatePropagation();
     			const picture_holder = document.getElementById('extension-photo-frame-picture-holder');
     			const overview = document.getElementById('extension-photo-frame-overview');
@@ -213,7 +318,9 @@
     				{'init':1}
 			
     		).then((body) => {
-                //console.log(body);
+                if(this.debug){
+                    console.log("/list response: ", body);
+                }
             
 				this.settings = body['settings'];
 				this.interval = body['settings']['interval'];
@@ -239,8 +346,6 @@
 	
         		// Interval
         		this.photo_interval = setInterval(() => {
-    				//console.log("intervallo");
-		
         
                     if(this.seconds_counter > this.interval){
                         this.change_picture();
@@ -290,35 +395,10 @@
     			console.log("Photo frame: error in show list function: ", e);
           	});
 	  
-	  
-	  
-	  
-    	  	// If on the kiosk, use set interval to keep the screen awake
-            /*
-            if( document.body.classList.contains('kiosk') ){
-            
-        		this.wake_interval = setInterval(function () {
-        			//console.log("Sending wake command");
-        	        window.API.postJson(
-        	          `/extensions/photo-frame/api/wake`,
-        	  				{'init':1}
-
-        	        ).then((body) => {
-        	  			//console.log("wake returned:");
-        	  			//console.log(body);
-        	        }).catch((e) => {
-        	        	//pre.innerText = e.toString();
-        	  			console.log("Photo frame: error in keep awake function: ", e);
-        	        });
-			
-        		}, 30000);
-            }
-            */
-    		
-	  
         } // and of show function
 		
 		
+        
     	hide(){
 		
     		try {
@@ -400,7 +480,7 @@
         
     		file_list.sort();
 		
-    		window.photo_frame_filenames = file_list;
+    		this.filenames = file_list;
     		//this.filenames = file_list;
 		
     		photo_list.innerHTML = "";
@@ -452,6 +532,26 @@
 				
     			});
                 node.appendChild(delete_button); 
+                
+                
+                // Add print button
+                var print_button = document.createElement("div");
+                print_button.setAttribute("class","extension-photo-frame-thumbnail-print-button");
+                print_button.setAttribute("data-filename", file_list[key]);
+            
+    			//print_button.onclick = () => { 
+                print_button.addEventListener('click', (event) => {
+    				//this.print_file( file_list[key] );
+    				//console.log(this.getAttribute("data-filename"));
+                    if( confirm("Are you sure you want to print this picture?")){
+                        this.print_file( event.target.getAttribute("data-filename") );
+                    }
+				
+    			});
+                node.appendChild(print_button); 
+            
+                
+                
             
             
     			photo_list.appendChild(node);
@@ -472,15 +572,38 @@
                 {'action':'delete', 'filename':filename}
 				
               ).then((body) => { 
-        		//console.log(body);
-                this.show_list(body['data']);
+                  //console.log(body);
+                  this.show_list(body['data']);
 
               }).catch((e) => {
-        		console.log("Photo frame: error in delete response: ", e);
-                //pre.innerText = e.toString();
+        	      console.log("Photo frame: error in delete response: ", e);
+                  alert("Could not delete file - connection error?");
               });
     
         }
+        
+        
+    	print_file(filename){
+            console.log("Printing file:" + filename);
+			
+        	const pre = document.getElementById('extension-photo-frame-response-data');
+        	const photo_list = document.getElementById('extension-photo-frame-photo-list');
+		
+            window.API.postJson(
+                `/extensions/${this.id}/api/print`,
+                {'action':'print', 'filename':filename}
+				
+              ).then((body) => { 
+                  console.log('file sent to printer');
+
+              }).catch((e) => {
+        	      console.log("Photo frame: error in print response: ", e);
+                  alert("Could not print file - connection error?");
+              });
+    
+        }
+        
+        
 		
 	
     	show_file(filename){

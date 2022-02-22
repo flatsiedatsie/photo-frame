@@ -105,8 +105,8 @@
 
 .extension-photo-frame-thumbnail-delete-button{
     position: absolute;
-    top: -.8rem;
-    right: 0rem;
+    top: -0.8rem;
+    right: -0.8rem;
     background: url(/images/delete-button.png);
     background-size: 3.6rem;
     width: 3.6rem;
@@ -123,6 +123,29 @@
 .extension-photo-frame-thumbnail-delete-button:hover{
     opacity:1;
 }
+
+
+.extension-photo-frame-thumbnail-print-button{
+    position: absolute;
+    bottom: -0.8rem;
+    right: -0.8rem;
+    background: url(../images/printer-icon.svg);
+    background-size: 3.6rem;
+    width: 3.6rem;
+    height: 3.6rem;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    border: 1px solid #979797;
+    box-shadow: 0 3px 6px rgb(0 0 0 / 16%), 0 3px 6px rgb(0 0 0 / 23%);
+    cursor: pointer;
+    z-index:99;
+    background-color:rgba(255,255,255,.7);
+}
+.extension-photo-frame-thumbnail-print-button:hover{
+    background-color:rgba(255,255,255,1);
+}
+
 
 
 
@@ -213,12 +236,7 @@
 	display:none;
 }
 
-#extension-photo-frame-view li{
-	padding:1rem;
-    margin:1rem;
-	margin-bottom:1rem;
-    position:relative;
-}
+
 
 #main-menu #extension-photo-frame-menu-item {
   background-image: url('../images/menu-icon.svg');
@@ -321,17 +339,36 @@ LIST
 
 */
 
+#extension-photo-frame-view li{
+
+}
 
 .extension-photo-frame-list-item{
 	width:15rem;
 	display:inline-block;
 	padding:.2rem;
+	padding:1rem;
+    margin:1rem;
+	margin-bottom:1rem;
+    position:relative;
+}
+
+.extension-photo-frame-printer-available .extension-photo-frame-list-item{
+    margin-bottom:4rem;
 }
 
 .extension-photo-frame-list-item > span{
 	word-wrap: break-word;
 }
 
+
+.extension-photo-frame-thumbnail-print-button{
+    display:none;
+}
+
+.extension-photo-frame-printer-available .extension-photo-frame-thumbnail-print-button{
+    display:block;
+}
 /*
 .extension-photo-frame-deletable_item{
 	border-radius:.5rem;
@@ -380,13 +417,21 @@ LIST
 }
 */
 
-#extension-photo-frame-more-button{
+#extension-photo-frame-more-button-container{
     position: fixed;
-    bottom: 2rem;
-    right: 2rem;
+    bottom: 0rem;
+    right: 0rem;
+    width:7.6rem;
+    height:7.6rem;
+}
+
+#extension-photo-frame-more-button{
+    width:5.6rem;
+    height:5.6rem;
     background: no-repeat center/100% url(/images/overflow.svg);
     cursor:pointer;
 }
+
 /*
 #extension-photo-frame-more-button::after {
     content: '';
@@ -460,6 +505,32 @@ LIST
     background-color: #6dabd7;
 }
 */
+
+
+
+#extension-photo-frame-screensaver-indicator{
+    position:fixed;
+    top:0;
+    left:0;
+    height:5px;
+    z-index:100000;
+    width:100%;
+    background:transparent;
+    background-size: 200% 200%;
+    background-image: linear-gradient(
+          -90deg, 
+          rgba(0,0,0,0) 0%, 
+          rgba(0,0,0,0) 50%, 
+          rgba(0,0,0,.3) 50%, 
+          rgba(0,0,0,.3) 100%
+    );  
+    animation: extension-photo-frame-bg-sweep-to-right 60s linear;
+}
+
+@keyframes extension-photo-frame-bg-sweep-to-right { 
+  0%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
 
 
 

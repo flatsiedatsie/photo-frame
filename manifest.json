@@ -55,7 +55,7 @@
           "type": "string"
         },
         "Fit to screen": {
-          "description": "Pictures might can contained within the screen edges, with black bars around them. Alternatively, pictures could cover the screen fully, but then parts may not be visible. It also possible to mix this randomly.",
+          "description": "Pictures might can contained within the screen edges, with black bars around them. Alternatively, pictures could cover the screen fully, but then parts may be cut off. It also possible to mix this randomly.",
           "enum": [
               "Contain",
               "Cover",
@@ -83,7 +83,7 @@
     }
   },
   "short_name": "Photo",
-  "version": "1.3.8",
+  "version": "1.4.0",
   "web_accessible_resources": [
     "css/*.css",
     "images/*.svg",

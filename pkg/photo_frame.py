@@ -70,7 +70,7 @@ class PhotoFrameAPIHandler(APIHandler):
         self.fit_to_screen = "mix"
         self.show_clock = False
         self.show_date = False
-        
+        self.photo_printer_available = False
         #os.environ["DISPLAY"] = ":0.0"
         
             
@@ -107,20 +107,35 @@ class PhotoFrameAPIHandler(APIHandler):
             self.photos_dir_path = os.path.join(self.addon_path, 'photos')
             self.photos_data_dir_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'photos')
             self.demo_photo_file_path = os.path.join(self.addon_path, 'demo_photo.jpg')
+            self.external_picture_drop_dir = os.path.join(self.user_profile['dataDir'], 'privacy-manager', 'printme')
             
             if not os.path.isdir(self.photos_data_dir_path):
-                print("creating photos directory in data path")
+                if self.DEBUG:
+                    print("creating photos directory in data path")
                 os.mkdir(self.photos_data_dir_path)
             
             soft_link = 'ln -s ' + str(self.photos_data_dir_path) + " " + str(self.photos_dir_path)
-            print("linking: " + soft_link)
+            if self.DEBUG:
+                print("linking: " + soft_link)
             os.system('rm -rf ' + str(self.photos_dir_path))
             os.system(soft_link)
             
         except Exception as e:
             print("Failed to make paths: " + str(e))
             
-                
+        # Can we print photos?
+        try:
+            if os.path.isdir(self.external_picture_drop_dir):
+                self.photo_printer_available = True
+                if self.DEBUG:
+                    print("privacy manager photo drop-off dir existed")
+            else:
+                if self.DEBUG:
+                    print("privacy manager photo drop-off dir did not exist")
+        except Exception as ex:
+            print("Error while checking photo dropoff dir: " + str(ex))
+              
+        # Screensaver
         if self.screensaver_delay > 0:
             os.system('xset -display :0 s off')
             os.system('xset -display :0 s noblank')
@@ -217,7 +232,7 @@ class PhotoFrameAPIHandler(APIHandler):
                 print("not post")
                 return APIResponse(status=404)
             
-            if request.path == '/init' or request.path == '/list' or request.path == '/delete' or request.path == '/save' or request.path == '/wake':
+            if request.path == '/init' or request.path == '/list' or request.path == '/delete' or request.path == '/save' or request.path == '/wake' or request.path == '/print':
 
                 try:
                     
@@ -235,7 +250,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=200,
                               content_type='application/json',
-                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval,'screensaver_delay': self.screensaver_delay, 'fit_to_screen':self.fit_to_screen, 'show_clock' : self.show_clock, 'show_date' : self.show_date } }),
+                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval,'screensaver_delay': self.screensaver_delay, 'fit_to_screen':self.fit_to_screen, 'show_clock' : self.show_clock, 'show_date' : self.show_date }, 'printer':self.photo_printer_available, 'debug':self.DEBUG }),
                             )
                         except Exception as ex:
                             print("Error getting init data: " + str(ex))
@@ -302,17 +317,15 @@ class PhotoFrameAPIHandler(APIHandler):
                               content=json.dumps("Error while saving photo: " + str(ex)),
                             )
                         
-
+                    
+                    # No longer used.
                     elif request.path == '/wake':
                         if self.DEBUG:
                             print("WAKING")
                         
                         try:
-                        
                             #cmd = 'DISPLAY=:0 xset dpms force on'
                             #os.system(cmd)
-                            
-                            
                             return APIResponse(
                               status=200,
                               content_type='application/json',
@@ -324,6 +337,44 @@ class PhotoFrameAPIHandler(APIHandler):
                               status=500,
                               content_type='application/json',
                               content=json.dumps("Error while waking up the display: " + str(ex)),
+                            )
+
+                    
+                    
+                    elif request.path == '/print':
+                        if self.DEBUG:
+                            print("printing")
+                        state = 'sent to printer';
+                        
+                        try:
+                            from_filename = os.path.join(self.photos_data_dir_path, str(request.body['filename']))
+                            if os.path.isfile(from_filename):
+                                if os.path.isdir(self.external_picture_drop_dir):
+                                    to_filename = os.path.join(self.external_picture_drop_dir, str(request.body['filename']))
+                                    copy_command = 'cp -n ' + str(from_filename) + ' ' + str(to_filename)
+                                    if self.DEBUG:
+                                        print("copy_command: " + str(copy_command))
+                                    os.system(copy_command)
+                                else:
+                                    if self.DEBUG:
+                                        print("photo drop dir (no longer) exists?")
+                                    state = 'drop off directory did not exist'
+                            else:
+                                if self.DEBUG:
+                                    print("file to be printed did not exist")
+                                state = 'file did not exist'
+                            
+                            return APIResponse(
+                              status=200,
+                              content_type='application/json',
+                              content=json.dumps({'state':state}),
+                            )
+                        except Exception as ex:
+                            print("Error sending photo to printer: " + str(ex))
+                            return APIResponse(
+                              status=500,
+                              content_type='application/json',
+                              content=json.dumps("Error while sending file to printer drop-off directory: " + str(ex)),
                             )
 
                         
