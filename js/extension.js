@@ -5,33 +5,40 @@
 			//console.log("Adding Photo frame to menu");
 	      	this.addMenuEntry('Photo Frame');
 
+            
+            this.kiosk = false;
             if(document.getElementById('virtualKeyboardChromeExtension') != null){
                 document.body.classList.add('kiosk');
+                this.kiosk = true;
             }
+
+            this.debug = false;
 
 	      	this.content = '';
             
             // Screensaver
+            this.screensaver_delay = 60;
             this.showing_screensaver = false;
             this.previous_last_activity_time = 0;
 			this.screensaver_path = 'photo-frame';
+            this.screensaver_ignore_click = false;
             
-            this.filenames = [];
-			this.filenames = [];
+            
 
             // Printer
             this.printer_available = false;
             this.last_activity_time = new Date().getTime()
             
-            this.debug = false;
+            
+            // Photo frame
+            this.filenames = [];
 			this.interval = 30;
-            this.screensaver_delay = 60;
 			this.fit_to_screen = "mix";
 			this.clock = false;
             this.show_date = false;
-            
             this.seconds_counter = 0; // if it reaches the interval value, then it will show another picture.
 			this.current_picture = 1; // two pictures swap places: picture1 and picture2. This is for a smooth transition effect
+            
             
 			fetch(`/extensions/${this.id}/views/content.html`)
 			.then((res) => res.text())
@@ -50,15 +57,16 @@
 	  				{'init':1}
 
 	        ).then((body) => {
-                if(body.settings.screensaver_delay > 0){
-                    
-                    if(typeof body.settings.screensaver_delay != 'undefined'){
-                        this.screensaver_delay = body.settings.screensaver_delay;
+                if(typeof body.settings.screensaver_delay != 'undefined'){
+                    this.screensaver_delay = body.settings.screensaver_delay;
+                    if(body.settings.screensaver_delay > 1){
+                        console.log('calling start screensaver listeners');
                         this.start_screensaver_listeners();
                     }
+                    
                 }
-                this.debug = body.debug;
                 
+                this.debug = body.debug;
                 if(this.debug){
     	  			console.log("photo frame: init returned:");
                     console.log(body);
@@ -66,22 +74,24 @@
                 
                 if( typeof body.printer != 'undefined'){
                     this.printer_available = body.printer;
-                    if(this.printer_available){
-                        document.getElementById('extension-photo-frame-content').classList.add('extension-photo-frame-printer-available');
-                    }
                 }
                 
 	        }).catch((e) => {
-	  			console.log("Photo frame: error in init function: " + e.toString());
+	  			console.log("Photo frame: error in init function: ", e);
 	        });
       
-            this.screensaver_ignore_click = false;
             
-            
-            
-            //
-            //  SCREENSAVER
-            //
+	    }
+		
+        
+        
+        
+        
+//
+//  SCREENSAVER
+//
+
+        start_screensaver_listeners() {
             
             //this.screensaver_interval = setInterval(myCallback, 500);
             this.screensaver_interval = setInterval( () => {
@@ -158,12 +168,9 @@
                 
             },1000);
             
-	    }
-		
-        
-        
-        start_screensaver_listeners() {
-            console.log('starting activity timeout check for screensaver. Delay seconds: ', this.screensaver_delay);
+            
+            
+            //console.log('starting activity timeout check for screensaver. Delay seconds: ', this.screensaver_delay);
 
             // Mouse
             window.addEventListener('mousemove', () => {
@@ -267,8 +274,9 @@
     		//pre.innerText = "";
 		
 		
-    		if( window.innerHeight == screen.height) {
+    		if( this.kiosk ) {
     			//console.log("fullscreen");
+                document.getElementById('extension-photo-frame-photos-file-selector').style.display = 'none';
     			document.getElementById('extension-photo-frame-photos-file-selector').outerHTML = "";
     			//document.getElementById('extension-photo-frame-dropzone').outerHTML = "";
 			
@@ -284,6 +292,14 @@
     		}
 			
 			
+            
+            if(this.printer_available){
+                if(document.getElementById('extension-photo-frame-content') != null){
+                    document.getElementById('extension-photo-frame-content').classList.add('extension-photo-frame-printer-available');
+                }
+                
+            }
+            
 
     		// EVENT LISTENERS
 
