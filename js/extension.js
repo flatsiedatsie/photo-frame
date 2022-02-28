@@ -313,8 +313,12 @@
 			
 			
     		document.getElementById("extension-photo-frame-picture-holder").addEventListener('click', () => {
-    			var menu_button = document.getElementById("menu-button");
-    			menu_button.click();//dispatchEvent('click');
+                if(this.showing_screensaver == false){
+        			var menu_button = document.getElementById("menu-button");
+        			menu_button.click();//dispatchEvent('click');
+                }
+                this.last_activity_time = new Date().getTime();
+    			
     		});
 			
             /*

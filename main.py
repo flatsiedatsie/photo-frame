@@ -1,4 +1,4 @@
-"""Photo frame add-on for Mozilla WebThings Gateway."""
+"""Photo frame add-on for the Candle controller."""
 
 from os import path
 import functools
