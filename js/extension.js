@@ -60,7 +60,7 @@
                 if(typeof body.settings.screensaver_delay != 'undefined'){
                     this.screensaver_delay = body.settings.screensaver_delay;
                     if(body.settings.screensaver_delay > 1){
-                        console.log('calling start screensaver listeners');
+                        //console.log('calling start screensaver listeners');
                         this.start_screensaver_listeners();
                     }
                     
@@ -181,7 +181,7 @@
             },{ passive: true });
             window.addEventListener('click', () => {
                 if(this.screensaver_ignore_click){
-                    console.log('ignoring click');
+                    //console.log('ignoring click');
                 }
                 else{
                     this.last_activity_time = new Date().getTime();

@@ -124,16 +124,7 @@ class PhotoFrameAPIHandler(APIHandler):
             print("Failed to make paths: " + str(e))
             
         # Can we print photos?
-        try:
-            if os.path.isdir(self.external_picture_drop_dir):
-                self.photo_printer_available = True
-                if self.DEBUG:
-                    print("privacy manager photo drop-off dir existed")
-            else:
-                if self.DEBUG:
-                    print("privacy manager photo drop-off dir did not exist")
-        except Exception as ex:
-            print("Error while checking photo dropoff dir: " + str(ex))
+        self.check_photo_printer()
               
         # Screensaver
         if self.screensaver_delay > 0:
@@ -246,6 +237,8 @@ class PhotoFrameAPIHandler(APIHandler):
                                 state = 'error'
                             else:
                                 state = 'ok'
+                                
+                            self.check_photo_printer()
                             
                             return APIResponse(
                               status=200,
@@ -447,6 +440,32 @@ class PhotoFrameAPIHandler(APIHandler):
         return result
 
 
+    def check_photo_printer(self):
+        if self.DEBUG:
+            print("Checking if a bluetooth photo printer is paired")
+
+        try:
+            if os.path.isdir(self.external_picture_drop_dir):
+                if self.DEBUG:
+                    print("privacy manager photo drop-off dir existed")
+                bluetooth_printer_check = run_command('sudo bluetoothctl paired-devices')
+                if self.DEBUG:
+                    print("bluetooth_printer_check: " + str(bluetooth_printer_check))
+                if 'peripage' in bluetooth_printer_check.lower():
+                    self.photo_printer_available = True
+                    if self.DEBUG:
+                        print("paired bluetooth printer was detected")
+                    return True
+            else:
+                if self.DEBUG:
+                    print("privacy manager photo drop-off dir did not exist, so no photo printing capability available")
+                    
+        except Exception as ex:
+            print("Error while checking photo printer: " + str(ex))
+        
+        self.photo_printer_available = False
+        return False
+        
 
 
     def unload(self):
@@ -512,3 +531,19 @@ class PhotoFrameAPIHandler(APIHandler):
         
         return result
 
+
+
+def run_command(cmd, timeout_seconds=20):
+    try:
+        
+        p = subprocess.run(cmd, timeout=timeout_seconds, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+
+        if p.returncode == 0:
+            return p.stdout # + '\n' + "Command success" #.decode('utf-8')
+            #yield("Command success")
+        else:
+            if p.stderr:
+                return "Error: " + str(p.stderr) # + '\n' + "Command failed"   #.decode('utf-8'))
+
+    except Exception as e:
+        print("Error running command: "  + str(e))
