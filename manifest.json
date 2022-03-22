@@ -72,7 +72,7 @@
           "type": "boolean"
         },
         "Debug": {
-          "description": "Enable this to see much more detail in the internal WebThings Gateway log about what this add-on is doing.",
+          "description": "Advanced. Enable this to see much more detail in the internal WebThings Gateway log about what this add-on is doing.",
           "type": "boolean"
         }
       },
@@ -83,7 +83,7 @@
     }
   },
   "short_name": "Photo",
-  "version": "1.4.3",
+  "version": "1.4.5",
   "web_accessible_resources": [
     "css/*.css",
     "images/*.svg",

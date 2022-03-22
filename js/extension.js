@@ -117,6 +117,7 @@
                 }
                 else{
                     if(this.showing_screensaver == true){
+                        // Turning off screensaver 
                         //console.log("resetting path: ", this.screensaver_path);
                         
                         var short_path = "photo-frame";
@@ -148,6 +149,8 @@
                 			const menu_link = document.getElementById(id_to_click_on);
                 			menu_link.click(); //dispatchEvent('click');
                         }
+                        
+                        document.getElementById('menu-button').classList.remove('hidden');
                         
                         
                     }
