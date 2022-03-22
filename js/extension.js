@@ -109,10 +109,17 @@
                         this.screensaver_path = window.location.pathname;
                         //console.log("remembered path: ", this.screensaver_path);
                         this.showing_screensaver = true;
-            			const photo_frame_menu_button = document.getElementById("extension-photo-frame-menu-item");
-                        if(photo_frame_menu_button != null){
-                            photo_frame_menu_button.click();
+                        document.body.classList.add('screensaver');
+                        if(this.screensaver_path != '/extensions/photo-frame'){
+                			const photo_frame_menu_button = document.getElementById("extension-photo-frame-menu-item");
+                            if(photo_frame_menu_button != null){
+                                photo_frame_menu_button.click();
+                            }
                         }
+            			
+                        
+                        
+                        
                     }
                 }
                 else{
@@ -151,7 +158,7 @@
                         }
                         
                         document.getElementById('menu-button').classList.remove('hidden');
-                        
+                        document.body.classList.remove('screensaver');
                         
                     }
                     this.showing_screensaver = false;
@@ -275,7 +282,6 @@
     		const thing_list = document.getElementById('extension-photo-frame-thing-list');
 
     		//pre.innerText = "";
-		
 		
     		if( this.kiosk ) {
     			//console.log("fullscreen");

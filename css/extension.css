@@ -432,6 +432,10 @@ LIST
     cursor:pointer;
 }
 
+.screensaver #extension-photo-frame-more-button-container{
+    display:none;
+}
+
 /*
 #extension-photo-frame-more-button::after {
     content: '';
