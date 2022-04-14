@@ -108,6 +108,8 @@ class PhotoFrameAPIHandler(APIHandler):
             self.photos_data_dir_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'photos')
             self.demo_photo_file_path = os.path.join(self.addon_path, 'demo_photo.jpg')
             self.external_picture_drop_dir = os.path.join(self.user_profile['dataDir'], 'privacy-manager', 'printme')
+            self.display_toggle_path = os.path.join(self.user_profile['addonsDir'], 'display-toggle')
+            
             
             if not os.path.isdir(self.photos_data_dir_path):
                 if self.DEBUG:
@@ -127,10 +129,12 @@ class PhotoFrameAPIHandler(APIHandler):
         self.check_photo_printer()
               
         # Screensaver
-        if self.screensaver_delay > 0:
-            os.system('xset -display :0 s off')
-            os.system('xset -display :0 s noblank')
-            os.system('xset -display :0 -dpms')
+        if not os.path.isdir(self.display_toggle_path):
+            # Only keep the display on if the display toggle addon isn't installed.
+            if self.screensaver_delay > 0:
+                os.system('xset -display :0 s off')
+                os.system('xset -display :0 s noblank')
+                os.system('xset -display :0 -dpms')
             
         # Respond to gateway version
         try:
