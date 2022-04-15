@@ -20,7 +20,7 @@
             this.screensaver_delay = 60;
             this.showing_screensaver = false;
             this.previous_last_activity_time = 0;
-			this.screensaver_path = 'photo-frame';
+			this.screensaver_path = '/extensions/photo-frame';
             this.screensaver_ignore_click = false;
             
             
@@ -129,12 +129,11 @@
                         
                         var short_path = "photo-frame";
                         if(this.screensaver_path.startsWith('/extensions')){
-                            var short_path = this.screensaver_path.split('/')[2]
+                            var short_path = this.screensaver_path.split('/')[2];
                         }
                         else{
-                            this.screensaver_path.split('/')[1]
+                            var short_path = this.screensaver_path.split('/')[1];
                         }
-                        
                         
                         var spotted_in_menu = false;
                         const addon_name_css = short_path.replace(/_/g, "-");
