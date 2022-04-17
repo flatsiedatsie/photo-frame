@@ -17,7 +17,7 @@
 	      	this.content = '';
             
             // Screensaver
-            this.screensaver_delay = 60;
+            this.screensaver_delay = 120;
             this.showing_screensaver = false;
             this.previous_last_activity_time = 0;
 			this.screensaver_path = '/extensions/photo-frame';
@@ -659,6 +659,45 @@
                 setTimeout(() => {
                     picture2.classList.remove('extension-photo-frame-current-picture');
                 }, 500);
+                
+                
+                // Also update the list of photos.
+                
+                // Check if screensaver should be active
+    	        window.API.postJson(
+    	          `/extensions/photo-frame/api/list`
+
+    	        ).then((body) => {
+                    
+                    if( typeof body.printer != 'undefined'){
+                        this.printer_available = body.printer;
+                    }
+                    
+            		if( body['data'].length > 0 ){
+            			this.filenames = body['data'];
+            		}
+	
+                    if(this.show_date){
+                        document.getElementById('extension-photo-frame-date').classList.add('show');
+                    }
+                    else{
+                        document.getElementById('extension-photo-frame-date').classList.remove('show');
+                    }
+            		if(this.show_clock){
+                        document.getElementById('extension-photo-frame-clock').classList.add('show');
+                    }
+                    else{
+                        document.getElementById('extension-photo-frame-clock').classList.remove('show');
+                    }
+                    
+                
+    	        }).catch((e) => {
+    	  			console.log("Photo frame: error in init function: ", e);
+    	        });
+                
+                
+                
+                
             }
 		
             this.seconds_counter = 0;
