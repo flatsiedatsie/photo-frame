@@ -124,8 +124,6 @@
                 }
                 else{
                     if(this.showing_screensaver == true){
-                        // Turning off screensaver 
-                        //console.log("resetting path: ", this.screensaver_path);
                         
                         var short_path = "photo-frame";
                         if(this.screensaver_path.startsWith('/extensions')){
@@ -137,18 +135,26 @@
                         
                         var spotted_in_menu = false;
                         const addon_name_css = short_path.replace(/_/g, "-");
+                        //console.log(addon_name_css);
                         const menu_elements = document.querySelectorAll('#main-menu li a');
-                        var id_to_click_on = "photo-frame";
+                        var id_to_click_on = "extension-photo-frame-menu-item";
                         menu_elements.forEach(element => {
                             var link_id = element.getAttribute('id');
-                            const short_link_id = link_id.replace("-menu-item", "");
-                            if(short_link_id.endsWith(addon_name_css)){
+                            var short_link_id = link_id.replace("-menu-item", "");
+                            short_link_id = short_link_id.replace("extension-", "");
+                            //short_link_id = link_id.replace("extension-", "");
+                            //if(short_link_id.endsWith(addon_name_css)){
+                            //console.log(" --> ", short_link_id);
+                            if(short_link_id == addon_name_css){
                                 spotted_in_menu = true;
                                 id_to_click_on = link_id;
                             }
                         });
                         
                         if(spotted_in_menu == false){
+                            if(this.debug){
+                                console.log('screensaver could not restore the page. addon_name_css: ', addon_name_css);
+                            }
                             //window.location.pathname = this.screensaver_path;
                         }
                         else{
