@@ -572,6 +572,7 @@
                 var print_button = document.createElement("div");
                 print_button.setAttribute("class","extension-photo-frame-thumbnail-print-button");
                 print_button.setAttribute("data-filename", file_list[key]);
+                print_button.setAttribute("title", "Print");
             
     			//print_button.onclick = () => { 
                 print_button.addEventListener('click', (event) => {

@@ -38,7 +38,6 @@
     zoom:.63;
 }
 
-
 .zoom1 #extension-photo-frame-date-container{
     font-size:2.5rem;
 }
@@ -308,14 +307,22 @@
     text-align:center;
     padding: .5rem 2rem 0 2rem;
     font-size:3rem;
-    
+    text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
 }
 
 #extension-photo-frame-date-container{
     display:flex;
     justify-content:center;
     padding: .5rem 2rem;
+    font-size: 2.1rem;
+    text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+    
 }
+
+#extension-photo-frame-date-date{
+    text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
 
 
 /*  fade in animation  */
@@ -423,6 +430,10 @@ LIST
     right: 0rem;
     width:7.6rem;
     height:7.6rem;
+}
+
+.screensaver #extension-photo-frame-more-button{
+    display:none;
 }
 
 #extension-photo-frame-more-button{
