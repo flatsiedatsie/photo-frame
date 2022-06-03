@@ -170,7 +170,7 @@
 		background-color:white;
 }
 
-
+#extension-photo-frame-photos-file-selector-overlay,
 #extension-photo-frame-photos-file-selector{
     font-size: 0;
     /*padding: 1rem 2rem;*/
@@ -185,14 +185,17 @@
     border-radius: 2.8rem;
     background-size: cover;
     background-repeat: no-repeat;
-    opacity: 0.9;
+    opacity: 0.01;
     cursor: pointer;
     user-select: none;
     outline: 0;
     z-index: 100;
     box-shadow: 0 1px 3px rgb(0 0 0 / 6%), 0 1px 2px rgb(0 0 0 / 12%);
 }
-#extension-photo-frame-photos-file-selector:hover{
+
+#extension-photo-frame-photos-file-selector-overlay{
+    z-index:101;
+    pointer-events: none;
     opacity:1;
 }
 
