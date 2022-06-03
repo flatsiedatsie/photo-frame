@@ -588,7 +588,8 @@ LIST
 	
 	#extension-photo-frame-content-container{
 		height:auto;
-		width: calc(100% - 11rem);
+		width: calc(100% - 19.8rem);
+        margin-left:9.6rem;
 	}
 	
 	/*

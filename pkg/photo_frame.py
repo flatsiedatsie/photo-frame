@@ -72,7 +72,6 @@ class PhotoFrameAPIHandler(APIHandler):
         self.show_date = False
         self.photo_printer_available = False
         #os.environ["DISPLAY"] = ":0.0"
-        
             
         try:
             manifest_fname = os.path.join(
@@ -104,6 +103,7 @@ class PhotoFrameAPIHandler(APIHandler):
         try:
             self.addon_path =  os.path.join(self.user_profile['addonsDir'], self.addon_name)
             #self.persistence_file_folder = os.path.join(self.user_profile['configDir'])
+            self.persistence_file_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'persistence.json')
             self.photos_dir_path = os.path.join(self.addon_path, 'photos')
             self.photos_data_dir_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'photos')
             self.demo_photo_file_path = os.path.join(self.addon_path, 'demo_photo.jpg')
@@ -125,6 +125,18 @@ class PhotoFrameAPIHandler(APIHandler):
         except Exception as e:
             print("Failed to make paths: " + str(e))
             
+        # Get persistent data
+        self.persistent_data = {}
+        try:
+            with open(self.persistence_file_path) as f:
+                self.persistent_data = json.load(f)
+                if self.DEBUG:
+                    print('self.persistent_data loaded from file: ' + str(self.persistent_data))
+                
+        except:
+            if self.DEBUG:
+                print("Could not load persistent data (if you just installed the add-on then this is normal)")
+
         # Can we print photos?
         self.check_photo_printer()
               
@@ -146,13 +158,17 @@ class PhotoFrameAPIHandler(APIHandler):
         
         
         if len(self.scan_photo_dir()) == 0:
-            if self.DEBUG:
-                print("no photos yet. Copying demo photo")
-            os.system('cp ' + str(self.demo_photo_file_path) + ' ' + str(self.photos_data_dir_path))
-        #self.keyboard = Controller()
             
-        #while(True):
-        #    sleep(1)
+            # only copy the demo photo once, so that the user can choose to have no photos at all, which will turn the screensaver into a black screen.
+            if not 'demo_photo_copied' in self.persistent_data:
+            
+                if self.DEBUG:
+                    print("no photos yet. Copying demo photo")
+            
+                os.system('cp ' + str(self.demo_photo_file_path) + ' ' + str(self.photos_data_dir_path))
+            
+                self.persistent_data = {'demo_photo_copied':True}
+                self.save_persistent_data()
         
 
 
@@ -432,6 +448,7 @@ class PhotoFrameAPIHandler(APIHandler):
         return result
 
 
+
     def scan_photo_dir(self):
         result = []
         try:
@@ -442,6 +459,7 @@ class PhotoFrameAPIHandler(APIHandler):
             print("Error scanning photo directory")
         
         return result
+
 
 
     def check_photo_printer(self):
@@ -534,6 +552,36 @@ class PhotoFrameAPIHandler(APIHandler):
             print("photo saved")
         
         return result
+
+
+
+    def save_persistent_data(self):
+        if self.DEBUG:
+            print("Saving to persistence data store")
+
+        try:
+            if not os.path.isfile(self.persistence_file_path):
+                open(self.persistence_file_path, 'a').close()
+                if self.DEBUG:
+                    print("Created an empty persistence file")
+            else:
+                if self.DEBUG:
+                    print("Persistence file existed. Will try to save to it.")
+
+            with open(self.persistence_file_path) as f:
+                if self.DEBUG:
+                    print("saving: " + str(self.persistent_data))
+                try:
+                    json.dump( self.persistent_data, open( self.persistence_file_path, 'w+' ) )
+                except Exception as ex:
+                    print("Error saving to persistence file: " + str(ex))
+                return True
+            #self.previous_persistent_data = self.persistent_data.copy()
+
+        except Exception as ex:
+            if self.DEBUG:
+                print("Error: could not store data in persistent store: " + str(ex) )
+            return False
 
 
 
