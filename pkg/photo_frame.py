@@ -70,8 +70,11 @@ class PhotoFrameAPIHandler(APIHandler):
         self.fit_to_screen = "mix"
         self.show_clock = False
         self.show_date = False
+        self.show_weather = False
         self.photo_printer_available = False
         #os.environ["DISPLAY"] = ":0.0"
+            
+        self.weather_addon_exists = False
             
         try:
             manifest_fname = os.path.join(
@@ -110,6 +113,10 @@ class PhotoFrameAPIHandler(APIHandler):
             self.external_picture_drop_dir = os.path.join(self.user_profile['dataDir'], 'privacy-manager', 'printme')
             self.display_toggle_path = os.path.join(self.user_profile['addonsDir'], 'display-toggle')
             
+            # weather
+            self.weather_addon_path =  os.path.join(self.user_profile['addonsDir'], 'weather-adapter')
+            if os.path.isdir(self.weather_addon_path):
+                self.weather_addon_exists = True
             
             if not os.path.isdir(self.photos_data_dir_path):
                 if self.DEBUG:
@@ -220,6 +227,11 @@ class PhotoFrameAPIHandler(APIHandler):
             self.show_clock = int(config['Show clock'])
             if self.DEBUG:
                 print("-Clock preference was in config: " + str(self.show_clock))
+                
+        if 'Show weather' in config:
+            self.show_weather = int(config['Show weather'])
+            if self.DEBUG:
+                print("-Weather preference was in config: " + str(self.show_weather))
 
         if 'Show date' in config:
             self.show_date = int(config['Show date'])
@@ -263,7 +275,19 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=200,
                               content_type='application/json',
-                              content=json.dumps({'state' : state, 'data' : data, 'settings': {'interval':self.interval,'screensaver_delay': self.screensaver_delay, 'fit_to_screen':self.fit_to_screen, 'show_clock' : self.show_clock, 'show_date' : self.show_date }, 'printer':self.photo_printer_available, 'debug':self.DEBUG }),
+                              content=json.dumps({'state' : state, 
+                                                  'data' : data, 'settings': 
+                                                            {'interval':self.interval,
+                                                            'screensaver_delay': self.screensaver_delay, 
+                                                            'fit_to_screen':self.fit_to_screen, 
+                                                            'show_clock' : self.show_clock, 
+                                                            'show_date' : self.show_date,
+                                                            'show_weather' : self.show_weather 
+                                                            }, 
+                                                    'printer':self.photo_printer_available, 
+                                                    'weather_addon_exists':self.weather_addon_exists, 
+                                                    'debug':self.DEBUG 
+                                                }),
                             )
                         except Exception as ex:
                             print("Error getting init data: " + str(ex))

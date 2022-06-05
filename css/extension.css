@@ -147,7 +147,6 @@
 
 
 
-
 /*  DROPZONE */
 
 
@@ -156,18 +155,18 @@
     border: 2px dashed #ccc;
     color: #ccc;
     text-align: center;
-		display:flex;
-		align-content: center;
-		justify-content: center;
-		align-items: center;
-		margin-bottom:.2rem;
-		display:none;
+	display:flex;
+	align-content: center;
+	justify-content: center;
+	align-items: center;
+	margin-bottom:.2rem;
+	display:none;
 }
 
 #extension-photo-frame-dropzone.extension-photo-frame-dragover {
     border-color: #000;
     color: #000;
-		background-color:white;
+	background-color:white;
 }
 
 #extension-photo-frame-photos-file-selector-overlay,
@@ -205,14 +204,14 @@
 
 
 #extension-photo-frame-icon{
-  display: inline-block;
-  width: 5rem;
-  height: 2rem;
-  background-image: url('../images/menu-icon.svg');
-  background-size: contain;
-  background-size: 4rem;
-  background-repeat: no-repeat;
-  background-position: 0;
+    display: inline-block;
+    width: 5rem;
+    height: 2rem;
+    background-image: url('../images/menu-icon.svg');
+    background-size: contain;
+    background-size: 4rem;
+    background-repeat: no-repeat;
+    background-position: 0;
 }
 
 #extension-photo-frame-icon:hover{
@@ -229,9 +228,9 @@
 }
 
 .zoom {
-  cursor: move;
-  fill: none;
-  pointer-events: all;
+    cursor: move;
+    fill: none;
+    pointer-events: all;
 }
 
 .extension-photo-frame-hidden{
@@ -241,7 +240,7 @@
 
 
 #main-menu #extension-photo-frame-menu-item {
-  background-image: url('../images/menu-icon.svg');
+    background-image: url('../images/menu-icon.svg');
 }
 
 
@@ -283,6 +282,7 @@
 }
 
 
+/*  CLOCK AND DATE  */
 
 #extension-photo-frame-clock-container{
     position:absolute;
@@ -324,6 +324,32 @@
 
 #extension-photo-frame-date-date{
     text-shadow: 2px 2px 4px rgb(0 0 0 / 30%);
+}
+
+
+
+/*  WEATHER  */
+
+#extension-photo-frame-weather-container{
+    padding-top:2rem;
+    /*position:absolute;
+    bottom:0;
+    right:0;*/
+    display:flex;
+    flex-direction:column;
+    position: fixed;
+    left: 2rem;
+    bottom: 2rem;
+}
+
+#extension-photo-frame-weather-temperature{
+    background-image: url('../images/temperature-icon.svg');
+    background-position: left 65%;
+    background-size: 3rem;
+    background-repeat:no-repeat;
+    padding-left:3.8rem;
+    font-size:5rem;
+    font-weight:bold;
 }
 
 

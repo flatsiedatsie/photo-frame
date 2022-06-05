@@ -29,15 +29,18 @@
       "Interval": 30,
 	  "Screensaver delay": "60",
       "Fit to screen": "mix",
-	  "Clock": true,
-	  "Date": true,
+	  "Show clock": true,
+	  "Show date": true,
+	  "Show weather": true,
       "Debug": false
     },
     "schema": {
       "properties": {
         "Interval": {
           "description": "How many seconds between changing to another random photo.",
-          "type": "integer"
+          "type": "integer",
+		  "minimum": 5,
+		  "maximum": 60
         },
         "Screensaver delay": {
           "description": "After how many seconds of inactivity should the photo frame switch itself on as a screensaver? Select 0 if you don't want photo frame to act as a screensaver. The default is 60 seconds. The maximum is 600 (10 minutes)",
@@ -69,6 +72,10 @@
         },
         "Show date": {
           "description": "Show the current day and date on top of the photos.",
+          "type": "boolean"
+        },
+        "Show weather": {
+          "description": "Show weather data on top of the photos. For this the Weather addon must also be installed and configured with at least one location.",
           "type": "boolean"
         },
         "Debug": {

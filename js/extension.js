@@ -2,7 +2,7 @@
 	class PhotoFrame extends window.Extension {
 	    constructor() {
 	      	super('photo-frame');
-			//console.log("Adding Photo frame to menu");
+			console.log("Adding Photo frame to menu");
 	      	this.addMenuEntry('Photo Frame');
 
             
@@ -13,7 +13,7 @@
             }
 
             this.debug = false;
-
+            console.log(window.API);
 	      	this.content = '';
             
             // Screensaver
@@ -40,6 +40,13 @@
 			this.current_picture = 1; // two pictures swap places: picture1 and picture2. This is for a smooth transition effect
             
             
+            // Weather
+            this.show_weather = false;
+            this.weather_addon_exists = false;
+            this.all_things = [];
+            this.weather_thing_url = null;
+            
+            
 			fetch(`/extensions/${this.id}/views/content.html`)
 			.then((res) => res.text())
 			.then((text) => {
@@ -57,6 +64,9 @@
 	  				{'init':1}
 
 	        ).then((body) => {
+                
+                console.log("photo frame init: ", body);
+                
                 if(typeof body.settings.screensaver_delay != 'undefined'){
                     this.screensaver_delay = body.settings.screensaver_delay;
                     if(body.settings.screensaver_delay > 1){
@@ -75,6 +85,23 @@
                 if( typeof body.printer != 'undefined'){
                     this.printer_available = body.printer;
                 }
+                /*
+                if( typeof body.weather_addon_exists != 'undefined'){
+                    if(body.weather_addon_exists == true){
+                        if(this.weather_addon_exists == false){
+                            this.weather_addon_exists = true;
+                            this.find_weather_thing();
+                        }
+                        
+                    }
+                }
+                */
+                if( typeof body.settings.show_weather != 'undefined'){
+                    this.show_weather = body.settings.show_weather;
+                    console.log('body.settings.show_weather: ', body.settings.show_weather);
+                }
+                
+                
                 
 	        }).catch((e) => {
 	  			console.log("Photo frame: error in init function: ", e);
@@ -285,8 +312,7 @@
     		
     		const pre = document.getElementById('extension-photo-frame-response-data');
     		const thing_list = document.getElementById('extension-photo-frame-thing-list');
-
-    		//pre.innerText = "";
+            
 		
     		if( this.kiosk ) {
     			//console.log("fullscreen");
@@ -647,7 +673,7 @@
             const picture1 = document.getElementById('extension-photo-frame-picture1');
             const picture2 = document.getElementById('extension-photo-frame-picture2');
     		const overview = document.getElementById('extension-photo-frame-overview');
-    		//console.log("showing photo: " + filename);
+    		console.log("showing photo: " + filename);
         
             if(this.current_picture == 1){
                 this.current_picture = 2;
@@ -656,17 +682,6 @@
                 setTimeout(() => {
                     picture1.classList.remove('extension-photo-frame-current-picture');
                 }, 500);
-            
-            }
-            else{
-                // Switching from picture 2 to back to picture 1
-                this.current_picture = 1;
-                picture1.style.backgroundImage="url(/extensions/photo-frame/photos/" + filename + ")";
-                picture1.classList.add('extension-photo-frame-current-picture');
-                setTimeout(() => {
-                    picture2.classList.remove('extension-photo-frame-current-picture');
-                }, 500);
-                
                 
                 // Also update the list of photos.
                 
@@ -675,10 +690,26 @@
     	          `/extensions/photo-frame/api/list`
 
     	        ).then((body) => {
-                    
+                    console.log('body: ', body);
                     if( typeof body.printer != 'undefined'){
                         this.printer_available = body.printer;
                     }
+                    
+                    if( typeof body.weather_addon_exists != 'undefined'){
+                        if(this.show_weather){
+                            if(body.weather_addon_exists == true){
+                                if(this.weather_addon_exists == false){
+                                    this.weather_addon_exists = true;
+                                    this.find_weather_thing();
+                                }
+                                this.update_weather();
+                            }
+                        }
+                        else{
+                            console.log('show weather is disabled');
+                        }
+                    }
+                    
                     
             		if( body['data'].length > 0 ){
             			this.filenames = body['data'];
@@ -701,14 +732,97 @@
     	        }).catch((e) => {
     	  			console.log("Photo frame: error in init function: ", e);
     	        });
-                
-                
-                
+            
+            }
+            else{
+                // Switching from picture 2 to back to picture 1
+                this.current_picture = 1;
+                picture1.style.backgroundImage="url(/extensions/photo-frame/photos/" + filename + ")";
+                picture1.classList.add('extension-photo-frame-current-picture');
+                setTimeout(() => {
+                    picture2.classList.remove('extension-photo-frame-current-picture');
+                }, 500);
                 
             }
 		
             this.seconds_counter = 0;
     	}
+
+        
+        find_weather_thing(){
+            console.log("in get_weather_thing");
+            if(this.show_weather){
+                if(this.weather_thing_url == null){
+                    
+            	    API.getThings().then((things) => {
+                        //console.log('things:', things);
+            			this.all_things = things;
+                
+            			for (let key in things){
+
+                            if( things[key].hasOwnProperty('href') ){
+                                if(things[key]['href'].indexOf('/things/weather-') != -1){
+                                    console.log("found weather thing. href: ", things[key]['href']);
+                                    this.weather_thing_url = things[key]['href'];
+                                    //console.log('description: ', things[key]['properties']['description']['value'] );
+                                    //console.log('temperature: ', things[key]['properties']['temperature']['value'] );
+                                    this.update_weather();
+                                }
+                            }
+                    
+                        }
+                
+                    });
+                    
+                }
+                else{
+                    console.log("weather thing url was already found: ", this.weather_thing_url);
+                }
+        	    
+            }
+            else{
+                console.log('show weather is disabled, not finding thing');
+            }
+    	    
+        }
+
+
+        update_weather(){
+            if(this.weather_thing_url != null){
+                API.getJson(this.weather_thing_url + '/properties/temperature')
+                .then((prop) => {
+                    console.log(prop);
+                    let temperature_el = document.getElementById('extension-photo-frame-weather-temperature');
+                    if(temperature_el != null){
+                        document.getElementById('extension-photo-frame-weather-temperature').innerText = prop;
+                        //document.getElementById('extension-photo-frame-weather-description').innerText = things[key]['properties']['description']['value'];
+                    }
+                    else{
+                        console.log('weather temperature element did not exist yet');
+                    }
+    	        }).catch((e) => {
+    	  			console.log("Photo frame: update_weather: error getting temperature property: ", e);
+    	        });
+                
+                API.getJson(this.weather_thing_url + '/properties/description')
+                .then((prop) => {
+                    console.log(prop);
+                    let description_el = document.getElementById('extension-photo-frame-weather-description');
+                    if(description_el != null){
+                        document.getElementById('extension-photo-frame-weather-description').innerText = prop;
+                    }
+                    else{
+                        console.log('weather description element did not exist yet');
+                    }
+    	        }).catch((e) => {
+    	  			console.log("Photo frame: update_weather: error getting description property: ", e);
+    	        });
+            }
+            else{
+                console.log('in update_weather, but no thing url');
+            }
+        }
+
 
 
     	upload_files(files){
