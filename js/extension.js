@@ -673,7 +673,7 @@
             const picture1 = document.getElementById('extension-photo-frame-picture1');
             const picture2 = document.getElementById('extension-photo-frame-picture2');
     		const overview = document.getElementById('extension-photo-frame-overview');
-    		console.log("showing photo: " + filename);
+    		//console.log("showing photo: " + filename);
         
             if(this.current_picture == 1){
                 this.current_picture = 2;
@@ -690,7 +690,7 @@
     	          `/extensions/photo-frame/api/list`
 
     	        ).then((body) => {
-                    console.log('body: ', body);
+                    //console.log('body: ', body);
                     if( typeof body.printer != 'undefined'){
                         this.printer_available = body.printer;
                     }
@@ -706,7 +706,7 @@
                             }
                         }
                         else{
-                            console.log('show weather is disabled');
+                            //console.log('show weather is disabled');
                         }
                     }
                     
@@ -730,7 +730,7 @@
                     
                 
     	        }).catch((e) => {
-    	  			console.log("Photo frame: error in init function: ", e);
+    	  			console.log("Photo frame: show file: error in show file function: ", e);
     	        });
             
             }
@@ -750,7 +750,7 @@
 
         
         find_weather_thing(){
-            console.log("in get_weather_thing");
+            //console.log("in get_weather_thing");
             if(this.show_weather){
                 if(this.weather_thing_url == null){
                     
@@ -762,7 +762,7 @@
 
                             if( things[key].hasOwnProperty('href') ){
                                 if(things[key]['href'].indexOf('/things/weather-') != -1){
-                                    console.log("found weather thing. href: ", things[key]['href']);
+                                    //console.log("found weather thing. href: ", things[key]['href']);
                                     this.weather_thing_url = things[key]['href'];
                                     //console.log('description: ', things[key]['properties']['description']['value'] );
                                     //console.log('temperature: ', things[key]['properties']['temperature']['value'] );
@@ -776,12 +776,12 @@
                     
                 }
                 else{
-                    console.log("weather thing url was already found: ", this.weather_thing_url);
+                    //console.log("weather thing url was already found: ", this.weather_thing_url);
                 }
         	    
             }
             else{
-                console.log('show weather is disabled, not finding thing');
+                //console.log('show weather is disabled, not finding thing');
             }
     	    
         }
@@ -791,14 +791,14 @@
             if(this.weather_thing_url != null){
                 API.getJson(this.weather_thing_url + '/properties/temperature')
                 .then((prop) => {
-                    console.log(prop);
+                    //console.log(prop);
                     let temperature_el = document.getElementById('extension-photo-frame-weather-temperature');
                     if(temperature_el != null){
                         document.getElementById('extension-photo-frame-weather-temperature').innerText = prop;
                         //document.getElementById('extension-photo-frame-weather-description').innerText = things[key]['properties']['description']['value'];
                     }
                     else{
-                        console.log('weather temperature element did not exist yet');
+                        //console.log('weather temperature element did not exist yet');
                     }
     	        }).catch((e) => {
     	  			console.log("Photo frame: update_weather: error getting temperature property: ", e);
@@ -806,20 +806,20 @@
                 
                 API.getJson(this.weather_thing_url + '/properties/description')
                 .then((prop) => {
-                    console.log(prop);
+                    //console.log(prop);
                     let description_el = document.getElementById('extension-photo-frame-weather-description');
                     if(description_el != null){
                         document.getElementById('extension-photo-frame-weather-description').innerText = prop;
                     }
                     else{
-                        console.log('weather description element did not exist yet');
+                        //console.log('weather description element did not exist yet');
                     }
     	        }).catch((e) => {
     	  			console.log("Photo frame: update_weather: error getting description property: ", e);
     	        });
             }
             else{
-                console.log('in update_weather, but no thing url');
+                console.log('Warning, in update_weather, but no thing url');
             }
         }
 
