@@ -65,8 +65,6 @@
 
 	        ).then((body) => {
                 
-                console.log("photo frame init: ", body);
-                
                 if(typeof body.settings.screensaver_delay != 'undefined'){
                     this.screensaver_delay = body.settings.screensaver_delay;
                     if(body.settings.screensaver_delay > 1){
@@ -78,7 +76,7 @@
                 
                 this.debug = body.debug;
                 if(this.debug){
-    	  			console.log("photo frame: init returned:");
+    	  			console.log("photo frame: init response: ");
                     console.log(body);
                 }
                 
@@ -98,7 +96,7 @@
                 */
                 if( typeof body.settings.show_weather != 'undefined'){
                     this.show_weather = body.settings.show_weather;
-                    console.log('body.settings.show_weather: ', body.settings.show_weather);
+                    //console.log('body.settings.show_weather: ', body.settings.show_weather);
                 }
                 
                 
@@ -302,6 +300,7 @@
 
         show() {
             //console.log("in photo frame show");
+            
     		if(this.content == ''){
     			return;
     		}
@@ -331,7 +330,7 @@
     			//this.createDropzoneMethods(); //  disabled, as files could be too big. For now users can just upload an image one at a time.
     		}
 			
-			
+			this.current_picture = 1;
             
             if(this.printer_available){
                 if(document.getElementById('extension-photo-frame-content') != null){
@@ -645,7 +644,7 @@
         
         
     	print_file(filename){
-            console.log("Printing file:" + filename);
+            //console.log("Printing file:" + filename);
 			
         	const pre = document.getElementById('extension-photo-frame-response-data');
         	const photo_list = document.getElementById('extension-photo-frame-photo-list');
@@ -655,7 +654,7 @@
                 {'action':'print', 'filename':filename}
 				
               ).then((body) => { 
-                  console.log('file sent to printer');
+                  //console.log('file sent to printer');
 
               }).catch((e) => {
         	      console.log("Photo frame: error in print response: ", e);
@@ -755,7 +754,7 @@
                 if(this.weather_thing_url == null){
                     
             	    API.getThings().then((things) => {
-                        //console.log('things:', things);
+                        console.log('things:', things);
             			this.all_things = things;
                 
             			for (let key in things){
@@ -788,6 +787,7 @@
 
 
         update_weather(){
+            //console.log("in update_weather");
             if(this.weather_thing_url != null){
                 API.getJson(this.weather_thing_url + '/properties/temperature')
                 .then((prop) => {
