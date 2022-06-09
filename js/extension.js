@@ -2,7 +2,7 @@
 	class PhotoFrame extends window.Extension {
 	    constructor() {
 	      	super('photo-frame');
-			console.log("Adding Photo frame to menu");
+			//console.log("Adding Photo frame to menu");
 	      	this.addMenuEntry('Photo Frame');
 
             
@@ -13,7 +13,7 @@
             }
 
             this.debug = false;
-            console.log(window.API);
+            //console.log(window.API);
 	      	this.content = '';
             
             // Screensaver
