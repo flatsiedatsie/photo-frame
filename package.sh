@@ -20,7 +20,7 @@ mkdir -p lib package
 # Pull down Python dependencies
 pip3 install -r requirements.txt -t lib --no-binary :all: --prefix ""
 
-cp *.py manifest.json LICENSE README.md demo_photo.jpg package/
+cp *.py manifest.json LICENSE README.md demo_photo.jpg demo_photo2.jpg package/
 cp -r pkg lib css images js views package/
 find package -type f -name '*.pyc' -delete
 find package -type f -name '._*' -delete
