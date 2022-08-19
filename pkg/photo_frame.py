@@ -257,7 +257,7 @@ class PhotoFrameAPIHandler(APIHandler):
                 print("not post")
                 return APIResponse(status=404)
             
-            if request.path == '/init' or request.path == '/list' or request.path == '/delete' or request.path == '/save' or request.path == '/wake' or request.path == '/print':
+            if request.path == '/init' or request.path == '/list' or request.path == '/delete' or request.path == '/save' or request.path == '/wake' or request.path == '/print'  or request.path == '/get_time':
 
                 try:
                     
@@ -378,6 +378,43 @@ class PhotoFrameAPIHandler(APIHandler):
                               content=json.dumps("Error while waking up the display: " + str(ex)),
                             )
 
+                    
+                    elif request.path == '/get_time':
+                        if self.DEBUG:
+                            print("in /get_time")
+                        try:
+                            # Fri 19 Aug 19:44:29 CEST 2022
+                            system_date = run_command('date')
+                            system_date = system_date.split(' ')
+                            
+                            #print("system_date: " + str(system_date))
+                            #print("len(system_date): " + str(len(system_date)))
+                            system_time = system_date[3]
+                            #print("system_time: " + str(system_time))
+                            #print("len(system_time): " + str(len(system_time)))
+                            #if self.DEBUG:
+                            #    print("system_time from system_date: " + str(system_time))
+                            time_parts = system_time.split(':')
+                            
+                            return APIResponse(
+                              status=200,
+                              content_type='application/json',
+                              content=json.dumps({'state' : 'ok', 
+                                                  'day_name':system_date[0], 
+                                                  'date':system_date[1], 
+                                                  'month':system_date[2], 
+                                                  'hours':time_parts[0], 
+                                                  'minutes':time_parts[1] 
+                                              }),
+                            )
+                        except Exception as ex:
+                            print("Error returning system time: " + str(ex))
+                            return APIResponse(
+                              status=500,
+                              content_type='application/json',
+                              content=json.dumps("Error while returning system time: " + str(ex)),
+                            )
+                    
                     
                     
                     elif request.path == '/print':
