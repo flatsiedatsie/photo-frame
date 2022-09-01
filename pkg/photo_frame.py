@@ -385,6 +385,9 @@ class PhotoFrameAPIHandler(APIHandler):
                         try:
                             # Fri 19 Aug 19:44:29 CEST 2022
                             system_date = run_command('date')
+                            system_date = system_date.replace('  ', ' ')
+                            system_date = system_date.replace('  ', ' ')
+                            system_date = system_date.replace('  ', ' ')
                             system_date = system_date.split(' ')
                             
                             #print("system_date: " + str(system_date))
