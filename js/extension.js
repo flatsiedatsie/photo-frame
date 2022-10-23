@@ -779,21 +779,42 @@
                 if (this.weather_thing_url == null) {
 
                     API.getThings().then((things) => {
-                        console.log('things:', things);
+                        //console.log('things:', things);
                         this.all_things = things;
 
+                        // First try to find the Candle weather addon
                         for (let key in things) {
 
                             if (things[key].hasOwnProperty('href')) {
-                                if (things[key]['href'].indexOf('/things/weather-') != -1) {
-                                    //console.log("found weather thing. href: ", things[key]['href']);
+                                if (things[key]['href'].indexOf('/things/candle-weather-today') != -1) {
+                                    //console.log("found candle weather thing. href: ", things[key]['href'], things[key]);
                                     this.weather_thing_url = things[key]['href'];
                                     //console.log('description: ', things[key]['properties']['description']['value'] );
                                     //console.log('temperature: ', things[key]['properties']['temperature']['value'] );
                                     this.update_weather();
+                                    //return;
+                                    break;
                                 }
                             }
 
+                        }
+
+                        if (this.weather_thing_url == null) {
+                            // If the Candle weather addon doesn't exist, try the other one.
+                            for (let key in things) {
+
+                                if (things[key].hasOwnProperty('href')) {
+                                    if (things[key]['href'].indexOf('/things/weather-') != -1) {
+                                        //console.log("found weather thing. href: ", things[key]['href']);
+                                        this.weather_thing_url = things[key]['href'];
+                                        //console.log('description: ', things[key]['properties']['description']['value'] );
+                                        //console.log('temperature: ', things[key]['properties']['temperature']['value'] );
+                                        this.update_weather();
+                                        break;
+                                    }
+                                }
+
+                            }
                         }
 
                     });
@@ -814,7 +835,7 @@
             if (this.weather_thing_url != null) {
                 API.getJson(this.weather_thing_url + '/properties/temperature')
                     .then((prop) => {
-                        //console.log(prop);
+                        //console.log("weather temperature property: ", prop);
                         let temperature_el = document.getElementById('extension-photo-frame-weather-temperature');
                         if (temperature_el != null) {
                             document.getElementById('extension-photo-frame-weather-temperature').innerText = prop;
@@ -828,7 +849,7 @@
 
                 API.getJson(this.weather_thing_url + '/properties/description')
                     .then((prop) => {
-                        //console.log(prop);
+                        //console.log("weather description property: ", prop);
                         let description_el = document.getElementById('extension-photo-frame-weather-description');
                         if (description_el != null) {
                             document.getElementById('extension-photo-frame-weather-description').innerText = prop;
@@ -839,7 +860,7 @@
                         console.log("Photo frame: update_weather: error getting description property: ", e);
                     });
             } else {
-                console.log('Warning, in update_weather, but no thing url');
+                //console.log('Warning, in update_weather, but no thing url');
             }
         }
 
