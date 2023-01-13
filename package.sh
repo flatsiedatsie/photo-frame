@@ -34,7 +34,8 @@ cd -
 
 # Make the tarball
 echo "creating archive"
-TARFILE="photo-frame-${version}.tgz"
+#TARFILE="photo-frame-${version}.tgz"
+TARFILE="candle-weather-${version}${TARFILE_SUFFIX}.tgz"
 tar czf ${TARFILE} package
 
 shasum --algorithm 256 ${TARFILE} > ${TARFILE}.sha256sum
