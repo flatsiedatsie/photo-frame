@@ -75,11 +75,11 @@
           "type": "boolean"
         },
         "Show weather": {
-          "description": "Show weather data on top of the photos. For this the Weather addon must also be installed and configured with at least one location.",
+          "description": "Show weather data on top of the photos. For this the Candle Weather addon must also be installed and configured with at least one location.",
           "type": "boolean"
         },
         "Debug": {
-          "description": "Advanced. Enable this to see much more detail in the internal WebThings Gateway log about what this add-on is doing.",
+          "description": "Advanced. Enable this to see much more detail in the internal log about what this add-on is doing.",
           "type": "boolean"
         }
       },
