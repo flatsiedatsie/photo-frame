@@ -847,9 +847,11 @@
                         console.log("Photo frame: update_weather: error getting temperature property: ", e);
                     });
 
-                API.getJson(this.weather_thing_url + '/properties/description')
+
+                //API.getJson(this.weather_thing_url + '/properties/description')
+				API.getJson(this.weather_thing_url + '/properties/current_description')
                     .then((prop) => {
-                        //console.log("weather description property: ", prop);
+                        console.log("weather current_description property: ", prop);
                         let description_el = document.getElementById('extension-photo-frame-weather-description');
                         if (description_el != null) {
                             document.getElementById('extension-photo-frame-weather-description').innerText = prop;

@@ -330,7 +330,6 @@ class PhotoFrameAPIHandler(APIHandler):
                             
                             
                             
-                            
                     elif request.path == '/save':
                         #if self.DEBUG:
                         print("SAVING")
