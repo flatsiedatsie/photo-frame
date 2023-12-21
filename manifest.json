@@ -10,7 +10,7 @@
       ]
     }
   ],
-  "description": "Show your favourite photos",
+  "description": "Show your favourite photos, acts as a screensaver.",
   "gateway_specific_settings": {
     "webthings": {
       "exec": "python3 {path}/main.py",
@@ -90,7 +90,7 @@
     }
   },
   "short_name": "Photo",
-  "version": "1.4.22",
+  "version": "1.4.23",
   "web_accessible_resources": [
     "css/*.css",
     "images/*.svg",
