@@ -21,7 +21,10 @@
 	align-content: space-between;
 	justify-content: center;
 	align-items: flex-end;
-    z-index:3;
+}
+
+body.screensaver #extension-photo-frame-picture-holder{
+	z-index:3;
 }
 
 
@@ -462,6 +465,22 @@ LIST
     height:7.6rem;
 }
 
+#extension-photo-frame-next-photo-button-container{
+    position: fixed;
+    bottom: 9.6rem;
+    right: 0rem;
+    width:7.6rem;
+    height:7.6rem;
+}
+#extension-photo-frame-next-photo-button{
+	cursor:pointer;
+}
+#extension-photo-frame-next-photo-button:hover{
+	background-color:rgba(255,255,255,.5);
+}
+
+
+.screensaver #extension-photo-frame-next-photo-button,
 .screensaver #extension-photo-frame-more-button{
     display:none;
 }
@@ -472,9 +491,23 @@ LIST
     background: no-repeat center/100% url(/images/overflow.svg);
     cursor:pointer;
 }
+#extension-photo-frame-more-button:hover{
+	background-color:rgba(255,255,255,.4);
+}
+
 
 .screensaver #extension-photo-frame-more-button-container{
     display:none;
+}
+
+
+
+#extension-photo-frame-next-photo-button{
+    width:5.6rem;
+    height:5.6rem;
+    background: rgba(255,255,255,.15) no-repeat center/30% url(/images/right-arrow.png);
+    cursor:pointer;
+	margin-top:2rem;
 }
 
 /*
@@ -497,7 +530,7 @@ LIST
 
 .extension-photo-frame-picture{
     opacity:0;
-    transition:opacity 1s; 
+    transition:opacity .1s; 
     width:100vw;
     max-width:100%;
     height:100vh;
@@ -506,12 +539,128 @@ LIST
     left:0;
     background-repeat: no-repeat;
     background-size: contain;
-	background-position: center; 
+	background-position: center;
 }
+
+.slideshow .extension-photo-frame-picture{
+	/*transition:opacity 1s; */
+}
+
 
 .extension-photo-frame-current-picture{
     opacity:1;
 }
+
+.extension-photo-frame-picture{
+	z-index:-1;
+}
+.extension-photo-frame-current-top-picture{
+	z-index:0;
+}
+
+
+
+
+/*   VOCO   */
+
+#extension-photo-frame-voco-container{
+	position:fixed;
+	top:9.6rem;
+	bottom:9.6rem;
+	left:0;
+	right:0;
+	display:none;
+	flex-direction:column;
+	overflow:auto;
+	align-items:center;
+	justify-content:center;
+	pointer-events:none;
+	z-index:10;
+}
+
+.screensaver #extension-photo-frame-voco-container{
+	display:flex;
+}
+
+
+#extension-photo-frame-voco-container:empty{
+	display:none;
+}
+
+#extension-photo-frame-voco-container > div{
+	width:100%;
+	max-width:60rem;
+	margin:.5rem auto;
+	background-color:rgba(0,0,0,.9);
+	border-radius:1rem;
+	overflow:hidden;
+	display:flex;
+	padding: 1rem 1rem 1rem 2rem;
+	box-sizing: border-box;
+	font-size:5rem;
+}
+
+
+.extension-photo-frame-voco-item img{
+	width:7rem;
+	max-width:7rem;
+	box-sizing:border-box;
+	margin:0;
+}
+
+.extension-photo-frame-voco-item-info,
+.extension-photo-frame-voco-item-time{
+	padding:1rem;
+	display:flex;
+	align-items:center;
+	margin:0 1rem;
+}
+
+.extension-photo-frame-voco-item-minutes{
+	font-weight:bold;
+}
+
+.extension-photo-frame-voco-item-minutes,
+.extension-photo-frame-voco-item-seconds{
+	display:inline-block;
+}
+.extension-photo-frame-voco-item-minutes:empty,
+.extension-photo-frame-voco-item-seconds:empty{
+	display:none;
+}
+.extension-photo-frame-voco-item-minutes:after{
+	content:':';
+	margin:0 .5rem;
+	opacity:.5;
+}
+
+.extension-photo-frame-voco-item h4{
+	font-size:2.5rem;
+	padding:0 2rem;
+	margin:0;
+}
+
+#extension-photo-frame-voco-container .extension-photo-frame-voco-item-countdown{
+	background-color:rgba(128,0,0,.9);
+	border:.2rem solid red;
+}
+
+#extension-photo-frame-voco-container .extension-photo-frame-voco-item-reminder{
+	background-color:rgba(0,0,128,.9);
+	border:.2rem solid blue;
+}
+
+#extension-photo-frame-voco-container .extension-photo-frame-voco-item-alarm{
+	background-color:rgba(255,64,0,.9);
+	border:.2rem solid orange;
+}
+
+#extension-photo-frame-voco-container .extension-photo-frame-voco-item-wake{
+	background-color:rgba(128,128,0,.9);
+	border:.2rem solid yellow;
+}
+
+
 
 
 
@@ -550,6 +699,56 @@ LIST
     background-color: #6dabd7;
 }
 */
+
+
+.extension-photo-frame-greyscale .extension-photo-frame-picture{
+	filter: gray;
+	-webkit-filter: grayscale(1);
+	filter: grayscale(1);
+}
+
+
+
+.extension-photo-frame-effect{
+	animation: extensionphotoframekenburns 60s;
+	animation-iteration-count: 1;
+}
+
+
+/*  Ken Burns effect  */
+
+@keyframes extensionphotoframekenburns {
+  0% {
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 1;
+  }
+
+  95% {
+    transform: scale3d(1.2, 1.2, 1.2) translate3d(30px, 0px, 0px);
+    animation-timing-function: ease-in;
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale3d(1.3, 1.3, 1.3) translate3d(30px, 0px, 0px);
+    opacity: 0;
+  }
+
+}
+
+/*
+
+  100% {
+    transform: scale3d(2, 2, 2) translate3d(-170px, -100px, 0px);
+    opacity: 0;
+  }
+*/
+
+
+
 
 
 
