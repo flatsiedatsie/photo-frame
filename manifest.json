@@ -6,7 +6,8 @@
         "css/extension.css"
       ],
       "js": [
-        "js/extension.js"
+        "js/extension.js",
+		"js/smartcrop.js"
       ]
     }
   ],
@@ -29,10 +30,12 @@
       "Interval": 30,
 	  "Screensaver delay": "60",
       "Fit to screen": "mix",
+	  "Animations and effects": true,
+	  "Black and white": false,
 	  "Show clock": true,
 	  "Show date": true,
 	  "Show weather": true,
-      "Debug": false
+      "Debugging": false
     },
     "schema": {
       "properties": {
@@ -66,8 +69,12 @@
           ],
           "type": "string"
         },
-        "Show clock": {
-          "description": "Show the current time on top of the photos.",
+        "Animations and effects": {
+          "description": "Apply subtle effects to the photos, such as zooms, pans, and the Ken Burns effect.",
+          "type": "boolean"
+        },
+		"Black and white": {
+          "description": "Show all photos in black and white. This does not permanently change the photos, it's just an effect.",
           "type": "boolean"
         },
         "Show date": {
@@ -78,7 +85,11 @@
           "description": "Show weather data on top of the photos. For this the Candle Weather addon must also be installed and configured with at least one location.",
           "type": "boolean"
         },
-        "Debug": {
+        "Show Voco timers": {
+          "description": "Show active Voco voice control timers on top of the photos. For this the Voco addon must also be installed.",
+          "type": "boolean"
+        },
+        "Debugging": {
           "description": "Advanced. Enable this to see much more detail in the internal log about what this add-on is doing.",
           "type": "boolean"
         }
@@ -90,7 +101,7 @@
     }
   },
   "short_name": "Photo",
-  "version": "1.4.23",
+  "version": "1.4.24",
   "web_accessible_resources": [
     "css/*.css",
     "images/*.svg",
