@@ -9,9 +9,22 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib'))
 #from os import listdir
 #from os.path import isfile, join
-from time import sleep, time
+import time
+#from time import sleep, time
 import random
-import datetime
+#import datetime
+from datetime import datetime,timedelta
+#from dateutil import tz
+#from dateutil.parser import *
+
+# Timezones
+#try:
+#    from pytz import timezone
+#    import pytz
+#except:
+#    print("ERROR, pytz is not installed. try 'pip3 install pytz'")
+
+
 import subprocess
 import threading
 import requests
@@ -27,7 +40,7 @@ except:
 try:
     from gateway_addon import Adapter, Device, Database
 except:
-    print("Gateway not loaded?!")
+    print("Gateway addon not loaded?!")
 
 print = functools.partial(print, flush=True)
 
@@ -56,7 +69,7 @@ class PhotoFrameAPIHandler(APIHandler):
         #print("INSIDE API HANDLER INIT")
         
         
-        
+        self.ready = False
         self.addon_name = 'photo-frame'
         self.server = 'http://127.0.0.1:8080'
         self.DEV = False
@@ -71,7 +84,17 @@ class PhotoFrameAPIHandler(APIHandler):
         self.show_clock = False
         self.show_date = False
         self.show_weather = False
-        self.photo_printer_available = False
+        
+        self.show_voco_timers = True
+        self.voco_persistent_data = {}
+        self.time_zone = str(time.tzname[0])
+        self.seconds_offset_from_utc = -time.timezone
+
+        self.animations = True
+        self.greyscale = False
+        
+        self.cups_printer_available = False
+        self.peripage_printer_available = False
         #os.environ["DISPLAY"] = ":0.0"
             
         self.weather_addon_exists = False
@@ -84,8 +107,12 @@ class PhotoFrameAPIHandler(APIHandler):
             )
 
             with open(manifest_fname, 'rt') as f:
-                manifest = json.load(f)
-
+                try:
+                    manifest = json.load(f)
+                except Exception as ex:
+                    print("Error loading manifest.json: " + str(ex))
+            
+            #print("manifest['id']: " + str(manifest['id']))
             APIHandler.__init__(self, manifest['id'])
             self.manager_proxy.add_api_handler(self)
             
@@ -104,7 +131,7 @@ class PhotoFrameAPIHandler(APIHandler):
             print("Failed to init UX extension API handler: " + str(e))
         
         try:
-            self.addon_path =  os.path.join(self.user_profile['addonsDir'], self.addon_name)
+            self.addon_path = os.path.join(self.user_profile['addonsDir'], self.addon_name)
             #self.persistence_file_folder = os.path.join(self.user_profile['configDir'])
             self.persistence_file_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'persistence.json')
             self.photos_dir_path = os.path.join(self.addon_path, 'photos')
@@ -119,6 +146,14 @@ class PhotoFrameAPIHandler(APIHandler):
             if os.path.isdir(self.weather_addon_path):
                 self.weather_addon_exists = True
             
+            # Voco
+            self.voco_persistent_data = {}
+            self.voco_persistence_file_path =  os.path.join(self.user_profile['dataDir'], 'voco','persistence.json')
+            if not os.path.isfile(self.voco_persistence_file_path):
+                if self.DEBUG:
+                    print("Voco is not installed, no need to check voco timers")
+                self.show_voco_timers = False
+            
             if not os.path.isdir(self.photos_data_dir_path):
                 if self.DEBUG:
                     print("creating photos directory in data path")
@@ -130,8 +165,8 @@ class PhotoFrameAPIHandler(APIHandler):
             os.system('rm -rf ' + str(self.photos_dir_path))
             os.system(soft_link)
             
-        except Exception as e:
-            print("Failed to make paths: " + str(e))
+        except Exception as ex:
+            print("Failed to make paths: " + str(ex))
             
         # Get persistent data
         self.persistent_data = {}
@@ -149,12 +184,13 @@ class PhotoFrameAPIHandler(APIHandler):
         self.check_photo_printer()
               
         # Screensaver
-        if not os.path.isdir(self.display_toggle_path):
-            # Only keep the display on if the display toggle addon isn't installed.
-            if self.screensaver_delay > 0:
-                os.system('xset -display :0 s off')
-                os.system('xset -display :0 s noblank')
-                os.system('xset -display :0 -dpms')
+        if self.display_toggle_path:
+            if not os.path.isdir(self.display_toggle_path):
+                # Only keep the display on if the display toggle addon isn't installed.
+                if self.screensaver_delay > 0:
+                    os.system('xset -display :0 s off')
+                    os.system('xset -display :0 s noblank')
+                    os.system('xset -display :0 -dpms')
             
         # Respond to gateway version
         try:
@@ -179,6 +215,7 @@ class PhotoFrameAPIHandler(APIHandler):
                 self.persistent_data = {'demo_photo_copied':True} # this makes it possible to not show any photos at all (a black background)
                 self.save_persistent_data()
         
+        self.ready = True
 
 
 
@@ -209,6 +246,11 @@ class PhotoFrameAPIHandler(APIHandler):
             self.DEBUG = bool(config['Debugging'])
             if self.DEBUG:
                 print("-Debugging preference was in config: " + str(self.DEBUG))
+                
+        if 'Debug' in config:
+            self.DEBUG = bool(config['Debug'])
+            if self.DEBUG:
+                print("-Debug preference was in config: " + str(self.DEBUG))
 
         if 'Interval' in config:
             self.interval = int(config['Interval'])
@@ -221,26 +263,39 @@ class PhotoFrameAPIHandler(APIHandler):
                 print("-Screensaver delay preference was in config: " + str(self.screensaver_delay))
 
         if 'Fit to screen' in config:
-            self.fit_to_screen = str(config['Fit to screen'])
+            self.fit_to_screen = str(config['Fit to screen']) # can be "cover", "contain" or "mix"
             if self.DEBUG:
                 print("-Fit to screen preference was in config: " + str(self.fit_to_screen))
                 
+        if "Animations and effects" in config:
+            self.animations = bool(config['Animations and effects']) # can be "cover", "contain" or "mix"
+            if self.DEBUG:
+                print("Animations preference was in config: " + str(self.animations))
+                
+        if "Black and white" in config:
+            self.greyscale = bool(config["Black and white"]) # can be "cover", "contain" or "mix"
+            if self.DEBUG:
+                print("Black and white preference was in config: " + str(self.greyscale))
+                
         if 'Show clock' in config:
-            self.show_clock = int(config['Show clock'])
+            self.show_clock = bool(config['Show clock'])
             if self.DEBUG:
                 print("-Clock preference was in config: " + str(self.show_clock))
                 
         if 'Show weather' in config:
-            self.show_weather = int(config['Show weather'])
+            self.show_weather = bool(config['Show weather'])
             if self.DEBUG:
                 print("-Weather preference was in config: " + str(self.show_weather))
 
         if 'Show date' in config:
-            self.show_date = int(config['Show date'])
+            self.show_date = bool(config['Show date'])
             if self.DEBUG:
                 print("-Date preference was in config: " + str(self.show_date))
 
-
+        if 'Show Voco timers' in config:
+            self.show_voco_timers = bool(config['Show Voco timers'])
+            if self.DEBUG:
+                print("-Date preference was in config: " + str(self.show_date))
 
 
 
@@ -257,7 +312,7 @@ class PhotoFrameAPIHandler(APIHandler):
                 print("not post")
                 return APIResponse(status=404)
             
-            if request.path == '/init' or request.path == '/list' or request.path == '/delete' or request.path == '/save' or request.path == '/wake' or request.path == '/print'  or request.path == '/get_time':
+            if request.path == '/init' or request.path == '/list' or request.path == '/poll' or request.path == '/delete' or request.path == '/save' or request.path == '/get_random' or request.path == '/wake' or request.path == '/print' or request.path == '/get_time':
 
                 try:
                     
@@ -278,26 +333,116 @@ class PhotoFrameAPIHandler(APIHandler):
                               status=200,
                               content_type='application/json',
                               content=json.dumps({'state' : state, 
-                                                  'data' : data, 'settings': 
-                                                            {'interval':self.interval,
-                                                            'screensaver_delay': self.screensaver_delay, 
-                                                            'fit_to_screen':self.fit_to_screen, 
-                                                            'show_clock' : self.show_clock, 
-                                                            'show_date' : self.show_date,
-                                                            'show_weather' : self.show_weather 
-                                                            }, 
-                                                    'printer':self.photo_printer_available, 
-                                                    'weather_addon_exists':self.weather_addon_exists, 
-                                                    'debug':self.DEBUG 
+                                                  'data' : data, 
+                                                  'interval':self.interval,
+                                                  'screensaver_delay': self.screensaver_delay, 
+                                                  'fit_to_screen':self.fit_to_screen, 
+                                                  'show_clock' : self.show_clock, 
+                                                  'show_date' : self.show_date,
+                                                  'show_weather' : self.show_weather,
+                                                  'show_voco_timers':self.show_voco_timers,
+                                                  'peripage_printer_available':self.peripage_printer_available, 
+                                                  'cups_printer_available':self.cups_printer_available, 
+                                                  'weather_addon_exists':self.weather_addon_exists, 
+                                                  'animations':self.animations,
+                                                  'greyscale':self.greyscale,
+                                                  'debug':self.DEBUG
                                                 }),
                             )
                         except Exception as ex:
-                            print("Error getting init data: " + str(ex))
+                            print("Error getting list data: " + str(ex))
+                            return APIResponse(
+                              status=500,
+                              content_type='application/json',
+                              content=json.dumps("Error while getting list data: " + str(ex)),
+                            )
+                            
+                            
+                            
+                    elif request.path == '/poll':
+                        if self.DEBUG:
+                            print("POLLING")
+                        state = False
+                        # Get the list of Voco timers
+                        try:
+                            if self.show_voco_timers:
+                                
+                                try:
+                                    with open(self.voco_persistence_file_path) as f:
+                                        self.voco_persistent_data = json.load(f)
+                                        #if self.DEBUG:
+                                        #    print('self.voco_persistence_file_path loaded from file: ' + str(self.voco_persistent_data))
+                                        if 'action_times' in self.voco_persistent_data['action_times']:
+                                            action_count = len( self.voco_persistent_data['action_times'] )
+                                            state = True
+                                            """
+                                            try:
+                                                self.user_timezone = timezone(self.time_zone)
+                                                self.seconds_offset_from_utc = (time.timezone if (time.localtime().tm_isdst == 0) else time.altzone) * -1
+                                                if self.DEBUG:
+                                                    print("Simpler timezone offset in seconds = " + str(self.seconds_offset_from_utc))
+            
+                                            except Exception as ex:
+                                                if self.DEBUG:
+                                                    print("Error handling time zone calculation: " + str(ex))
+                                            
+                                            
+                                            for i in range(action_count):
+                            
+                                                try:
+                                                    utc_timestamp = int(self.voco_persistent_data['action_times'][i]['moment'])
+                                                    localized_timestamp = int(utc_timestamp) + int(self.seconds_offset_from_utc)
+                                                    hacky_datetime = datetime.utcfromtimestamp(localized_timestamp)
+
+                                                    #print("human readable hour = " + str(hacky_datetime.hour))
+                                                    #print("human readable minute = " + str(hacky_datetime.minute))
+        
+                                                    clock = {} 
+                                                    clock['month'] = hacky_datetime.month
+                                                    clock['day'] = hacky_datetime.day
+                                                    clock['hours'] = hacky_datetime.hour
+                                                    clock['minutes'] = hacky_datetime.minute
+                                                    clock['seconds'] = hacky_datetime.second
+                                                    clock['seconds_to_go'] = utc_timestamp - self.current_utc_time
+                                                    #print("seconds to go: " + str(clock['seconds_to_go']))
+                                                    self.voco_persistent_data['action_times'][i]['clock'] = clock
+        
+                                                except Exception as ex:
+                                                    if self.DEBUG:
+                                                        print("Error calculating time: " + str(ex))
+                                                    state = False
+                                            """
+                
+                
+                                except Exception as ex:
+                                    if self.DEBUG:
+                                        print("Error, could not load Voco persistent data file: " + str(ex))
+                                
+                            return APIResponse(
+                              status=200,
+                              content_type='application/json',
+                              content=json.dumps({'state' : state,
+                                                  'show_voco_timers':self.show_voco_timers,
+                                                  'action_times':self.voco_persistent_data['action_times'],
+                                                  'timezone':self.time_zone,
+                                                  'seconds_offset_from_utc':self.seconds_offset_from_utc
+                                                }),
+                            )
+                        except Exception as ex:
+                            print("Error getting poll data: " + str(ex))
                             return APIResponse(
                               status=500,
                               content_type='application/json',
                               content=json.dumps("Error while getting thing data: " + str(ex)),
                             )
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
                             
                             
                             
@@ -332,7 +477,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             
                     elif request.path == '/save':
                         #if self.DEBUG:
-                        print("SAVING")
+                        #print("SAVING")
                         try:
                             data = []
                             
@@ -341,7 +486,7 @@ class PhotoFrameAPIHandler(APIHandler):
                                 state = 'error'
                             else:
                                 state = 'ok'
-                            print("return state: " + str(state))
+                            #print("return state: " + str(state))
                             return APIResponse(
                               status=200,
                               content_type='application/json',
@@ -355,6 +500,32 @@ class PhotoFrameAPIHandler(APIHandler):
                               content=json.dumps("Error while saving photo: " + str(ex)),
                             )
                         
+                    
+                    
+                    elif request.path == '/get_random':
+                        if self.DEBUG:
+                            print("DOWNLOADING RANDOM IMAGE")
+                        state = False
+                        try:
+                            display_width = 1920 #int(request.body['width'])
+                            display_height = 1080 #int(request.body['height'])
+                            os.system('wget -P ' + str(self.photos_data_dir_path) + ' https://unsplash.it/' + str(display_width) + '/' + str(display_height) + ' -O ' + generate_random_string(12) + '.jpg')
+                            dir_list = self.scan_photo_dir()
+                            state = True
+                        except Exception as ex:
+                            print("Error downloading random photo: " + str(ex))
+                        
+                        return APIResponse(
+                          status=200,
+                          content_type='application/json',
+                          content=json.dumps({'state' : state, 'data' : dir_list}),
+                        )
+                    
+                    
+                    
+                    
+                    
+                    
                     
                     # No longer used.
                     elif request.path == '/wake':
@@ -406,7 +577,9 @@ class PhotoFrameAPIHandler(APIHandler):
                                                   'date':system_date[1], 
                                                   'month':system_date[2], 
                                                   'hours':time_parts[0], 
-                                                  'minutes':time_parts[1] 
+                                                  'minutes':time_parts[1],
+                                                  'timezone':self.time_zone,
+                                                  'seconds_offset_from_utc':-time.timezone
                                               }),
                             )
                         except Exception as ex:
@@ -422,21 +595,30 @@ class PhotoFrameAPIHandler(APIHandler):
                     elif request.path == '/print':
                         if self.DEBUG:
                             print("printing")
-                        state = 'sent to printer';
+                        state = 'sent to printer'
                         
                         try:
                             from_filename = os.path.join(self.photos_data_dir_path, str(request.body['filename']))
                             if os.path.isfile(from_filename):
-                                if os.path.isdir(self.external_picture_drop_dir):
-                                    to_filename = os.path.join(self.external_picture_drop_dir, str(request.body['filename']))
-                                    copy_command = 'cp -n ' + str(from_filename) + ' ' + str(to_filename)
+                                if self.peripage_printer_available:
+                                    if os.path.isdir(self.external_picture_drop_dir):
+                                        to_filename = os.path.join(self.external_picture_drop_dir, str(request.body['filename']))
+                                        copy_command = 'cp -n ' + str(from_filename) + ' ' + str(to_filename)
+                                        if self.DEBUG:
+                                            print("copy_command: " + str(copy_command))
+                                        os.system(copy_command)
+                                    else:
+                                        if self.DEBUG:
+                                            print("photo drop dir (no longer) exists?")
+                                        state = 'drop off directory did not exist'
+                                        
+                                elif self.cups_printer_available:
+                                    print_command = 'lp -o printer-error-policy=abort-job ' + str(from_filename)
                                     if self.DEBUG:
-                                        print("copy_command: " + str(copy_command))
-                                    os.system(copy_command)
-                                else:
-                                    if self.DEBUG:
-                                        print("photo drop dir (no longer) exists?")
-                                    state = 'drop off directory did not exist'
+                                        print("printing using cups. Print command: \n" + str(print_command))
+                                    os.system(print_command)
+                                    state = "Photo sent to (network) printer"
+                            
                             else:
                                 if self.DEBUG:
                                     print("file to be printed did not exist")
@@ -529,28 +711,44 @@ class PhotoFrameAPIHandler(APIHandler):
 
     def check_photo_printer(self):
         if self.DEBUG:
-            print("Checking if a bluetooth photo printer is paired")
+            print("Checking if a cups or bluetooth photo printer is paired")
+        
+        self.cups_printer_available = False
+        self.peripage_printer_available = False
 
         try:
-            if os.path.isdir(self.external_picture_drop_dir):
+            
+            lpstat_output = run_command("lpstat -v")
+            if 'No destinations added' in lpstat_output:
                 if self.DEBUG:
-                    print("privacy manager photo drop-off dir existed")
-                bluetooth_printer_check = run_command('sudo bluetoothctl paired-devices')
-                if self.DEBUG:
-                    print("bluetooth_printer_check: " + str(bluetooth_printer_check))
-                if 'peripage' in bluetooth_printer_check.lower():
-                    self.photo_printer_available = True
+                    print("No network printers connected")
+                
+                
+                # See if there is a Peripage photo printer connected
+                if os.path.isdir(self.external_picture_drop_dir):
                     if self.DEBUG:
-                        print("paired bluetooth printer was detected")
-                    return True
+                        print("privacy manager photo drop-off dir existed")
+                    bluetooth_printer_check = run_command('sudo bluetoothctl paired-devices')
+                    if self.DEBUG:
+                        print("bluetooth_printer_check: " + str(bluetooth_printer_check))
+                    if 'peripage' in bluetooth_printer_check.lower():
+                        self.peripage_printer_available = True
+                        if self.DEBUG:
+                            print("paired bluetooth printer was detected")
+                        return True
+              
+            
+            
             else:
                 if self.DEBUG:
-                    print("privacy manager photo drop-off dir did not exist, so no photo printing capability available")
+                    print("a cups printer is connected")
+                self.cups_printer_available = True
+                return True
+            
                     
         except Exception as ex:
-            print("Error while checking photo printer: " + str(ex))
+            print("Error while checking for printer: " + str(ex))
         
-        self.photo_printer_available = False
         return False
         
 
@@ -573,7 +771,7 @@ class PhotoFrameAPIHandler(APIHandler):
         #filename = "".join([c for c in filename if re.match(r'\w\.', c)])
         #re.sub("^[a-zA-Z0-9.]","_",filename)
         #print("2: " + str(filename))
-        filename = str(int(time())) + "-" + filename
+        filename = str(int(time.time())) + "-" + filename
         #print("3: " + str(filename))
         
         #filename = str(int(time())) + "-" + re.sub("[ˆa-zA-Z0-9\.]","_",filename)
@@ -664,3 +862,8 @@ def run_command(cmd, timeout_seconds=20):
 
     except Exception as e:
         print("Error running command: "  + str(e))
+        
+        
+def generate_random_string(length):
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(length))

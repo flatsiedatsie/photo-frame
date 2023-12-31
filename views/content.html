@@ -26,8 +26,16 @@
             
             
             <!--<div id="extension-photo-frame-picture-exit-container"><div id="extension-photo-frame-picture-exit">Overview</div></div>-->
+			<div id="extension-photo-frame-start-screensaver-button-container"><button id="extension-photo-frame-start-screensaver-button" class="icon-button"></button></div>
 			<div id="extension-photo-frame-next-photo-button-container"><button id="extension-photo-frame-next-photo-button" class="icon-button"></button></div>
             <div id="extension-photo-frame-more-button-container"><button id="extension-photo-frame-more-button" class="icon-button"></button></div>
+			<div id="extension-photo-frame-print-button-container">
+				<button id="extension-photo-frame-print-button" class="extension-photo-frame-icon-button"></button>
+				<div id="extension-photo-frame-print-button-confirm-container">
+					<button id="extension-photo-frame-print-confirm-button" class="extension-photo-frame-icon-button"></button>
+					<button id="extension-photo-frame-print-cancel-button" class="extension-photo-frame-icon-button"></button>
+				</div>
+			</div>
 			
 			<div id="extension-photo-frame-voco-container"></div>
         </div>
@@ -36,11 +44,15 @@
         <div id="extension-photo-frame-overview" class="extension-photo-frame-hidden">
             <h3>Your pictures</h3>
             <ul id="extension-photo-frame-photos-list"></ul>
-            <!--
-            <div id="extension-photo-frame-dropzone">
-                <div>Drop files here to upload</div>
+            
+			<div>
+	            <div id="extension-photo-frame-dropzone">
+	                <div>Drop files here to upload</div>
+	            </div>
+				<div>
+					<button id="extension-photo-frame-add-random-photo-button" class="text-button">Add random photo</button>
+				</div>
             </div>
-            -->
 
             <input id="extension-photo-frame-photos-file-selector"  accept=".gif,.png,.jpg,.jpeg,image/gif,image/png,image/jpeg" type="file" multiple="multiple"/>
             <div id="extension-photo-frame-photos-file-selector-overlay">&nbsp;</div>
