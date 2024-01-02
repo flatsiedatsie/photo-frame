@@ -81,12 +81,16 @@
           "description": "Show the current day and date on top of the photos.",
           "type": "boolean"
         },
+        "Show clock": {
+          "description": "Show the current time on top of the photos.",
+          "type": "boolean"
+        },
         "Show weather": {
           "description": "Show weather data on top of the photos. For this the Candle Weather addon must also be installed and configured with at least one location.",
           "type": "boolean"
         },
         "Show Voco timers": {
-          "description": "Show active Voco voice control timers on top of the photos. For this the Voco addon must also be installed.",
+          "description": "Show active Voco voice control timers on top of the photos when in screensaver mode. It will only show timers that are due to end within the hour. For this the Voco addon must also be installed.",
           "type": "boolean"
         },
         "Debugging": {
@@ -101,7 +105,7 @@
     }
   },
   "short_name": "Photo",
-  "version": "1.4.24",
+  "version": "2.0.0",
   "web_accessible_resources": [
     "css/*.css",
     "images/*.svg",
@@ -109,6 +113,7 @@
     "photos/*.png",
     "photos/*.jpg",
     "photos/*.jpeg",
+	"photos/*.webp",
     "js/*.js",
     "views/*.html"
   ]
