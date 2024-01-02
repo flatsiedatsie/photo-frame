@@ -278,20 +278,20 @@ class PhotoFrameAPIHandler(APIHandler):
             if self.DEBUG:
                 print("Black and white preference was in config: " + str(self.greyscale))
                 
-        if 'Show clock' in config:
-            self.show_clock = bool(config['Show clock'])
-            if self.DEBUG:
-                print("-Clock preference was in config: " + str(self.show_clock))
-                
-        if 'Show weather' in config:
-            self.show_weather = bool(config['Show weather'])
-            if self.DEBUG:
-                print("-Weather preference was in config: " + str(self.show_weather))
-
         if 'Show date' in config:
             self.show_date = bool(config['Show date'])
             if self.DEBUG:
                 print("-Date preference was in config: " + str(self.show_date))
+
+        if 'Show clock' in config:
+            self.show_clock = bool(config['Show clock'])
+            if self.DEBUG:
+                print("-Clock preference was in config: " + str(self.show_clock))
+
+        if 'Show weather' in config:
+            self.show_weather = bool(config['Show weather'])
+            if self.DEBUG:
+                print("-Weather preference was in config: " + str(self.show_weather))
 
         if 'Show Voco timers' in config:
             self.show_voco_timers = bool(config['Show Voco timers'])

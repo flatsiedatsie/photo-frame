@@ -35,6 +35,7 @@
 	  "Show clock": true,
 	  "Show date": true,
 	  "Show weather": true,
+	  "Show Voco timers": true,
       "Debugging": false
     },
     "schema": {
