@@ -12,6 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib'))
 import time
 #from time import sleep, time
 import random
+import string
 #import datetime
 from datetime import datetime,timedelta
 #from dateutil import tz
@@ -506,10 +507,11 @@ class PhotoFrameAPIHandler(APIHandler):
                         if self.DEBUG:
                             print("DOWNLOADING RANDOM IMAGE")
                         state = False
+                        dir_list = []
                         try:
                             display_width = 1920 #int(request.body['width'])
                             display_height = 1080 #int(request.body['height'])
-                            os.system('wget -P ' + str(self.photos_data_dir_path) + ' https://unsplash.it/' + str(display_width) + '/' + str(display_height) + ' -O ' + generate_random_string(12) + '.jpg')
+                            os.system('wget -P ' + str(self.photos_data_dir_path) + ' https://unsplash.it/' + str(display_width) + '/' + str(display_height) + ' -O ' + str(self.photos_data_dir_path) + '/zzz' + str(generate_random_string(12)) + '.jpg')
                             dir_list = self.scan_photo_dir()
                             state = True
                         except Exception as ex:
@@ -700,7 +702,7 @@ class PhotoFrameAPIHandler(APIHandler):
         result = []
         try:
             for fname in os.listdir(self.photos_dir_path):
-                if fname.endswith(".jpg") or fname.endswith(".jpeg") or fname.endswith(".gif")  or fname.endswith(".png"):
+                if fname.endswith(".jpg") or fname.endswith(".jpeg") or fname.endswith(".gif")  or fname.endswith(".png")  or fname.endswith(".webp"):
                     result.append(fname)    
         except:
             print("Error scanning photo directory")
@@ -771,7 +773,7 @@ class PhotoFrameAPIHandler(APIHandler):
         #filename = "".join([c for c in filename if re.match(r'\w\.', c)])
         #re.sub("^[a-zA-Z0-9.]","_",filename)
         #print("2: " + str(filename))
-        filename = str(int(time.time())) + "-" + filename
+        #filename = str(int(time.time())) + "-" + filename
         #print("3: " + str(filename))
         
         #filename = str(int(time())) + "-" + re.sub("[ˆa-zA-Z0-9\.]","_",filename)
@@ -802,7 +804,7 @@ class PhotoFrameAPIHandler(APIHandler):
 
         # Save file
         try:
-            if filename.endswith('.jpg') or filename.endswith('.jpeg') or filename.endswith('.gif') or filename.endswith('.png'):
+            if filename.endswith('.jpg') or filename.endswith('.jpeg') or filename.endswith('.gif') or filename.endswith('.png') or filename.endswith('.webp'):
                 if self.DEBUG:
                     print("saving to file: " + str(save_path))
                 with open(save_path, "wb") as fh:

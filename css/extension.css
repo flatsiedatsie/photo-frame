@@ -71,139 +71,6 @@ body.screensaver #extension-photo-frame-picture-holder{
 }
 */
 
-#extension-photo-frame-photos-list{
-	background-color:rgba(0,0,0,.2);
-	display:flex;
-	flex-wrap:wrap;
-    padding:2rem;
-    border-radius:.5rem;
-    box-sizing:border-box;
-}
-
-
-.extension-photo-frame-list-thumbnail-container{
-	width:15rem;
-	height:15rem;
-	display:flex;
-	align-items: center;
-	justify-content: center;
-	background-color:black;
-	border-radius: .5rem;
-}
-
-
-/*  THUMBNAIL  */
-
-.extension-photo-frame-list-thumbnail{
-	cursor:pointer;
-	max-width: calc(100% - 10px);
-	max-height: calc(100% - 10px);
-}
-
-.extension-photo-frame-list-thumbnail:hover{
-	filter: brightness(120%);
-}
-
-
-.extension-photo-frame-thumbnail-delete-button{
-    position: absolute;
-    top: -0.8rem;
-    right: -0.8rem;
-    background: url(/images/delete-button.png);
-    background-size: 3.6rem;
-    width: 3.6rem;
-    height: 3.6rem;
-    padding: 0;
-    margin: 0;
-    border-radius: 50%;
-    border: 1px solid #979797;
-    box-shadow: 0 3px 6px rgb(0 0 0 / 16%), 0 3px 6px rgb(0 0 0 / 23%);
-    cursor: pointer;
-    z-index:99;
-    opacity:.6;
-}
-.extension-photo-frame-thumbnail-delete-button:hover{
-    opacity:1;
-}
-
-/*
-.extension-photo-frame-thumbnail-print-button{
-    position: absolute;
-    bottom: -0.8rem;
-    right: -0.8rem;
-    background: url(../images/printer-icon.svg);
-    background-size: 3.6rem;
-    width: 3.6rem;
-    height: 3.6rem;
-    padding: 0;
-    margin: 0;
-    border-radius: 50%;
-    border: 1px solid #979797;
-    box-shadow: 0 3px 6px rgb(0 0 0 / 16%), 0 3px 6px rgb(0 0 0 / 23%);
-    cursor: pointer;
-    z-index:99;
-    background-color:rgba(255,255,255,.7);
-}
-.extension-photo-frame-thumbnail-print-button:hover{
-    background-color:rgba(255,255,255,1);
-}
-*/
-
-
-/*  DROPZONE */
-
-
-#extension-photo-frame-dropzone {
-	display:none;
-    height: 10rem;
-    border: 2px dashed #ccc;
-    color: #ccc;
-    text-align: center;
-	align-content: center;
-	justify-content: center;
-	align-items: center;
-	margin-bottom:.2rem;
-}
-
-#extension-photo-frame-dropzone.extension-photo-frame-dragover {
-    border-color: #000;
-    color: #000;
-	background-color:white;
-}
-
-#extension-photo-frame-photos-file-selector-overlay,
-#extension-photo-frame-photos-file-selector{
-    font-size: 0;
-    /*padding: 1rem 2rem;*/
-    width: 5.6rem;
-    height: 5.6rem;
-    border: none;
-    background-color: #7aadd1;
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    background-image: url(/images/add.svg);
-    border-radius: 2.8rem;
-    background-size: cover;
-    background-repeat: no-repeat;
-    opacity: 0.01;
-    cursor: pointer;
-    user-select: none;
-    outline: 0;
-    z-index: 100;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 6%), 0 1px 2px rgb(0 0 0 / 12%);
-}
-
-#extension-photo-frame-photos-file-selector-overlay{
-    z-index:101;
-    pointer-events: none;
-    opacity:1;
-}
-
-.kiosk #extension-photo-frame-photos-file-selector,
-.kiosk #extension-photo-frame-photos-file-selector-overlay{
-    display:none;
-}
 
 
 #extension-photo-frame-icon{
@@ -363,46 +230,19 @@ body.screensaver #extension-photo-frame-picture-holder{
 
 /*  fade in animation  */
 
+#extension-photo-frame-clock.extension-photo-frame-show,
+#extension-photo-frame-date.extension-photo-frame-show {
+  display: block;
+  animation: extension-photo-frame-fade-in 2s;
+}
+
 @keyframes extension-photo-frame-fade-in {
   0% { opacity: 0; }
   100% { opacity: 1; }
 }
 
-#extension-photo-frame-clock.show,
-#extension-photo-frame-date.show {
-  display: block;
-  animation: extension-photo-frame-fade-in 2s;
-}
 
 
-
-/*
-
-LIST
-
-*/
-
-#extension-photo-frame-view li{
-
-}
-
-.extension-photo-frame-list-item{
-	width:15rem;
-	display:inline-block;
-	padding:.2rem;
-	padding:1rem;
-    margin:1rem;
-	margin-bottom:1rem;
-    position:relative;
-}
-
-.extension-photo-frame-printer-available .extension-photo-frame-list-item{
-    margin-bottom:4rem;
-}
-
-.extension-photo-frame-list-item > span{
-	word-wrap: break-word;
-}
 
 /*
 .extension-photo-frame-thumbnail-print-button{
@@ -462,30 +302,14 @@ LIST
 */
 
 
-#extension-photo-frame-start-screensaver-button-container{
-    position: fixed;
-    bottom: 17.4rem;
-    right: 0rem;
-    width:7.6rem;
-    height:7.6rem;
-}
-#extension-photo-frame-start-screensaver-button{
-	cursor:pointer;
-}
-#extension-photo-frame-start-screensaver-button:hover{
-	background-color:rgba(255,255,255,.5);
-}
+
+
+/*   OVERLAY BUTTONS  */
 
 
 
 
-#extension-photo-frame-more-button-container{
-    position: fixed;
-    bottom: 0rem;
-    right: 0rem;
-    width:7.6rem;
-    height:7.6rem;
-}
+/*  NEXT PHOTO BUTTON  */
 
 #extension-photo-frame-next-photo-button-container{
     position: fixed;
@@ -507,6 +331,16 @@ LIST
 }
 
 
+/*  SHOW THUMBNAIL OVERVIEW BUTTON  */
+
+#extension-photo-frame-more-button-container{
+    position: fixed;
+    bottom: 0rem;
+    right: 0rem;
+    width:7.6rem;
+    height:7.6rem;
+}
+
 #extension-photo-frame-more-button{
     width:5.6rem;
     height:5.6rem;
@@ -520,19 +354,43 @@ LIST
 
 
 
+/*  START SCREENSAVER BUTTON  */
 
+#extension-photo-frame-start-screensaver-button-container{
+    position: fixed;
+    bottom: 17.4rem;
+    right: 0rem;
+    width:7.6rem;
+    height:7.6rem;
+}
 
 #extension-photo-frame-start-screensaver-button{
     width:5.6rem;
     height:5.6rem;
     background: rgba(255,255,255,.15) no-repeat center/100% url(../images/moon.svg);
-    cursor:pointer;
 	margin-top:2rem;
+	cursor:pointer;
 }
+#extension-photo-frame-start-screensaver-button:hover{
+	background-color:rgba(255,255,255,.5);
+}
+
+#extension-photo-frame-start-screensaver-countdown-indicator{
+	margin-top:2rem;
+	width:5.6rem;
+	max-width:5.6rem;
+	height:5.6rem;
+	border-radius:2.8rem;
+	overflow:hidden;
+	pointer-events:none;
+	position:absolute;
+}
+
+
 
 .screensaver #extension-photo-frame-next-photo-button,
 .screensaver #extension-photo-frame-more-button,
-.screensaver #extension-photo-frame-start-screensaver-button,
+.screensaver #extension-photo-frame-start-screensaver-button-container,
 .screensaver #extension-photo-frame-more-button-container{
     display:none;
 }
@@ -576,6 +434,11 @@ LIST
 	z-index:0;
 }
 
+body:not(.screensaver) .extension-photo-frame-picture:not(.extension-photo-frame-current-picture){
+	animation: extensionphotoframefadeout 10s;
+	animation-iteration-count: 1;
+}
+
 #extension-photo-frame-picture-holder:not(.extension-photo-frame-has-animations) .extension-photo-frame-picture{
     opacity:0;
     transition:opacity .1s; 
@@ -603,7 +466,7 @@ LIST
 */
 
 
-/*  CUPS PRINTING  */
+/*  CUPS PRINTING BUTTON */
 
 #extension-photo-frame-print-button-container{
 	display:none;
@@ -672,7 +535,7 @@ body.cups-printing:not(.screensaver) #extension-photo-frame-print-button-contain
 
 
 
-/*   VOCO   */
+/*   VOCO TIMERS LIST   */
 
 #extension-photo-frame-voco-container{
 	position:fixed;
@@ -773,6 +636,60 @@ body.cups-printing:not(.screensaver) #extension-photo-frame-print-button-contain
 
 
 
+/*  SELECTED PHOTO INDICATOR  */
+
+
+#extension-photo-frame-selected-photo-indicator-container{
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	padding:2rem;
+	position:fixed;
+	left:10rem;
+	right:10rem;
+	top:10rem;
+	bottom:10rem;
+	width:calc(100vw - 20rem);
+	height:calc(100vh - 20rem);
+	pointer-events:none;
+	z-index:1000;
+}
+body.screensaver #extension-photo-frame-selected-photo-indicator-container{
+	display:none;
+}
+#extension-photo-frame-selected-photo-indicator-container:empty{
+	display:none;
+}
+
+
+
+#extension-photo-frame-selected-photo-indicator-container > div{
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	border-radius:1rem;
+	padding:1rem 2rem;
+	/*border:2px solid black;*/
+	background-color:rgba(255,255,255,.1);
+	border-radius:1rem;
+}
+#extension-photo-frame-selected-photo-indicator-container > div > div{
+	flex-grow:1;
+	flex-shrink:1;
+	max-width:2rem;
+	height:2rem;
+	width:.5rem;
+	background-color:rgba(255,255,255,.7);
+	box-shadow: .1rem .1rem .1rem .1rem rgba(0,0,0,.3);
+	border-radius:.5rem;
+	margin:.1rem;
+}
+#extension-photo-frame-selected-photo-indicator-container > div > div.extension-photo-frame-selected-photo-indicator-current{
+	background-color:blue;
+	height:4rem;
+	width:1rem;
+	margin:.5rem;
+}
 
 /*  Back button  */
 
@@ -854,6 +771,22 @@ body.screensaver .extension-photo-frame-effect{
   }
 }
 
+
+@keyframes extensionphotoframefadeout {
+  0% {
+  }
+  
+  15% {
+    opacity: 0;
+  }
+  
+  100% {
+	opacity: 0;
+  }
+}
+
+
+
 /*
 
 
@@ -893,7 +826,18 @@ body.screensaver .extension-photo-frame-effect{
 
 
 
-
+.extension-photo-frame-screensaver-indicator{
+	animation: extension-photo-frame-bg-sweep-to-right 60s linear;
+    background:transparent;
+    background-size: 200% 200%;
+    background-image: linear-gradient(
+          -90deg, 
+          rgba(0,0,0,0) 0%, 
+          rgba(0,0,0,0) 50%, 
+          rgba(0,0,0,.3) 50%, 
+          rgba(0,0,0,.3) 100%
+    );  
+}
 
 #extension-photo-frame-screensaver-indicator{
     position:fixed;
@@ -924,12 +868,260 @@ body.screensaver .extension-photo-frame-effect{
 
 
 
+
+
+
+
+
+
+
+
+/*   THUMBNAIL OVERVIEW   */
+
+
+
+#extension-photo-frame-photos-list{
+	background-color:rgba(0,0,0,.2);
+	display:flex;
+	flex-wrap:wrap;
+    padding:2rem;
+    border-radius:.5rem;
+    box-sizing:border-box;
+}
+
+.extension-photo-frame-list-thumbnail-container{
+	width:15rem;
+	height:15rem;
+	display:flex;
+	align-items: center;
+	justify-content: center;
+	background-color:black;
+	border-radius: .5rem;
+}
+
+.extension-photo-frame-list-item{
+	width:15rem;
+	display:inline-block;
+	padding:.2rem;
+	padding:1rem;
+    margin:1rem;
+	margin-bottom:1rem;
+    position:relative;
+}
+/*
+.extension-photo-frame-printer-available .extension-photo-frame-list-item{
+    margin-bottom:4rem;
+}
+*/
+
+.extension-photo-frame-list-item > span{
+	word-wrap: break-word;
+}
+
+
+/*  ADD RANDOM PHOTO BUTTON  */
+
+#extension-photo-frame-add-random-photo-button{
+	display:block;
+	margin-top:2rem;
+	margin-left:auto;
+}
+
+
+/*  UPLOAD PROGRESS  */
+
+#extension-photo-frame-upload-progress-container{
+	position:fixed;
+	top:0rem;
+	left:0;
+	width:100vw;
+	height:100vh;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	padding:2rem;
+	z-index:101;
+	background-color:rgba(0,0,128,.9);
+}
+#extension-photo-frame-upload-progress-container > div{
+	padding:2rem;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	flex-wrap:wrap;
+	background-color:rgba(0,0,0,.4);
+	border-radius:1rem;
+	padding:2rem;
+}
+#extension-photo-frame-upload-progress-container:empty{
+	display:none;
+}
+
+.extension-photo-frame-upload-indicator-item{
+	width:1rem;
+	flex-grow:1;
+	width:1rem;
+	max-width:4rem;
+	min-height:4rem;
+	max-height:6rem;
+	border-radius:.5rem;
+	margin:0 .2rem .5rem 0;
+	background-color:rgba(255,255,255,.7);
+	background-size:cover;
+	border:1px solid white;
+}
+
+#extension-photo-frame-upload-progress-inner > h3{
+	display:block;
+	width:100%;
+	text-align:center;
+}
+
+
+
+
+/*  THUMBNAIL  */
+
+.extension-photo-frame-list-thumbnail{
+	cursor:pointer;
+	max-width: calc(100% - 10px);
+	max-height: calc(100% - 10px);
+}
+
+.extension-photo-frame-list-thumbnail:hover{
+	filter: brightness(120%);
+}
+
+
+.extension-photo-frame-thumbnail-delete-button{
+    position: absolute;
+    top: -0.8rem;
+    right: -0.8rem;
+    background: url(/images/delete-button.png);
+    background-size: 3.6rem;
+    width: 3.6rem;
+    height: 3.6rem;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    border: 1px solid #979797;
+    box-shadow: 0 3px 6px rgb(0 0 0 / 16%), 0 3px 6px rgb(0 0 0 / 23%);
+    cursor: pointer;
+    z-index:99;
+    opacity:.6;
+}
+.extension-photo-frame-thumbnail-delete-button:hover{
+    opacity:1;
+}
+
+/*
+.extension-photo-frame-thumbnail-print-button{
+    position: absolute;
+    bottom: -0.8rem;
+    right: -0.8rem;
+    background: url(../images/printer-icon.svg);
+    background-size: 3.6rem;
+    width: 3.6rem;
+    height: 3.6rem;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    border: 1px solid #979797;
+    box-shadow: 0 3px 6px rgb(0 0 0 / 16%), 0 3px 6px rgb(0 0 0 / 23%);
+    cursor: pointer;
+    z-index:99;
+    background-color:rgba(255,255,255,.7);
+}
+.extension-photo-frame-thumbnail-print-button:hover{
+    background-color:rgba(255,255,255,1);
+}
+*/
+
+
+/*  DROPZONE */
+
+
+#extension-photo-frame-dropzone {
+	display:none;
+    height: 10rem;
+    border: 2px dashed #ccc;
+    color: #ccc;
+    text-align: center;
+	align-content: center;
+	justify-content: center;
+	align-items: center;
+	margin-bottom:.2rem;
+}
+
+#extension-photo-frame-dropzone.extension-photo-frame-dragover {
+    border-color: #000;
+    color: #000;
+	background-color:white;
+}
+
+#extension-photo-frame-photos-file-selector-overlay,
+#extension-photo-frame-photos-file-selector{
+    font-size: 0;
+    /*padding: 1rem 2rem;*/
+    width: 5.6rem;
+    height: 5.6rem;
+    border: none;
+    background-color: #7aadd1;
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background-image: url(/images/add.svg);
+    border-radius: 2.8rem;
+    background-size: cover;
+    background-repeat: no-repeat;
+    opacity: 0.01;
+    cursor: pointer;
+    user-select: none;
+    outline: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 6%), 0 1px 2px rgb(0 0 0 / 12%);
+}
+
+#extension-photo-frame-photos-file-selector-overlay{
+    z-index:101;
+    pointer-events: none;
+    opacity:1;
+}
+
+.kiosk #extension-photo-frame-photos-file-selector,
+.kiosk #extension-photo-frame-photos-file-selector-overlay{
+    display:none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @media screen and (max-width: 640px) {
 
     #extension-photo-frame-photos-list{
         padding:2rem 0;
+		background:none;
     }
-    
+    .extension-photo-frame-list-item,
+	.extension-photo-frame-list-thumbnail-container{
+    	width:13rem;
+    }
+	
     #extension-photo-frame-view li{
         margin:.5rem;
     }

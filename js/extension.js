@@ -47,6 +47,8 @@
             this.interval_counter = 0; // if it reaches the interval value, then it will show another picture.
             this.current_picture = 1; // two pictures swap places: picture1 and picture2. This is for a smooth transition effect
 
+			this.hide_selected_photo_indicator_time = 0;
+			//this.photo_frame_key_listener_added = false;
 
             // Weather
             this.show_weather = false;
@@ -113,233 +115,307 @@
             });
 
 
+
+			// Listen for keyboard mouse arrow presses
+			this.photo_frame_key_listener = (event) => {
+				console.log("in photo_frame_key_listener. Event: ", event);
+				console.log("in photo_frame_key_listener. this: ", this);
+				const arrow_key = event.key; // "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"
+				console.log("photo_frame_key_listener: arrow_key: ", arrow_key);
+				if(arrow_key == 'ArrowRight'){
+					this.next_picture();
+				}
+				else if(arrow_key == 'ArrowLeft'){
+					this.previous_picture();
+				}
+			}
+			
+
+
         }
 
 
 
-
+		
 
 		//
 		//  SHOW
 		//
 
         show() {
-                //console.log("in photo frame show");
+            //console.log("in photo frame show");
 
-                if (this.content == '') {
-                    return;
-                } else {
-                    this.view.innerHTML = this.content;
-                }
-				
-				this.current_picture = 1;
-				this.do_not_show_next_random_photo = false;
+            if (this.content == '') {
+                return;
+            } else {
+                this.view.innerHTML = this.content;
+            }
+			
+			this.current_picture = 1; // which of the two picture holders is on top
+			this.do_not_show_next_random_photo = false;
 
-
-                //const pre = document.getElementById('extension-photo-frame-response-data');
-                const thing_list = document.getElementById('extension-photo-frame-thing-list');
-
-
-                if (this.kiosk) {
-                    //console.log("fullscreen");
-                    document.getElementById('extension-photo-frame-photos-file-selector').style.display = 'none';
-                    document.getElementById('extension-photo-frame-photos-file-selector').outerHTML = "";
-                    //document.getElementById('extension-photo-frame-dropzone').outerHTML = "";
-
-                } else {
-                    //console.log("Attaching file listeners");
-                    document.getElementById("extension-photo-frame-photos-file-selector").addEventListener('change', () => {
-                        var filesSelected = document.getElementById("extension-photo-frame-photos-file-selector").files;
-                        this.upload_files(filesSelected);
-                    });
-
-                    this.createDropzoneMethods(); //  disabled, as files could be too big. For now users can just upload an image one at a time.
-                }
-
-                
-
-
-                // EVENT LISTENERS
-
-				// manage photos button
-                document.getElementById("extension-photo-frame-more-button-container").addEventListener('click', () => {
-                    event.stopImmediatePropagation();
-                    const picture_holder = document.getElementById('extension-photo-frame-picture-holder');
-                    const overview = document.getElementById('extension-photo-frame-overview');
-					//this.interval_counter = 0;
-                    //this.show_list();
-					this.removeClass(overview, "extension-photo-frame-hidden");
-                    this.addClass(picture_holder, "extension-photo-frame-hidden");
-					
-                });
-
-
-				// next photo button
-                document.getElementById("extension-photo-frame-next-photo-button-container").addEventListener('click', () => {
-					if(this.debug){
-						console.log("next photo button clicked");
+			/*
+			this.list = (event) => {
+						console.log("photo frame: key pressed");
+						this.photo_frame_key_listener(event);
 					}
-                    event.stopImmediatePropagation();
-					event.preventDefault();
-					this.interval_counter = 0
-					this.last_activity_time = new Date().getTime();
-					this.next_picture();
-                });
-				
-				
-				// start screensaver button
-                document.getElementById("extension-photo-frame-start-screensaver-button").addEventListener('click', () => {
-					if(this.debug){
-						console.log("start screensaver button clicked");
-					}
-                    event.stopImmediatePropagation();
-					event.preventDefault();
-                    this.screensaver_ignore_click = true;
-                    window.setTimeout(() => {
-                        this.screensaver_ignore_click = false;
-                    },1000);
-					this.last_activity_time = new Date().getTime() - (this.screensaver_delay * 1001);
-                });
-				
-				
+			*/
 
-
-				// Cups printer buttons
-                document.getElementById("extension-photo-frame-print-button").addEventListener('click', () => {
-					const proto_to_print = document.getElementById("extension-photo-frame-print-confirm-button").getAttribute('data-photo-name');
-					this.do_not_show_next_random_photo = true;
-					console.log("cups print photo button clicked");
-                    event.stopImmediatePropagation();
-					event.preventDefault();
-					document.getElementById("extension-photo-frame-print-button-container").classList.add('extension-photo-frame-print-button-show-confirmation');
+			let content_el = document.getElementById('extension-photo-frame-content');
+			if(content_el){
+				
+				/*
+				if(this.photo_frame_key_listener_added == false){
+					//this.photo_frame_key_listener_added = true;
 					
-                    document.getElementById('extension-photo-frame-picture1').style.backgroundSize = "contain";
-                    document.getElementById('extension-photo-frame-picture2').style.backgroundSize = "contain";
-					
-					/*
-					setTimeout(() => {
-						if(document.getElementById("extension-photo-frame-print-confirm-button").getAttribute('data-photo-name') == proto_to_print){
-							
-						}
-						document.getelementById("extension-photo-frame-print-button-container").classList.remove('extension-photo-frame-print-button-show-confirmation');
+					try{
+						//document.removeEventListener("keydown", this.list);
 						
-						this.do_not_show_next_random_photo = false;
-					},8000);
-					*/
-                });
-				
-				document.getElementById("extension-photo-frame-print-confirm-button").addEventListener('click', () => {
-					console.log("cups really print photo button clicked");
-                    event.stopImmediatePropagation();
-					event.preventDefault();
-					const photo_name = document.getElementById("extension-photo-frame-print-confirm-button").getAttribute('data-photo-name');
-					console.log("photo name: ", photo_name);
-					//this.do_not_show_next_random_photo = false;
-					this.print_file( photo_name );
-				});
-				
-				document.getElementById("extension-photo-frame-print-cancel-button").addEventListener('click', () => {
-					console.log("cups cancel print photo button clicked");
-                    event.stopImmediatePropagation();
-					event.preventDefault();
-					this.do_not_show_next_random_photo = false;
-					document.getElementById("extension-photo-frame-print-button-container").classList.remove('extension-photo-frame-print-button-show-confirmation');
-				});
-				
-				
-				// Clicking on photo
-                document.getElementById("extension-photo-frame-picture-holder").addEventListener('click', () => {
-                    if (this.showing_screensaver == false) {
-                        //var menu_button = document.getElementById("menu-button");
-                        //menu_button.click(); //dispatchEvent('click');
-                    }
-					if(!this.screensaver_ignore_click){
-						this.last_activity_time = new Date().getTime();
+						document.removeEventListener("keydown", this.photo_frame_key_listener);
+						console.log("past event listener removal");
 					}
-					//this.next_photo();
-                });
-				
-				
-				document.getElementById("extension-photo-frame-add-random-photo-button").addEventListener('click', () => {
-					if (this.debug) {
-						console.log("add random photo button clicked");
+					catch(e){
+						console.log("photo frame: show: no keylistener to remove");
 					}
-					window.API.postJson(
-		                `/extensions/photo-frame/api/get_random`,
-		            ).then((body) => {
-		                if (this.debug) {
-							console.log("get_random photo response: ", body);
-						}
-						if(typeof body['data'] != 'undefined'){
-		                    this.filenames = body['data'];
-		                    this.show_list(body['data']);
-			                this.show_file(this.filenames[this.filenames.length-1]);
-						}
-		                
-		            }).catch((e) => {
-		                console.error("Photo frame: error doing get_random photo: ", e);
-		            });
-				});
-				
-				
-				
-   
-				if(!document.getElementById("extension-photo-frame-picture-holder").classList.contains('extension-photo-frame-has-swipe-listener')){
-					document.getElementById("extension-photo-frame-picture-holder").classList.add('extension-photo-frame-has-swipe-listener');
-				
-					document.getElementById("extension-photo-frame-picture-holder").addEventListener('touchstart', e => {
-						if(this.debug){
-							console.log("photo-frame: touch start");
-						}
-						this.touchstartX = e.changedTouches[0].screenX;
-					}, {
-                		passive: true
-            		});
-
-					document.getElementById("extension-photo-frame-picture-holder").addEventListener('touchend', e => {
-						this.touchendX = e.changedTouches[0].screenX;
-						this.check_swipe_direction();
-					}, {
-                		passive: true
-            		});
+					document.addEventListener('keydown', this.photo_frame_key_listener, { passive: true });
+					//document.addEventListener('keydown', this.list);
 				}
-					
+				
+				*/
 				
 				
-				// TIMER LOOP
+				
+				//document.addEventListener('keydown', this.photo_frame_key_listener); //.bind(this);
+				//content_el.removeEventListener("keydown", this.photo_frame_key_listener);
+				//content_el.addEventListener('keydown', this.photo_frame_key_listener);
+			}
+			else{
+				console.error("photo frame: no content element?");
+				return;
+			}
 
-                // Photo change interval
-                this.photo_interval = setInterval(() => {
+
+            //const pre = document.getElementById('extension-photo-frame-response-data');
+            const thing_list = document.getElementById('extension-photo-frame-thing-list');
+
+
+            if (this.kiosk) {
+                //console.log("fullscreen");
+                document.getElementById('extension-photo-frame-photos-file-selector').style.display = 'none';
+                document.getElementById('extension-photo-frame-photos-file-selector').outerHTML = "";
+                //document.getElementById('extension-photo-frame-dropzone').outerHTML = "";
+
+            } else {
+                //console.log("Attaching file listeners");
+                document.getElementById("extension-photo-frame-photos-file-selector").addEventListener('change', () => {
+                    var filesSelected = document.getElementById("extension-photo-frame-photos-file-selector").files;
+                    this.upload_files(filesSelected);
+                });
+
+                this.createDropzoneMethods(); //  disabled, as files could be too big. For now users can just upload an image one at a time.
+            }
+
+            
+
+
+            // EVENT LISTENERS
+
+			// manage photos button
+            document.getElementById("extension-photo-frame-more-button-container").addEventListener('click', () => {
+                event.stopImmediatePropagation();
+                const picture_holder = document.getElementById('extension-photo-frame-picture-holder');
+                const overview = document.getElementById('extension-photo-frame-overview');
+				//this.interval_counter = 0;
+                //this.show_list();
+				this.removeClass(overview, "extension-photo-frame-hidden");
+                this.addClass(picture_holder, "extension-photo-frame-hidden");
+				document.getElementById('extension-photo-frame-upload-progress-container').classList.add('xtension-photo-frame-hidden');
+            });
+
+
+			// next photo button
+            document.getElementById("extension-photo-frame-next-photo-button-container").addEventListener('click', () => {
+				if(this.debug){
+					console.log("next photo button clicked");
+				}
+                event.stopImmediatePropagation();
+				event.preventDefault();
+				this.interval_counter = 0
+				this.last_activity_time = new Date().getTime();
+				this.next_picture();
+            });
+			
+			
+			// start screensaver button
+            document.getElementById("extension-photo-frame-start-screensaver-button").addEventListener('click', () => {
+				if(this.debug){
+					console.log("start screensaver button clicked");
+				}
+                event.stopImmediatePropagation();
+				event.preventDefault();
+                this.screensaver_ignore_click = true;
+                window.setTimeout(() => {
+                    this.screensaver_ignore_click = false;
+                },1000);
+				this.last_activity_time = new Date().getTime() - (this.screensaver_delay * 1001);
+            });
+			
+			
+
+
+			// Cups printer buttons
+            document.getElementById("extension-photo-frame-print-button").addEventListener('click', () => {
+				const proto_to_print = document.getElementById("extension-photo-frame-print-confirm-button").getAttribute('data-photo-name');
+				this.do_not_show_next_random_photo = true;
+				console.log("cups print photo button clicked");
+                event.stopImmediatePropagation();
+				event.preventDefault();
+				document.getElementById("extension-photo-frame-print-button-container").classList.add('extension-photo-frame-print-button-show-confirmation');
+				
+                document.getElementById('extension-photo-frame-picture1').style.backgroundSize = "contain";
+                document.getElementById('extension-photo-frame-picture2').style.backgroundSize = "contain";
+				
+				/*
+				setTimeout(() => {
+					if(document.getElementById("extension-photo-frame-print-confirm-button").getAttribute('data-photo-name') == proto_to_print){
+						
+					}
+					document.getelementById("extension-photo-frame-print-button-container").classList.remove('extension-photo-frame-print-button-show-confirmation');
 					
+					this.do_not_show_next_random_photo = false;
+				},8000);
+				*/
+            });
+			
+			document.getElementById("extension-photo-frame-print-confirm-button").addEventListener('click', () => {
+				//console.log("cups really print photo button clicked");
+                event.stopImmediatePropagation();
+				event.preventDefault();
+				document.getElementById("extension-photo-frame-print-confirm-button").style.display = 'none';
+				setTimeout(() => {
+					document.getElementById("extension-photo-frame-print-confirm-button").style.display = 'inline-block';
+				},3000);
+				const photo_name = document.getElementById("extension-photo-frame-print-confirm-button").getAttribute('data-photo-name');
+				if(this.debug){
+					console.log("proto frame: print button: photo name: ", photo_name);
+				}
+				if(photo_name.endsWith('.gif')){
+					alert("animations cannot be printed");
+				}
+				else{
+					this.print_file( photo_name );
+				}
+				//this.do_not_show_next_random_photo = false;
+				//document.getElementById("extension-photo-frame-print-button-container").classList.remove('extension-photo-frame-print-button-show-confirmation');
+				
+			});
+			
+			document.getElementById("extension-photo-frame-print-cancel-button").addEventListener('click', () => {
+				if(this.debug){
+					console.log("cups cancel print photo button clicked");
+				}
+                event.stopImmediatePropagation();
+				event.preventDefault();
+				this.do_not_show_next_random_photo = false;
+				document.getElementById("extension-photo-frame-print-button-container").classList.remove('extension-photo-frame-print-button-show-confirmation');
+			});
+			
+			
+			// Clicking on photo
+            document.getElementById("extension-photo-frame-picture-holder").addEventListener('click', () => {
+                if (this.showing_screensaver == false) {
+                    //var menu_button = document.getElementById("menu-button");
+                    //menu_button.click(); //dispatchEvent('click');
+                }
+				if(!this.screensaver_ignore_click){
+					this.last_activity_time = new Date().getTime();
+				}
+				//this.next_photo();
+            });
+			
+			
+			document.getElementById("extension-photo-frame-add-random-photo-button").addEventListener('click', () => {
+				if (this.debug) {
+					console.log("add random photo button clicked");
+				}
+				document.getElementById("extension-photo-frame-add-random-photo-button").style.display = 'none';
+				window.API.postJson(
+	                `/extensions/photo-frame/api/get_random`,
+	            ).then((body) => {
+	                if (this.debug) {
+						console.log("get_random photo response: ", body);
+					}
+					if(typeof body['data'] != 'undefined'){
+	                    this.filenames = body['data'];
+	                    this.show_list(body['data']);
+		                this.show_file(this.filenames[this.filenames.length-1]);
+					}
+					document.getElementById("extension-photo-frame-add-random-photo-button").style.display = 'block';
+	                
+	            }).catch((e) => {
+	                console.error("Photo frame: error doing get_random photo: ", e);
+					document.getElementById("extension-photo-frame-add-random-photo-button").style.display = 'block';
+	            });
+			});
+			
+			
+			if(!document.getElementById("extension-photo-frame-picture-holder").classList.contains('extension-photo-frame-has-swipe-listener')){
+				document.getElementById("extension-photo-frame-picture-holder").classList.add('extension-photo-frame-has-swipe-listener');
+			
+				document.getElementById("extension-photo-frame-picture-holder").addEventListener('touchstart', e => {
+					if(this.debug){
+						console.log("photo-frame: touch start");
+					}
+					this.touchstartX = e.changedTouches[0].screenX;
+				}, {
+            		passive: true
+        		});
+
+				document.getElementById("extension-photo-frame-picture-holder").addEventListener('touchend', e => {
+					this.touchendX = e.changedTouches[0].screenX;
+					this.check_swipe_direction();
+				}, {
+            		passive: true
+        		});
+			}
+				
+			
+			
+			// TIMER LOOP
+
+            // Photo change interval
+			setTimeout(() => { // this timeout is to avoid the issue that hide() is called later than show() if the addon is already the current one
+	            this.photo_interval = setInterval(() => {
+				
 					this.interval_counter++;
 					this.slow_interval_counter++
-					
-					
+				
+				
 					// change to new random picture after X seconds
-                    if (this.interval_counter > this.interval) {
+	                if (this.interval_counter > this.interval) {
 						this.interval_counter = 0;
-                        this.random_picture();
-                    }
-					
-					
+	                    this.random_picture();
+	                }
+				
+				
 					// Every X seconds run the slow update of settings
 					if (this.slow_interval_counter > this.slow_interval) {
 						this.slow_interval_counter = 0;
-						
+					
 						// if there are network connection issues, wait before doing the next request until this counter is zero again.
 						if(this.get_init_error_counter > 0){
 							this.get_init_error_counter--;
 						}
-						
+					
 						this.get_init();
 					}
-					
-					
+				
+				
 					// every X seconds run the Voco timers poll interval
 					if(this.show_voco_timers){
-						
+					
 						this.voco_interval_counter++;
-						
+					
 						if(this.voco_interval_counter > 5){
 							this.voco_interval_counter = 0;
 							if(this.poll_fail_count > 0){
@@ -352,44 +428,56 @@
 								this.get_poll();
 							}
 						}
-						
+					
 						// every second adjust the second counters of voco timers
 						this.update_voco_actions();
-						
+					
 					}
-						
 					
-						
-					
-					
-					
+				
+				
 					// Every minute on the minute update the clock
 					if (this.show_clock || this.show_date) {
 						if ( new Date().getSeconds() === 0 ){
 							this.update_clock();
 						}
 					};
+				
+	                //console.log(this.interval_counter);
+	            }, 1000);
+				
+				
+				// Add key listener
+				try{
+					//document.removeEventListener("keydown", this.list);
 					
-                    //console.log(this.interval_counter);
-                }, 1000);
+					document.removeEventListener("keydown", this.photo_frame_key_listener); // remove existing keylistener if it exists, to avoid doubling.
+					console.log("past event listener removal");
+				}
+				catch(e){
+					console.log("photo frame: show: no keylistener to remove.  e:", e);
+				}
+				document.addEventListener('keydown', this.photo_frame_key_listener, { passive: true });
 				
-				
-				this.get_init();
-				
+			},2000);
+            
+			
+			
+			this.get_init();
+			
 
-				
+			
 
-                /*
-    		document.getElementById("extension-photo-frame-back-button").addEventListener('click', () => {
-    			const picture_holder = document.getElementById('extension-photo-frame-picture-holder');
-    			const overview = document.getElementById('extension-photo-frame-overview');
-    			this.addClass(overview,"extension-photo-frame-hidden");
-    			this.removeClass(picture_holder,"extension-photo-frame-hidden");
-    		});
-            */
+            /*
+			document.getElementById("extension-photo-frame-back-button").addEventListener('click', () => {
+				const picture_holder = document.getElementById('extension-photo-frame-picture-holder');
+				const overview = document.getElementById('extension-photo-frame-overview');
+				this.addClass(overview,"extension-photo-frame-hidden");
+				this.removeClass(picture_holder,"extension-photo-frame-hidden");
+			});
+        	*/
 
-
-                // Get list of photos (as well as other variables)
+			// Get list of photos (as well as other variables)
 
 		} // and of show function
 
@@ -401,9 +489,27 @@
                 window.clearInterval(this.photo_interval);
 				this.photo_interval = null;
             } catch (e) {
-                //console.log("Could not clear photo rotation interval");
-                //console.log(e); //logMyErrors(e); // pass exception object to error handler
+                //console.warn("photo frame: error, could not clear photo rotation interval");
             }
+			
+			
+			try{
+				//document.removeEventListener("keydown", this.list);
+				
+				document.removeEventListener("keydown", this.photo_frame_key_listener);
+				console.log("photo frame: hide: past event listener removal");
+			}
+			catch(e){
+				console.error("photo frame: hide: no keylistener to remove? ", e);
+			}
+			
+			/*
+            try {
+				//document.body.removeEventListener("keydown", this.photo_frame_key_listener, { passive: true });
+            } catch (e) {
+                console.warn("photo frame: error removing key listener: ", e);
+            }
+			*/
 
         }
 
@@ -422,7 +528,9 @@
         
 		// This is called regularly, for example to make the photo frame reflect any photos that were added on another instance
 		get_init(){
-			
+			if(this.debug){
+				console.log("photo frame: in get_init");
+			}
 			if(this.get_init_error_counter == 0){
 	            window.API.postJson(
 	                `/extensions/${this.id}/api/list`, {
@@ -484,15 +592,22 @@
 				// photo data
 				if(typeof body['data'] != 'undefined'){
 					const previous_length = this.filenames.length;
+					console.log("--previous_length: ", previous_length);
+					
                     this.filenames = body['data'];
+					console.log("--this.filenames.length: ", this.filenames.length);
 					if(previous_length != this.filenames.length){
 	                    this.show_list(body['data']);
+						
 						if(previous_length == 0){
 							this.random_picture();
+							this.update_clock();
 						}
-						if(previous_length < this.filenames.length){
-							this.show_file(this.filenames[this.filenames.length-1]);
+						/*
+						else if(previous_length < this.filenames.length){
+							this.show_file(this.filenames[this.filenames.length-1]); // this assumes the last photo in the list is the newest. But it's not.
 						}
+						*/
 					}
 				}
                 
@@ -513,14 +628,14 @@
 		            }
 
 		            if (this.show_date) {
-		                document.getElementById('extension-photo-frame-date').classList.add('show');
+		                document.getElementById('extension-photo-frame-date').classList.add('extension-photo-frame-show');
 		            } else {
-		                document.getElementById('extension-photo-frame-date').classList.remove('show');
+		                document.getElementById('extension-photo-frame-date').classList.remove('extension-photo-frame-show');
 		            }
 		            if (this.show_clock) {
-		                document.getElementById('extension-photo-frame-clock').classList.add('show');
+		                document.getElementById('extension-photo-frame-clock').classList.add('extension-photo-frame-show');
 		            } else {
-		                document.getElementById('extension-photo-frame-clock').classList.remove('show');
+		                document.getElementById('extension-photo-frame-clock').classList.remove('extension-photo-frame-show');
 		            }
 	            
 					if(this.greyscale){
@@ -551,11 +666,12 @@
 					}
 					
 					
-					document.getElementById('extension-photo-frame-picture1').style['animation-duration'] = (this.interval+1) + 's';
-					document.getElementById('extension-photo-frame-picture2').style['animation-duration'] = (this.interval+1) + 's';
+					document.getElementById('extension-photo-frame-picture1').style['animation-duration'] = (this.interval+2) + 's';
+					document.getElementById('extension-photo-frame-picture2').style['animation-duration'] = (this.interval+2) + 's';
 					
 					if(document.getElementById('extension-photo-frame-screensaver-indicator')){
 						document.getElementById('extension-photo-frame-screensaver-indicator').style['animation-duration'] = this.screensaver_delay + 's';
+						document.getElementById('extension-photo-frame-start-screensaver-countdown-indicator').style['animation-duration'] = this.screensaver_delay + 's';
 					}
 					
                 }
@@ -578,6 +694,8 @@
 		//
 		//  CHANGE CURRENTLY SHOWN PHOTO
 		//
+		
+		
 		
 		
 		// swipe left or right on a photo to navigate between them
@@ -611,6 +729,7 @@
 			if(this.debug){
 				console.log("photo-frame: previous_picture: after this.current_photo_number: ", this.current_photo_number);
 			}
+			this.show_selected_photo_indicator();
 		}
 
 
@@ -626,17 +745,27 @@
 			if(this.debug){
 				console.log("photo-frame: next_picture: after this.current_photo_number: ", this.current_photo_number);
 			}
+			this.show_selected_photo_indicator();
 		}
 
+		
 
         random_picture() {
             if (this.filenames.length > 0 && this.do_not_show_next_random_photo == false) {
 				if(this.debug){
-					console.log("photo frame: random_picture: before this.current_photo_number: ", this.current_photo_number);
+					//console.log("photo frame: random_picture: before this.current_photo_number: ", this.current_photo_number);
 				}
-				this.current_photo_number = Math.floor(Math.random() * this.filenames.length);
+				let new_pic_nr = Math.floor(Math.random() * this.filenames.length);
+				if(new_pic_nr == this.current_photo_number){
+					new_pic_nr = Math.floor(Math.random() * this.filenames.length);
+				}
+				if(new_pic_nr == this.current_photo_number){
+					new_pic_nr = Math.floor(Math.random() * this.filenames.length);
+				}
+				
+				this.current_photo_number = new_pic_nr;
 				if(this.debug){
-					console.log("photo frame: random_picture: after this.current_photo_number: ", this.current_photo_number);
+					//console.log("photo frame: random_picture: after this.current_photo_number: ", this.current_photo_number);
 				}
                 var random_file = this.filenames[this.current_photo_number];
                 //console.log("new picture: " + random_file);
@@ -673,7 +802,9 @@
 				
                 picture2.style.backgroundImage = "url(/extensions/photo-frame/photos/" + filename + ")";
                 picture2.classList.add('extension-photo-frame-current-picture');
+				//picture2.classList.remove('extension-photo-frame-fade-out');
 				picture1.classList.remove('extension-photo-frame-current-picture');
+				
 				//picture2.classList.add('extension-photo-frame-current-top-picture');
 				//picture1.classList.remove('extension-photo-frame-current-top-picture');
 				
@@ -684,6 +815,7 @@
 				
                 setTimeout(() => {
                     //picture2.classList.remove('extension-photo-frame-invisible')
+					//picture2.classList.add('extension-photo-frame-fade-out');
                 }, 4000);
 
                 // Also update the list of photos.
@@ -699,6 +831,7 @@
                 picture1.style.backgroundImage = "url(/extensions/photo-frame/photos/" + filename + ")";
                 picture1.classList.add('extension-photo-frame-current-picture');
 				picture2.classList.remove('extension-photo-frame-current-picture');
+				//picture2.classList.add('extension-photo-frame-fade-out');
 				//picture1.classList.add('extension-photo-frame-current-top-picture');
 				//picture2.classList.remove('extension-photo-frame-current-top-picture');
 				
@@ -728,10 +861,10 @@
 						
 						if(typeof result.topCrop != 'undefined'){
 							result = result.topCrop;
-							console.log("image width: ", roi_image.width);
-							console.log("image height: ", roi_image.height);
-							console.log("smartcrop result: ", result.x,result.y,result.width,result.height);
-							console.log("window.innerWidth: ", window.innerWidth);
+							//console.log("image width: ", roi_image.width);
+							//console.log("image height: ", roi_image.height);
+							//console.log("smartcrop result: ", result.x,result.y,result.width,result.height);
+							//console.log("window.innerWidth: ", window.innerWidth);
 							//console.log("window.clientWidth: ", window.clientWidth);
 							
 							//window.innerWidth / 2
@@ -740,19 +873,19 @@
 							//.clientWidth/Height
 							let center_x = roi_image.width / 2;
 							let center_y = roi_image.height / 2;
-							console.log("center_x: ", center_x);
+							//console.log("center_x: ", center_x);
 							
 							
 							let transform_x = result.x + (result.width / 2);
 							let transform_y = result.y + (result.height / 2);
 							const transform_x_orig = transform_x;
 							
-							console.log("transform_x: ", transform_x);
+							//console.log("transform_x: ", transform_x);
 							
 							let transform_x_percentage = (transform_x / roi_image.width) * 100;
 							let transform_y_percentage = (transform_y / roi_image.height) * 100;
-							console.log("transform_x_percentage: ", transform_x_percentage);
-							console.log("transform_y_percentage: ", transform_y_percentage);
+							//console.log("transform_x_percentage: ", transform_x_percentage);
+							//console.log("transform_y_percentage: ", transform_y_percentage);
 							
 							
 							if(transform_x < window.innerWidth / 2){
@@ -765,20 +898,24 @@
 							
 							
 							if(transform_x < center_x){
-								transform_x = transform_x + ((center_x-transform_x) /1.5);
+								transform_x = transform_x + ((center_x-transform_x) /2);
 							}
 							else if(transform_x > center_x){
-								transform_x = transform_x - ((transform_x-center_x) /1.5);
+								transform_x = transform_x - ((transform_x-center_x) /2);
 							}
+							
 							
 							
 							//console.log("center x: ", result.x + (result.width / 2));
+							
 						
 						
 							//let transform_center = Math.round(transform_x) + 'px ' + Math.round(transform_y) + 'px';
 							let transform_center = Math.round(transform_x_percentage) + '% ' + Math.round(transform_y_percentage) + '%';
-							console.log("transform_center: ", transform_center);
-				            
+							if(this.debug){
+								//console.log("photo frame: smartcrop ROI: transform_center: ", transform_center);
+				            }
+							
 							if (this.current_picture == 1) {
 				                picture1.style['transform-origin'] = transform_center;
 								picture1.classList.remove('extension-photo-frame-effect');
@@ -838,7 +975,39 @@
         }
 
 
-
+		show_selected_photo_indicator(){
+			console.log("in show_selected_photo_indicator");
+			
+			if(this.filenames.length){
+				let selected_photo_indicator_container_el = document.getElementById('extension-photo-frame-selected-photo-indicator-container');
+				this.hide_selected_photo_indicator_time = new Date().getTime() + 1000;
+				selected_photo_indicator_container_el.innerHTML = '';
+			
+				let indicator_container_el = document.createElement('div');
+			
+				for (let i = 0; i < this.filenames.length; i++) {
+					let indicator_el = document.createElement('div');
+				
+					if(i == this.current_photo_number){
+						console.log("show_selected_photo_indicator: at current photo number: ", i);
+						indicator_el.classList.add('extension-photo-frame-selected-photo-indicator-current');
+					}
+			
+					indicator_container_el.appendChild(indicator_el);
+				
+				}
+				selected_photo_indicator_container_el.appendChild(indicator_container_el);
+			
+				setTimeout(() => {
+					if( new Date().getTime() > this.hide_selected_photo_indicator_time){
+						selected_photo_indicator_container_el.innerHTML = '';
+					}
+				},1002);
+			}
+			
+		}
+		
+		
 		
 		
 		
@@ -1070,8 +1239,11 @@
 				if(typeof body.action_times != 'undefined'){
 					const previous_action_times_length = this.action_times.length;
 					this.action_times = body.action_times;
-					if(this.debug && this.action_times.length != previous_action_times_length){
-						console.log("photo frame: get_poll: new Voco action_times: ", this.action_times);
+					if(this.action_times.length != previous_action_times_length){
+						this.update_voco_actions();
+						if(this.debug){
+							console.log("photo frame: get_poll: new Voco action_times: ", this.action_times);
+						}
 					}
 				}
             }).catch((e) => {
@@ -1085,7 +1257,6 @@
 		
 		// Update the HTML of Voco timers
 		update_voco_actions(){
-			
 			let voco_overlay_el = document.getElementById('extension-photo-frame-voco-container');
 			
 			const d = new Date();
@@ -1098,13 +1269,20 @@
 				try{
 					if(action.slots.timer_type){
 						const delta = action.moment - time;
-						console.log("delta: ", delta);
+						const item_id = "extension-photo-frame-voco-" + action.intent_message.sessionId;
+						
+						let action_el = document.getElementById(item_id);
+						
 						if(delta >= 0 && delta < 3600){
-							const item_id = "extension-photo-frame-voco-" + action.intent_message.sessionId;
-							console.log("item_id: ", item_id);
-							let action_el = document.getElementById(item_id);
-							console.log("action_el existed");
+							
+							if(this.debug){
+								console.log("photo frame:  item_id, delta: ", item_id, delta);
+							}
+							
 							if(action_el == null){
+								if(this.debug){
+									console.log("photo frame: creating new voco timer DOM element");
+								}
 								action_el = document.createElement('div');
 								action_el.classList.add('extension-photo-frame-voco-item');
 								action_el.classList.add('extension-photo-frame-voco-item-' + action.slots.timer_type);
@@ -1112,6 +1290,11 @@
 								action_el.innerHTML =  '<img src="/extensions/photo-frame/images/' + action.slots.timer_type + '.svg"/><div class="extension-photo-frame-voco-item-time"><span class="extension-photo-frame-voco-item-minutes"></span><span class="extension-photo-frame-voco-item-seconds"></span></div>';
 								action_el.innerHTML += '<div class="extension-photo-frame-voco-item-info"><h4 class="extension-photo-frame-voco-item-title">' + action.slots.sentence + '</h4></div>';
 								voco_overlay_el.appendChild(action_el);
+							}
+							else{
+								if(this.debug){
+									console.log("photo frame: voco action_el already existed");
+								}
 							}
 							let minutes = Math.floor(delta / 60);
 							if(minutes == 0){minutes = ''}
@@ -1125,10 +1308,18 @@
 							action_el.querySelector('.extension-photo-frame-voco-item-minutes').innerText = minutes;
 							action_el.querySelector('.extension-photo-frame-voco-item-seconds').innerText = seconds; 
 						}
+						else{
+							if(action_el){
+								if(this.debug){
+									console.log("removing outdated Voco action item from DOM");
+								}
+								action_el.remove();
+							}
+						}
 					}
 					else{
 						if(this.debug){
-							console.log("timer had no timer type (likely a delayed switching of a device): ", action);
+							console.log("photo frame: timer had no timer type (likely a delayed switching of a device): ", action);
 						}
 					}
 				}
@@ -1199,6 +1390,7 @@
                     this.addClass(overview, "extension-photo-frame-hidden");
                     this.removeClass(picture_holder, "extension-photo-frame-hidden");
 					//console.log("clicked on image #: ", photo_count);
+					this.get_init();
 					
                 };
                 //console.log(imgnode);
@@ -1226,6 +1418,7 @@
                     //console.log(this.getAttribute("data-filename"));
                     if (confirm("Are you sure?")) {
                         this.delete_file(event.target.getAttribute("data-filename"));
+						event.target.parentElement.remove();
                     }
 
                 });
@@ -1283,7 +1476,7 @@
                 if(this.debug){
 					console.log("photo frame: delete file response: ", body);
 				}
-                this.show_list(body['data']);
+                //this.show_list(body['data']);
 
             }).catch((e) => {
                 console.error("Photo frame: error in delete response: ", e);
@@ -1304,12 +1497,33 @@
         upload_files(files) {
             if (files && files[0]) {
 
+				let upload_progress_overlay_el = document.getElementById('extension-photo-frame-upload-progress-container');
+				if(upload_progress_overlay_el){
+					
+					upload_progress_overlay_el.innerHTML = '';
+					let upload_indicator_container_el = document.createElement('div');
+					upload_indicator_container_el.id="extension-photo-frame-upload-progress-inner";
+					upload_indicator_container_el.innerHTML = '<h3>Uploading ' + files.length + ' pictures...</h3>';
+					for (let b = 0; b < files.length; b++) {
+						let upload_indicator_el = document.createElement('div');
+						upload_indicator_el.classList.add('extension-photo-frame-upload-indicator-item');
+						upload_indicator_container_el.appendChild(upload_indicator_el);
+					}
+					upload_progress_overlay_el.appendChild(upload_indicator_container_el);
+					
+					upload_progress_overlay_el.classList.remove('extension-photo-frame-hidden');
+				}
+
+				let progress_indicator_elements = document.querySelectorAll('.extension-photo-frame-upload-indicator-item');
+
 				for (let i = 0; i < files.length; i++) {
+					
+									
 					setTimeout(() => {
 						
 		                var filename = files[i]['name'].replace(/[^a-zA-Z0-9\.]/gi, '_').toLowerCase(); //.replace(/\s/g , "_");
 		                var filetype = files[i].type;
-		                //console.log("filename and type: ", filename, filetype);
+		                //console.log("photo frame: upload: filename and type: ", filename, filetype);
 
 						if(this.debug){
 							console.log("photo-frame: resizing: photo. Filename,filetype: ", filename, filetype);
@@ -1319,47 +1533,69 @@
 		                var reader = new FileReader();
 
 		                reader.addEventListener("load", (e) => {
-						
+							//console.log("reader e: ", e);
 		                    var image = new Image();
-						
+							//console.log("reader.result: ", reader.result);
 		                    image.src = reader.result;
 
 		                    var this2 = this;
 
 		                    image.onload = function() {
 								if(this.debug){
-									console.log("photo-frame: offscreen image loaded");
+									console.log("photo-frame: offscreen image loaded. filetype, filename: ", filetype, filename);
+									//console.log("photo-frame: offscreen image loaded. file_data: ", file_data);
+									//console.log("photo-frame: offscreen image loaded. file_data.result: ", reader.result);
 								}
-		                        var maxWidth = 1920,
+								// file_data.result
+								
+								//const getBase64StringFromDataURL = (dataURL) =>
+							    //dataURL.replace('data:', '').replace(/^.+,/, '');
+								
+								if(filetype != 'image/gif'){
+									//console.warn("not a gif");
+		                        	var maxWidth = 1920,
 		                            maxHeight = 1920,
 		                            imageWidth = image.width,
 		                            imageHeight = image.height;
 
-		                        if (imageWidth > imageHeight) {
-		                            if (imageWidth > maxWidth) {
-		                                imageHeight *= maxWidth / imageWidth;
-		                                imageWidth = maxWidth;
-		                            }
-		                        } else {
-		                            if (imageHeight > maxHeight) {
-		                                imageWidth *= maxHeight / imageHeight;
-		                                imageHeight = maxHeight;
-		                            }
-		                        }
+		                        	if (imageWidth > imageHeight) {
+		                       
+			                            if (imageWidth > maxWidth) {
+			                                imageHeight *= maxWidth / imageWidth;
+			                                imageWidth = maxWidth;
+			                            }
+			                        } else {
+			                            if (imageHeight > maxHeight) {
+			                                imageWidth *= maxHeight / imageHeight;
+			                                imageHeight = maxHeight;
+			                            }
+			                        }
 
-		                        var canvas = document.createElement('canvas');
-		                        canvas.width = imageWidth;
-		                        canvas.height = imageHeight;
+			                        var canvas = document.createElement('canvas');
+			                        canvas.width = imageWidth;
+			                        canvas.height = imageHeight;
 
-		                        var ctx = canvas.getContext("2d");
-		                        ctx.drawImage(this, 0, 0, imageWidth, imageHeight);
-
-		                        // The resized file ready for upload
-		                        var finalFile = canvas.toDataURL(filetype);
-
-								if(this.debug){
-									console.log("sending resized photo to backend: ", filename);
+			                        var ctx = canvas.getContext("2d");
+			                        //ctx.drawImage(this, 0, 0, imageWidth, imageHeight);
+									ctx.drawImage(this, 0, 0, imageWidth, imageHeight);
+									
+									
+									if(this.debug){
+										console.log("sending resized photo to backend: ", filename);
+									}
+			                        // The resized file ready for upload
+			                        var finalFile = canvas.toDataURL(filetype);	
 								}
+								else{
+									//console.warn("GIF!");
+									if(this.debug){
+										console.log("sending raw GIF to backend: ", filename);
+									}
+									var finalFile = reader.result;	
+								}
+								
+		                        
+								
 		                        window.API.postJson(
 		                            `/extensions/photo-frame/api/save`, {
 		                                'action': 'upload',
@@ -1377,10 +1613,34 @@
 									
 									//}
 		                            this2.show_list(body['data']);
+
+									if(progress_indicator_elements[i]){
+										//progress_indicator_elements[i].style.background = 'green';
+										progress_indicator_elements[i].style.background = 'green url(/extensions/photo-frame/photos/' + filename + ') cover';
+										
+									}
+									else{
+										console.error("progress indicator did not exist: ",i, progress_indicator_elements);
+									}
 								
+									if(i == files.length  - 1){
+										if(this.debug){
+											console.warn("ALL UPLOADED");
+										}
+										setTimeout(() => {
+											upload_progress_overlay_el.classList.add('extension-photo-frame-hidden');
+										},20000);
+										
+									}
 
 		                        }).catch((err) => {
 		                            console.log("Error uploading image: ", err);
+									if(progress_indicator_elements[i]){
+										progress_indicator_elements[i].style.background = 'red';
+									}
+									setTimeout(() => {
+										upload_progress_overlay_el.classList.add('extension-photo-frame-hidden');
+									},2000);
 		                            //alert("Error, could not upload the image. Perhaps it's too big.");     
 		                        });
 
@@ -1398,7 +1658,7 @@
 
         
     	createDropzoneMethods() {
-			console.log("photo-frame: in createDropzoneMethods");
+			//console.log("photo-frame: in createDropzoneMethods");
     	    let dropzone = document.getElementById("extension-photo-frame-dropzone");
 
     		//var this = this;
@@ -1525,7 +1785,19 @@
                         }
                         let indicator_element = document.createElement("div");
                         indicator_element.setAttribute('id', 'extension-photo-frame-screensaver-indicator');
+						indicator_element.style['animation-duration'] = this.screensaver_delay + 's';
                         document.body.append(indicator_element);
+						
+						const screensaver_button_indicator = document.getElementById("extension-photo-frame-start-screensaver-countdown-indicator");
+						if(screensaver_button_indicator != null){
+							//console.log("screensaver_button_indicator: ", screensaver_button_indicator);
+							screensaver_button_indicator.classList.remove('extension-photo-frame-screensaver-indicator');
+							setTimeout(() => {
+								screensaver_button_indicator.style['animation-duration'] = this.screensaver_delay + 's';
+								screensaver_button_indicator.classList.add('extension-photo-frame-screensaver-indicator');
+							},1);
+						}
+						
                     }
                 }
 
