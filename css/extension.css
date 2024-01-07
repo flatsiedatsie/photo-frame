@@ -427,12 +427,13 @@ body.screensaver #extension-photo-frame-picture-holder{
     background-repeat: no-repeat;
     background-size: contain;
 	background-position: center;
-	z-index:-1;
+	/*z-index:-1;*/
 }
-
+/*
 .extension-photo-frame-current-picture{
 	z-index:0;
 }
+*/
 
 body:not(.screensaver) .extension-photo-frame-picture:not(.extension-photo-frame-current-picture){
 	animation: extensionphotoframefadeout 10s;
@@ -742,7 +743,7 @@ body:not(.screensaver) .extension-photo-frame-effect{
 }
 
 body.screensaver .extension-photo-frame-effect{
-	animation: extensionphotoframekenburns 60s;
+	animation: extensionphotoframekenburns;
 	animation-iteration-count: 1;
 }
 

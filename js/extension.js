@@ -91,7 +91,7 @@
                 }
 
             ).then((body) => {
-				console.log("photo frame early init body: ", body)
+				//console.log("photo frame early init body: ", body)
 				if(typeof body.debug != 'undefined'){
 					this.debug = body.debug;
 				}
@@ -452,10 +452,12 @@
 					//document.removeEventListener("keydown", this.list);
 					
 					document.removeEventListener("keydown", this.photo_frame_key_listener); // remove existing keylistener if it exists, to avoid doubling.
-					console.log("past event listener removal");
+					//console.log("past event listener removal");
 				}
 				catch(e){
-					console.log("photo frame: show: no keylistener to remove.  e:", e);
+					if(this.debug){
+						console.log("photo frame: show: no keylistener to remove.  e:", e);
+					}
 				}
 				document.addEventListener('keydown', this.photo_frame_key_listener, { passive: true });
 				
@@ -497,10 +499,13 @@
 				//document.removeEventListener("keydown", this.list);
 				
 				document.removeEventListener("keydown", this.photo_frame_key_listener);
-				console.log("photo frame: hide: past event listener removal");
+				//console.log("photo frame: hide: past event listener removal");
 			}
 			catch(e){
-				console.error("photo frame: hide: no keylistener to remove? ", e);
+				if(this.debug){
+					console.error("photo frame: hide: no keylistener to remove? ", e);
+				}
+				
 			}
 			
 			/*
@@ -592,10 +597,10 @@
 				// photo data
 				if(typeof body['data'] != 'undefined'){
 					const previous_length = this.filenames.length;
-					console.log("--previous_length: ", previous_length);
+					//console.log("--previous_length: ", previous_length);
 					
                     this.filenames = body['data'];
-					console.log("--this.filenames.length: ", this.filenames.length);
+					//console.log("--this.filenames.length: ", this.filenames.length);
 					if(previous_length != this.filenames.length){
 	                    this.show_list(body['data']);
 						
@@ -765,10 +770,12 @@
 				
 				this.current_photo_number = new_pic_nr;
 				if(this.debug){
-					//console.log("photo frame: random_picture: after this.current_photo_number: ", this.current_photo_number);
+					console.log("photo frame: random_picture: after this.current_photo_number: ", this.current_photo_number);
 				}
                 var random_file = this.filenames[this.current_photo_number];
-                //console.log("new picture: " + random_file);
+				if(this.debug){
+					console.log("new random picture: /extensions/photo-frame/photos/" + random_file);
+				}
                 this.show_file(random_file);
             }
         }
@@ -797,7 +804,7 @@
                 this.current_picture = 2;
 				
 				if(this.animations){
-					picture2.classList.add('extension-photo-frame-invisible');
+					//picture2.classList.add('extension-photo-frame-invisible');
 				}
 				
                 picture2.style.backgroundImage = "url(/extensions/photo-frame/photos/" + filename + ")";
@@ -825,7 +832,7 @@
                 this.current_picture = 1;
 				
 				if(this.animations){
-					picture1.classList.add('extension-photo-frame-invisible');
+					//picture1.classList.add('extension-photo-frame-invisible');
 				}
 				
                 picture1.style.backgroundImage = "url(/extensions/photo-frame/photos/" + filename + ")";
@@ -921,7 +928,7 @@
 								picture1.classList.remove('extension-photo-frame-effect');
 								setTimeout(() => {
 									picture1.classList.add('extension-photo-frame-effect');
-									picture1.classList.remove('extension-photo-frame-invisible');
+									//picture1.classList.remove('extension-photo-frame-invisible');
 								},1);
 								/*
 								setTimeout(() => {
@@ -934,7 +941,7 @@
 								picture2.classList.remove('extension-photo-frame-effect');
 								setTimeout(() => {
 									picture2.classList.add('extension-photo-frame-effect');
-									picture2.classList.remove('extension-photo-frame-invisible');
+									//picture2.classList.remove('extension-photo-frame-invisible');
 									
 								},1);
 								/*
@@ -962,8 +969,8 @@
 			}
 			else{
 				picture_holder.classList.remove('extension-photo-frame-has-animations');
-				picture1.classList.remove('extension-photo-frame-invisible');
-				picture2.classList.remove('extension-photo-frame-invisible');
+				//picture1.classList.remove('extension-photo-frame-invisible');
+				//picture2.classList.remove('extension-photo-frame-invisible');
 				picture1.classList.remove('extension-photo-frame-effect');
 				picture2.classList.remove('extension-photo-frame-effect');
 			}
@@ -1620,16 +1627,16 @@
 										
 									}
 									else{
-										console.error("progress indicator did not exist: ",i, progress_indicator_elements);
+										console.error("photo frame: progress indicator did not exist: ",i, progress_indicator_elements);
 									}
 								
 									if(i == files.length  - 1){
 										if(this.debug){
-											console.warn("ALL UPLOADED");
+											console.log("photo frame: ALL UPLOADED");
 										}
 										setTimeout(() => {
 											upload_progress_overlay_el.classList.add('extension-photo-frame-hidden');
-										},20000);
+										},1000);
 										
 									}
 
