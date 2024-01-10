@@ -13,6 +13,8 @@
             }
 
             this.debug = false;
+			this.developer = false;
+			
             //console.log(window.API);
             this.content = '';
 			this.get_init_error_counter = 0; // set to a higher number if the slow update failed
@@ -46,6 +48,7 @@
             this.show_date = false;
             this.interval_counter = 0; // if it reaches the interval value, then it will show another picture.
             this.current_picture = 1; // two pictures swap places: picture1 and picture2. This is for a smooth transition effect
+			this.show_list_called = false;
 
 			this.hide_selected_photo_indicator_time = 0;
 			//this.photo_frame_key_listener_added = false;
@@ -153,6 +156,14 @@
 			
 			this.current_picture = 1; // which of the two picture holders is on top
 			this.do_not_show_next_random_photo = false;
+			
+			if(document.body.classList.contains('developer')){
+				this.developer = true;
+			}
+			else{
+				this.developer = false;
+			}
+
 
 			/*
 			this.list = (event) => {
@@ -200,7 +211,7 @@
 
 
             if (this.kiosk) {
-                //console.log("fullscreen");
+                //console.log("detected kiosk");
                 document.getElementById('extension-photo-frame-photos-file-selector').style.display = 'none';
                 document.getElementById('extension-photo-frame-photos-file-selector').outerHTML = "";
                 //document.getElementById('extension-photo-frame-dropzone').outerHTML = "";
@@ -230,6 +241,18 @@
 				this.removeClass(overview, "extension-photo-frame-hidden");
                 this.addClass(picture_holder, "extension-photo-frame-hidden");
 				document.getElementById('extension-photo-frame-upload-progress-container').classList.add('xtension-photo-frame-hidden');
+				
+				let photo_frame_content_el = document.getElementById('extension-photo-frame-content');
+				if( window.innerHeight == screen.height || window.innerWidth == screen.width || photo_frame_content_el.fullscreenElement) {
+					console.log("photo frame: exiting fullscreen");
+					if (document.exitFullscreen) {
+					    document.exitFullscreen();
+					  } else if (document.webkitExitFullscreen) {
+					    document.webkitExitFullscreen();
+					  } else if (document.msExitFullscreen) {
+					    document.msExitFullscreen();
+					  }
+				}
             });
 
 
@@ -248,8 +271,16 @@
 			
 			// start screensaver button
             document.getElementById("extension-photo-frame-start-screensaver-button").addEventListener('click', () => {
+				
+				if(document.body.classList.contains('developer')){
+					//this.developer = true;
+				}
+				else{
+					this.developer = false;
+				}
+				
 				if(this.debug){
-					console.log("start screensaver button clicked");
+					console.log("start screensaver button clicked. developer: ", this.developer);
 				}
                 event.stopImmediatePropagation();
 				event.preventDefault();
@@ -258,6 +289,46 @@
                     this.screensaver_ignore_click = false;
                 },1000);
 				this.last_activity_time = new Date().getTime() - (this.screensaver_delay * 1001);
+				
+				if(this.kiosk == false && this.developer == false){
+					let photo_frame_content_el = document.getElementById('extension-photo-frame-content');
+					/*
+					if (photo_frame_content_el.fullscreenElement) {
+					    photo_frame_content_el
+					      .exitFullscreen()
+					      .then(() => console.log("Photo frame: Exited from Full screen mode"))
+					      .catch((err) => console.error("Photo frame: error exiting fullscreen mode: ", err));
+					} else {
+					    photo_frame_content_el.requestFullscreen();
+					}
+					*/
+					console.log("window.innerHeight,screen.height",window.innerHeight,screen.height);
+					console.log("photo_frame_content_el.fullscreenElement: ", photo_frame_content_el.fullscreenElement);
+					
+					if( window.innerHeight == screen.height || window.innerWidth == screen.width || photo_frame_content_el.fullscreenElement) {
+						console.log("photo frame: exiting fullscreen");
+						if (document.exitFullscreen) {
+						    document.exitFullscreen();
+						  } else if (document.webkitExitFullscreen) {
+						    document.webkitExitFullscreen();
+						  } else if (document.msExitFullscreen) {
+						    document.msExitFullscreen();
+						  }
+					}
+					else{
+						console.log("photo frame: requesting fullscreen");
+						if (photo_frame_content_el.requestFullscreen) {
+						    photo_frame_content_el.requestFullscreen();
+						} else if (photo_frame_content_el.webkitRequestFullscreen) { /* Safari */
+						    photo_frame_content_el.webkitRequestFullscreen();
+						} else if (photo_frame_content_el.msRequestFullscreen) { /* IE11 */
+						    photo_frame_content_el.msRequestFullscreen();
+						}
+					}
+					
+					
+				}
+				
             });
 			
 			
@@ -435,7 +506,7 @@
 					}
 					
 				
-				
+					//console.log("this.show_clock: ", this.show_clock);
 					// Every minute on the minute update the clock
 					if (this.show_clock || this.show_date) {
 						if ( new Date().getSeconds() === 0 ){
@@ -575,12 +646,14 @@
 				if(typeof body['interval'] != 'undefined'){
 	                this.interval = parseInt(body['interval']);
 	                this.fit_to_screen = body['fit_to_screen'];
-	                this.show_clock = body['show_clock'];
 	                this.show_date = body['show_date'];
 					this.greyscale = body['greyscale'];
 					this.animations = body['animations'];
 				}
-
+				
+				if(typeof body['show_clock'] != 'show_clock'){
+					this.show_clock = body['show_clock'];
+				}
 
 				// weather
                 if (typeof body.show_weather != 'undefined') {
@@ -607,6 +680,12 @@
 						if(previous_length == 0){
 							this.random_picture();
 							this.update_clock();
+							setTimeout(() => {
+								if(this.show_list_called == false){
+									this.show_list();
+								}
+							},10000);
+							
 						}
 						/*
 						else if(previous_length < this.filenames.length){
@@ -671,8 +750,8 @@
 					}
 					
 					
-					document.getElementById('extension-photo-frame-picture1').style['animation-duration'] = (this.interval+2) + 's';
-					document.getElementById('extension-photo-frame-picture2').style['animation-duration'] = (this.interval+2) + 's';
+					document.getElementById('extension-photo-frame-picture1').style['animation-duration'] = (this.interval+1) + 's';
+					document.getElementById('extension-photo-frame-picture2').style['animation-duration'] = (this.interval+1) + 's';
 					
 					if(document.getElementById('extension-photo-frame-screensaver-indicator')){
 						document.getElementById('extension-photo-frame-screensaver-indicator').style['animation-duration'] = this.screensaver_delay + 's';
@@ -807,7 +886,7 @@
 					//picture2.classList.add('extension-photo-frame-invisible');
 				}
 				
-                picture2.style.backgroundImage = "url(/extensions/photo-frame/photos/" + filename + ")";
+                picture2.style.backgroundImage = 'url("/extensions/photo-frame/photos/' + filename + '")';
                 picture2.classList.add('extension-photo-frame-current-picture');
 				//picture2.classList.remove('extension-photo-frame-fade-out');
 				picture1.classList.remove('extension-photo-frame-current-picture');
@@ -1326,7 +1405,7 @@
 					}
 					else{
 						if(this.debug){
-							console.log("photo frame: timer had no timer type (likely a delayed switching of a device): ", action);
+							//console.log("photo frame: voco timer had no timer type (likely a delayed switching of a device): ", action);
 						}
 					}
 				}
@@ -1360,6 +1439,8 @@
 					return;
 				}
 			}
+			this.show_list_called = true; // inital calling of show_list is delayed a bit to avoid network congestion from loading all pictures at once. But that call is ignored if the user has already chosen to open the photo overview.
+			
             //console.log("Updating photo list")
             //const pre = document.getElementById('extension-photo-frame-response-data');
             const photo_list = document.getElementById('extension-photo-frame-photos-list');

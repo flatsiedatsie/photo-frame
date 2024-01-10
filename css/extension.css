@@ -164,6 +164,18 @@ body.screensaver #extension-photo-frame-picture-holder{
     right:0;
     display:flex;
     flex-direction:column;
+	animation-name: extension-photo-frame-clock-burnin-prevention;
+	animation-duration: 3600s;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+}
+
+@keyframes extension-photo-frame-clock-burnin-prevention {
+  0%    {top: 0;right: 0}
+  25%   {top: 0; right: .5rem;}
+  50%   {top: .5rem; right:.5rem;}
+  75%   {top: .5rem; right: 0;}
+  100%  {top: 0; right: 0;}
 }
 
 #extension-photo-frame-clock{
@@ -214,7 +226,19 @@ body.screensaver #extension-photo-frame-picture-holder{
     position: fixed;
     left: 2rem;
     bottom: 2rem;
+	animation-name: extension-photo-frame-weather-burnin-prevention;
+	animation-duration: 3600s;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
 }
+@keyframes extension-photo-frame-weather-burnin-prevention {
+  0%    {bottom: 2rem; left: 2rem}
+  25%   {bottom: 2rem; left: 2.5rem;}
+  50%   {bottom: 2.5rem; left: 2.5rem;}
+  75%   {bottom: 2.5rem; left: 2rem;}
+  100%  {bottom: 2rem; left: 2rem;}
+}
+
 
 #extension-photo-frame-weather-temperature{
     background-image: url('../images/temperature-icon.svg');
