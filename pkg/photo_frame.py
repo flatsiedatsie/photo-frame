@@ -362,7 +362,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             
                     elif request.path == '/poll':
                         if self.DEBUG:
-                            print("POLLING")
+                            print("request at /poll")
                         state = False
                         # Get the list of Voco timers
                         try:

@@ -47,11 +47,16 @@
             this.clock = false;
             this.show_date = false;
             this.interval_counter = 0; // if it reaches the interval value, then it will show another picture.
-            this.current_picture = 1; // two pictures swap places: picture1 and picture2. This is for a smooth transition effect
+            
+			this.current_picture = 1; // two pictures swap places: picture1 and picture2. This is for a smooth transition effect
 			this.show_list_called = false;
 
 			this.hide_selected_photo_indicator_time = 0;
 			//this.photo_frame_key_listener_added = false;
+
+			this.slow_interval_counter = 0;
+			this.slow_interval = 60;
+
 
             // Weather
             this.show_weather = false;
@@ -103,7 +108,8 @@
                     console.log("photo frame: early init response: ");
                     console.log(body);
                 }
-
+				
+				this.update_list(body);
 				
                 if (typeof body.screensaver_delay != 'undefined') {
                     this.screensaver_delay = body.screensaver_delay;
@@ -112,11 +118,14 @@
                         this.start_screensaver_listeners();
                     }
 				}
+
+				if (document.location.pathname.endsWith("/photo-frame")) {
+					this.random_picture();
+				}
 				
             }).catch((e) => {
                 console.log("Photo frame: error in early init function: ", e);
             });
-
 
 
 			// Listen for keyboard mouse arrow presses
@@ -306,7 +315,7 @@
 					console.log("photo_frame_content_el.fullscreenElement: ", photo_frame_content_el.fullscreenElement);
 					
 					if( window.innerHeight == screen.height || window.innerWidth == screen.width || photo_frame_content_el.fullscreenElement) {
-						console.log("photo frame: exiting fullscreen");
+						//console.log("photo frame: exiting fullscreen");
 						if (document.exitFullscreen) {
 						    document.exitFullscreen();
 						  } else if (document.webkitExitFullscreen) {
@@ -316,7 +325,7 @@
 						  }
 					}
 					else{
-						console.log("photo frame: requesting fullscreen");
+						//console.log("photo frame: requesting fullscreen");
 						if (photo_frame_content_el.requestFullscreen) {
 						    photo_frame_content_el.requestFullscreen();
 						} else if (photo_frame_content_el.webkitRequestFullscreen) { /* Safari */
@@ -338,7 +347,7 @@
             document.getElementById("extension-photo-frame-print-button").addEventListener('click', () => {
 				const proto_to_print = document.getElementById("extension-photo-frame-print-confirm-button").getAttribute('data-photo-name');
 				this.do_not_show_next_random_photo = true;
-				console.log("cups print photo button clicked");
+				//console.log("cups print photo button clicked");
                 event.stopImmediatePropagation();
 				event.preventDefault();
 				document.getElementById("extension-photo-frame-print-button-container").classList.add('extension-photo-frame-print-button-show-confirmation');
@@ -376,7 +385,7 @@
 				else{
 					this.print_file( photo_name );
 				}
-				//this.do_not_show_next_random_photo = false;
+				this.do_not_show_next_random_photo = false;
 				//document.getElementById("extension-photo-frame-print-button-container").classList.remove('extension-photo-frame-print-button-show-confirmation');
 				
 			});
@@ -457,7 +466,8 @@
             // Photo change interval
 			setTimeout(() => { // this timeout is to avoid the issue that hide() is called later than show() if the addon is already the current one
 	            this.photo_interval = setInterval(() => {
-				
+					
+					console.log("in photo_interval.  interval_counter,slow_interval_counter: ", this.interval_counter, this.slow_interval_counter);
 					this.interval_counter++;
 					this.slow_interval_counter++
 				
@@ -537,8 +547,10 @@
 			
 			
 			this.get_init();
-			
 
+			this.random_picture();
+
+			this.show_list();
 			
 
             /*
@@ -615,6 +627,7 @@
 	            ).then((body) => {
 					this.get_init_error_counter = 0;
 		            this.update_list(body);
+					
 	            }).catch((e) => {
 	                if (this.debug) {
 						console.log("Photo frame: get_init error: ", e);
@@ -624,8 +637,10 @@
 			}
 		}
 		
+		
 		// A general api response parser
 		update_list(body){
+			console.log("photo frame: in update_list.  body: ", body);
 			try{
 				
 				if(typeof body.debug != 'undefined'){
@@ -641,7 +656,6 @@
                     this.peripage_printer_available = body.peripage_printer_available;
 					this.cups_printer_available = body.cups_printer_available;
                 }
-
 
 				if(typeof body['interval'] != 'undefined'){
 	                this.interval = parseInt(body['interval']);
@@ -661,7 +675,6 @@
                     //console.log('body.show_weather: ', body.show_weather);
                 }
 	            
-				
 				// Voco timers
 				if(typeof body.show_voco_timers != 'undefined'){
 					this.show_voco_timers = body.show_voco_timers;
@@ -674,8 +687,8 @@
 					
                     this.filenames = body['data'];
 					//console.log("--this.filenames.length: ", this.filenames.length);
-					if(previous_length != this.filenames.length){
-	                    this.show_list(body['data']);
+					if(previous_length != this.filenames.length || this.show_list_called == false){
+	                    
 						
 						if(previous_length == 0){
 							this.random_picture();
@@ -684,7 +697,11 @@
 								if(this.show_list_called == false){
 									this.show_list();
 								}
-							},10000);
+							},1000);
+							
+						}
+						else{
+							this.show_list(body['data']);
 							
 						}
 						/*
@@ -697,7 +714,7 @@
                 
 				
 				// Update HTML based on (potentially changed) settings
-				if (document.getElementById('extension-photo-frame-content') != null && this.do_not_show_next_random_photo == false) {
+				if (document.getElementById('extension-photo-frame-content') != null) { //  && this.do_not_show_next_random_photo == false
 
 		            if (typeof body.weather_addon_exists != 'undefined') {
 		                if (this.show_weather) {
@@ -1439,7 +1456,6 @@
 					return;
 				}
 			}
-			this.show_list_called = true; // inital calling of show_list is delayed a bit to avoid network congestion from loading all pictures at once. But that call is ignored if the user has already chosen to open the photo overview.
 			
             //console.log("Updating photo list")
             //const pre = document.getElementById('extension-photo-frame-response-data');
@@ -1454,7 +1470,15 @@
             this.filenames = file_list;
             //this.filenames = file_list;
 
+			if(photo_list == null){
+				console.warn("photo-frame: show_list: photo_list element does not exist(yet). aborting.");
+				return;
+			}
+
             photo_list.innerHTML = "";
+
+			this.show_list_called = true; // inital calling of show_list is delayed a bit to avoid network congestion from loading all pictures at once. But that call is ignored if the user has already chosen to open the photo overview.
+			
 
 			var photo_counter = 0;
             for (var key in file_list) {
