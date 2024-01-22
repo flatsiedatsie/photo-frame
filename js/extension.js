@@ -130,10 +130,10 @@
 
 			// Listen for keyboard mouse arrow presses
 			this.photo_frame_key_listener = (event) => {
-				console.log("in photo_frame_key_listener. Event: ", event);
-				console.log("in photo_frame_key_listener. this: ", this);
+				//console.log("in photo_frame_key_listener. Event: ", event);
+				//console.log("in photo_frame_key_listener. this: ", this);
 				const arrow_key = event.key; // "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"
-				console.log("photo_frame_key_listener: arrow_key: ", arrow_key);
+				//console.log("photo_frame_key_listener: arrow_key: ", arrow_key);
 				if(arrow_key == 'ArrowRight'){
 					this.next_picture();
 				}
@@ -467,7 +467,7 @@
 			setTimeout(() => { // this timeout is to avoid the issue that hide() is called later than show() if the addon is already the current one
 	            this.photo_interval = setInterval(() => {
 					
-					console.log("in photo_interval.  interval_counter,slow_interval_counter: ", this.interval_counter, this.slow_interval_counter);
+					//console.log("in photo_interval.  interval_counter,slow_interval_counter: ", this.interval_counter, this.slow_interval_counter);
 					this.interval_counter++;
 					this.slow_interval_counter++
 				
