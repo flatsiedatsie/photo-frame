@@ -30,8 +30,23 @@
             this.screensaver_path = '/extensions/photo-frame';
             this.screensaver_ignore_click = false;
 
+			this.page_visible = true;
+			document.addEventListener("visibilitychange", () => {
+			  if (document.hidden) {
+				  if(this.debug){
+					  console.log("photo frame: page became hidden");
+				  }
+				  this.page_visible = false;
+			  } else {
+				  if(this.debug){
+					  console.log("photo frame: page became visible");
+				  }
+				  this.page_visible = true;
+			  }
+			});
 			
-			
+			this.show_clock = false;
+			this.show_date = false;
 			
 
             // Printer
@@ -81,51 +96,19 @@
 			this.greyscale = false;
 			this.animations = true;
 
-            fetch(`/extensions/${this.id}/views/content.html`)
-                .then((res) => res.text())
-                .then((text) => {
-                    this.content = text;
-                    if (document.location.href.endsWith("photo-frame")) {
-                        this.show();
-                    }
-                })
-                .catch((e) => console.error('Failed to fetch content:', e));
+            
+        	fetch(`/extensions/${this.id}/views/content.html`)
+            .then((res) => res.text())
+            .then((text) => {
+                this.content = text;
+				this.early_init();
+            })
+            .catch((e) => console.error('Failed to fetch content:', e));
 
-
-            // Check if screensaver should be active
-            window.API.postJson(
-                `/extensions/photo-frame/api/list`, {
-                    'init': 1
-                }
-
-            ).then((body) => {
-				//console.log("photo frame early init body: ", body)
-				if(typeof body.debug != 'undefined'){
-					this.debug = body.debug;
-				}
-                
-                if (this.debug) {
-                    console.log("photo frame: early init response: ");
-                    console.log(body);
-                }
-				
-				this.update_list(body);
-				
-                if (typeof body.screensaver_delay != 'undefined') {
-                    this.screensaver_delay = body.screensaver_delay;
-                    if (body.screensaver_delay > 1) {
-                        //console.log('photo-frame: calling start screensaver listeners');
-                        this.start_screensaver_listeners();
-                    }
-				}
-
-				if (document.location.pathname.endsWith("/photo-frame")) {
-					this.random_picture();
-				}
-				
-            }).catch((e) => {
-                console.log("Photo frame: error in early init function: ", e);
-            });
+			
+			
+			
+            
 
 
 			// Listen for keyboard mouse arrow presses
@@ -145,6 +128,55 @@
 
 
         }
+
+
+
+		early_init(){
+            // Check if screensaver should be active
+            window.API.postJson(
+                `/extensions/photo-frame/api/list`, {
+                    'init': 1
+                }
+
+            ).then((body) => {
+				console.log("photo frame early init body: ", body)
+				if(typeof body.debug !== 'undefined'){
+					this.debug = body.debug;
+				}
+            
+                if (this.debug) {
+                    console.log("photo frame: early init response: ");
+                    console.log(body);
+                }
+				
+				if(typeof body['data'] != 'undefined'){
+                    this.filenames = body['data'];
+				}
+				
+                if (document.location.href.endsWith("photo-frame")) {
+                    this.show();
+					//this.update_list(body);
+					//this.random_picture();
+                }
+				
+				
+			
+                if (typeof body.screensaver_delay != 'undefined') {
+                    this.screensaver_delay = body.screensaver_delay;
+                    if (body.screensaver_delay > 1) {
+                        //console.log('photo-frame: calling start screensaver listeners');
+                        this.start_screensaver_listeners();
+                    }
+				}
+
+				//if (document.location.pathname.endsWith("/photo-frame")) {}
+				
+			
+            }).catch((e) => {
+                console.log("Photo frame: error in early init function: ", e);
+				
+            });
+		}
 
 
 
@@ -468,61 +500,65 @@
 	            this.photo_interval = setInterval(() => {
 					
 					//console.log("in photo_interval.  interval_counter,slow_interval_counter: ", this.interval_counter, this.slow_interval_counter);
-					this.interval_counter++;
-					this.slow_interval_counter++
+					if(this.page_visible){
+						this.interval_counter++;
+						this.slow_interval_counter++
+						
+						// change to new random picture after X seconds
+		                if (this.interval_counter > this.interval) {
+							this.interval_counter = 0;
+		                    this.random_picture();
+		                }
 				
 				
-					// change to new random picture after X seconds
-	                if (this.interval_counter > this.interval) {
-						this.interval_counter = 0;
-	                    this.random_picture();
-	                }
-				
-				
-					// Every X seconds run the slow update of settings
-					if (this.slow_interval_counter > this.slow_interval) {
-						this.slow_interval_counter = 0;
+						// Every X seconds run the slow update of settings
+						if (this.slow_interval_counter > this.slow_interval) {
+							this.slow_interval_counter = 0;
 					
-						// if there are network connection issues, wait before doing the next request until this counter is zero again.
-						if(this.get_init_error_counter > 0){
-							this.get_init_error_counter--;
+							// if there are network connection issues, wait before doing the next request until this counter is zero again.
+							if(this.get_init_error_counter > 0){
+								this.get_init_error_counter--;
+							}
+					
+							this.get_init();
 						}
-					
-						this.get_init();
-					}
 				
 				
-					// every X seconds run the Voco timers poll interval
-					if(this.show_voco_timers){
+						// every X seconds run the Voco timers poll interval
+						if(this.show_voco_timers){
+						
+							this.voco_interval_counter++;
 					
-						this.voco_interval_counter++;
-					
-						if(this.voco_interval_counter > 5){
-							this.voco_interval_counter = 0;
-							if(this.poll_fail_count > 0){
-								if(this.debug){
-									console.warn("photo-frame: delaying voco polling after a failed poll. this.poll_fail_count: ", this.poll_fail_count);
+							if(this.voco_interval_counter > 5){
+								this.voco_interval_counter = 0;
+								if(this.poll_fail_count > 0){
+									if(this.debug){
+										console.warn("photo-frame: delaying voco polling after a failed poll. this.poll_fail_count: ", this.poll_fail_count);
+									}
+									this.poll_fail_count--;
 								}
-								this.poll_fail_count--;
+								else{
+									this.get_poll();
+								}
 							}
-							else{
-								this.get_poll();
-							}
+					
+							// every second adjust the second counters of voco timers
+							this.update_voco_actions();
+					
 						}
-					
-						// every second adjust the second counters of voco timers
-						this.update_voco_actions();
-					
-					}
 					
 				
-					//console.log("this.show_clock: ", this.show_clock);
-					// Every minute on the minute update the clock
-					if (this.show_clock || this.show_date) {
-						if ( new Date().getSeconds() === 0 ){
-							this.update_clock();
-						}
-					};
+						//console.log("this.show_clock: ", this.show_clock);
+						// Every minute on the minute update the clock
+						if (this.show_clock || this.show_date) {
+							if ( new Date().getSeconds() === 0 ){
+								this.update_clock();
+							}
+						};
+						
+					}
+					
+					
 				
 	                //console.log(this.interval_counter);
 	            }, 1000);
@@ -546,11 +582,23 @@
             
 			
 			
-			this.get_init();
+			this.get_init()
+			.then((body) => {
+				if(this.debug){
+					console.log("photo frame: get_init promise returned: ", body);
+				}
+				this.random_picture();
 
-			this.random_picture();
-
-			this.show_list();
+				this.show_list();
+			
+				this.update_clock();
+				
+			}).catch((e) => {
+				if (this.debug) {
+					console.log("Photo frame: get_init promise error: ", e);
+				}
+			});
+			
 			
 
             /*
@@ -614,27 +662,38 @@
 		//
 
         
-		// This is called regularly, for example to make the photo frame reflect any photos that were added on another instance
+		// This is called regularly, for example to make the photo frame reflect any photos that were added on another device
 		get_init(){
 			if(this.debug){
 				console.log("photo frame: in get_init");
 			}
-			if(this.get_init_error_counter == 0){
-	            window.API.postJson(
-	                `/extensions/${this.id}/api/list`, {
-	                    'init': 1
-	                }
-	            ).then((body) => {
-					this.get_init_error_counter = 0;
-		            this.update_list(body);
+			
+			return new Promise((resolve, reject) => {
+				
+				if(this.get_init_error_counter == 0){
+		            window.API.postJson(
+		                `/extensions/${this.id}/api/list`, {
+		                    'init': 1
+		                }
+		            ).then((body) => {
+						this.get_init_error_counter = 0;
+			            this.update_list(body);
+						resolve(body);
 					
-	            }).catch((e) => {
-	                if (this.debug) {
-						console.log("Photo frame: get_init error: ", e);
-					}
-					this.get_init_error_counter = 3;
-	            });
-			}
+		            }).catch((e) => {
+		                if (this.debug) {
+							console.log("Photo frame: get_init error: ", e);
+						}
+						this.get_init_error_counter = 3;
+						reject({});
+		            });
+				}else{
+					reject({});
+				}
+				
+			  
+			});
+			
 		}
 		
 		
@@ -665,8 +724,11 @@
 					this.animations = body['animations'];
 				}
 				
-				if(typeof body['show_clock'] != 'show_clock'){
+				if(typeof body['show_clock'] != 'undefined'){
 					this.show_clock = body['show_clock'];
+				}
+				if(typeof body['show_date'] != 'undefined'){
+					this.show_date = body['show_date'];
 				}
 
 				// weather
@@ -680,41 +742,42 @@
 					this.show_voco_timers = body.show_voco_timers;
 				}
 
-				// photo data
-				if(typeof body['data'] != 'undefined'){
-					const previous_length = this.filenames.length;
-					//console.log("--previous_length: ", previous_length);
-					
-                    this.filenames = body['data'];
-					//console.log("--this.filenames.length: ", this.filenames.length);
-					if(previous_length != this.filenames.length || this.show_list_called == false){
-	                    
-						
-						if(previous_length == 0){
-							this.random_picture();
-							this.update_clock();
-							setTimeout(() => {
-								if(this.show_list_called == false){
-									this.show_list();
-								}
-							},1000);
-							
-						}
-						else{
-							this.show_list(body['data']);
-							
-						}
-						/*
-						else if(previous_length < this.filenames.length){
-							this.show_file(this.filenames[this.filenames.length-1]); // this assumes the last photo in the list is the newest. But it's not.
-						}
-						*/
-					}
-				}
+				
                 
 				
 				// Update HTML based on (potentially changed) settings
 				if (document.getElementById('extension-photo-frame-content') != null) { //  && this.do_not_show_next_random_photo == false
+
+					// photo data
+					if(typeof body['data'] != 'undefined'){
+						const previous_length = this.filenames.length;
+						//console.log("--previous_length: ", previous_length);
+						
+	                    this.filenames = body['data'];
+						//console.log("--this.filenames.length: ", this.filenames.length);
+						if(previous_length != this.filenames.length || this.show_list_called == false){
+	                    
+							if(previous_length == 0){
+								this.random_picture();
+								this.update_clock();
+								setTimeout(() => {
+									if(this.show_list_called == false){
+										this.show_list();
+									}
+								},1000);
+							
+							}
+							else{
+								this.show_list(body['data']);
+							
+							}
+							/*
+							else if(previous_length < this.filenames.length){
+								this.show_file(this.filenames[this.filenames.length-1]); // this assumes the last photo in the list is the newest. But it's not.
+							}
+							*/
+						}
+					}
 
 		            if (typeof body.weather_addon_exists != 'undefined') {
 		                if (this.show_weather) {
@@ -882,10 +945,14 @@
 				console.log("photo-frame: show_file. filename: ", filename);
 			}
 			
+			const picture_holder = document.getElementById('extension-photo-frame-picture-holder');
+			if(picture_holder == null){
+				return
+			}
+			
 			// filename for printing
 			document.getElementById("extension-photo-frame-print-confirm-button").setAttribute('data-photo-name',filename);
-			
-            const picture_holder = document.getElementById('extension-photo-frame-picture-holder');
+
             const picture1 = document.getElementById('extension-photo-frame-picture1');
             const picture2 = document.getElementById('extension-photo-frame-picture2');
             //const overview = document.getElementById('extension-photo-frame-overview');
@@ -1153,7 +1220,9 @@
 
 
         update_clock() {
+			console.log("in update_clock.  show_clock,show_date: ", this.show_clock, this.show_date);
             if (this.show_clock || this.show_date) {
+				
                 window.API.postJson(
                     `/extensions/photo-frame/api/get_time`,
                 ).then((body) => {
@@ -1162,11 +1231,13 @@
                         var hour_padding = "";
                         var minute_padding = "";
 
-                        if (this.show_clock) {
+						//console.warn("document.getElementById('extension-photo-frame-clock'): ", document.getElementById('extension-photo-frame-clock'));
+						
+                        if (this.show_clock && document.getElementById('extension-photo-frame-clock')) {
                             document.getElementById('extension-photo-frame-clock').innerText = body.hours + ":" + minute_padding + body.minutes;
                         }
 
-                        if (this.show_date) {
+                        if (this.show_date && document.getElementById('extension-photo-frame-date-day')) {
 
                             // Day name
                             const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -1812,6 +1883,9 @@
             this.screensaver_interval = setInterval(() => {
 
                 const current_time = new Date().getTime();
+				if(this.page_visible == false){
+					this.last_activity_time = current_time;
+				}
                 const delta = current_time - this.last_activity_time;
                 //console.log('delta: ', delta);
                 if (delta > this.screensaver_delay * 1000) {
