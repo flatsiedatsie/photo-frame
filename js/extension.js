@@ -139,14 +139,12 @@
                 }
 
             ).then((body) => {
-				console.log("photo frame early init body: ", body)
 				if(typeof body.debug !== 'undefined'){
 					this.debug = body.debug;
 				}
             
                 if (this.debug) {
-                    console.log("photo frame: early init response: ");
-                    console.log(body);
+                    console.log("photo frame: early init response: ", body);
                 }
 				
 				if(typeof body['data'] != 'undefined'){
@@ -174,7 +172,6 @@
 			
             }).catch((e) => {
                 console.log("Photo frame: error in early init function: ", e);
-				
             });
 		}
 
