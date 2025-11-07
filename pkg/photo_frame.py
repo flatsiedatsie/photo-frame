@@ -27,7 +27,7 @@ from datetime import datetime,timedelta
 
 
 import subprocess
-import threading
+#import threading
 import requests
 import base64
 #from pynput.keyboard import Key, Controller
@@ -673,9 +673,9 @@ class PhotoFrameAPIHandler(APIHandler):
 
 
     # INIT
-    def get_init_data(self):
-        if self.DEBUG:
-            print("Getting the initialisation data")
+    #def get_init_data(self):
+    #    if self.DEBUG:
+    #        print("Getting the initialisation data")
         
 
 
