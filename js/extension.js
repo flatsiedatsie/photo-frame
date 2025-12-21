@@ -144,7 +144,7 @@
 				}
             
                 if (this.debug) {
-                    console.log("photo frame: early init response: ", body);
+                    console.log("photo frame debug: early init response: ", body);
                 }
 				
 				if(typeof body['data'] != 'undefined'){
@@ -170,8 +170,8 @@
 				//if (document.location.pathname.endsWith("/photo-frame")) {}
 				
 			
-            }).catch((e) => {
-                console.log("Photo frame: error in early init function: ", e);
+            }).catch((err) => {
+                console.error("Photo frame: error in early init function: ", err);
             });
 		}
 
@@ -473,7 +473,7 @@
 			
 				document.getElementById("extension-photo-frame-picture-holder").addEventListener('touchstart', e => {
 					if(this.debug){
-						console.log("photo-frame: touch start");
+						console.log("photo-frame debug: touch start");
 					}
 					this.touchstartX = e.changedTouches[0].screenX;
 				}, {
@@ -696,7 +696,7 @@
 		
 		// A general api response parser
 		update_list(body){
-			console.log("photo frame: in update_list.  body: ", body);
+			//console.log("photo frame: in update_list.  body: ", body);
 			try{
 				
 				if(typeof body.debug != 'undefined'){
@@ -1217,7 +1217,7 @@
 
 
         update_clock() {
-			console.log("in update_clock.  show_clock,show_date: ", this.show_clock, this.show_date);
+			//console.log("in update_clock.  show_clock,show_date: ", this.show_clock, this.show_date);
             if (this.show_clock || this.show_date) {
 				
                 window.API.postJson(
