@@ -29,6 +29,7 @@
             this.previous_last_activity_time = 0;
             this.screensaver_path = '/extensions/photo-frame';
             this.screensaver_ignore_click = false;
+			this.screensaver_listeners_added = false;
 			this.screensaver_interval_busy = false;
 
 			this.page_visible = true;
@@ -1866,83 +1867,7 @@
 		
 		
 		
-		
-		
-        //
-        //  SCREENSAVER LISTENERS
-        //
-
-		// If another view was active, the screensaver will try to jump back to that view if mouse activity is detected
-
-
-        start_screensaver_listeners() {
-
-            //this.screensaver_interval = setInterval(myCallback, 500);
-            this.screensaver_interval = setInterval(() => {
-
-				if(this.screensaver_interval_busy == false){
-					this.screensaver_interval();
-				}
-            }, 1000);
-
-
-
-            //console.log('starting activity timeout check for screensaver. Delay seconds: ', this.screensaver_delay);
-
-            // Mouse
-            window.addEventListener('mousemove', () => {
-                if (!this.screensaver_ignore_click) {
-					this.last_activity_time = new Date().getTime();
-				}
-            }, {
-                passive: true
-            });
-            window.addEventListener('mousedown', () => {
-				if (!this.screensaver_ignore_click) {
-                	this.last_activity_time = new Date().getTime();
-				}
-            }, {
-                passive: true
-            });
-            window.addEventListener('click', () => {
-                if (this.screensaver_ignore_click) {
-                    if(this.debug){
-						console.log('ignoring click');
-                    }
-                } else {
-                    this.last_activity_time = new Date().getTime();
-                }
-            }, {
-                passive: true
-            });
-
-            // Touch
-            window.addEventListener('touchstart', () => {
-                if (!this.screensaver_ignore_click) {
-					this.last_activity_time = new Date().getTime();
-				}
-            }, {
-                passive: true
-            });
-            window.addEventListener('touchmove', () => {
-                if (!this.screensaver_ignore_click) {
-					this.last_activity_time = new Date().getTime();
-				}
-            }, {
-                passive: true
-            });
-
-            // Scroll
-            window.addEventListener('scroll', () => {
-                if (!this.screensaver_ignore_click) {
-					this.last_activity_time = new Date().getTime();
-				}
-            }, true);
-
-        }
-		
-		
-		screensaver_interval(){
+		do_screensaver_interval(){
 			this.screensaver_interval_busy = true;
             const current_time = new Date().getTime();
 			if(this.page_visible == false){
@@ -2050,6 +1975,97 @@
             }
 			this.screensaver_interval_busy = false;
 		}
+		
+		
+		
+        //
+        //  SCREENSAVER LISTENERS
+        //
+
+		// If another view was active, the screensaver will try to jump back to that view if mouse activity is detected
+
+
+        start_screensaver_listeners() {
+			if(this.screensaver_listeners_added){
+				if(this.debug){
+					console.error("start_screensaver_listeners was called again, but has already run");
+				}
+				return
+			}
+			this.screensaver_listeners_added = true;
+			if(this.screensaver_interval){
+				clearInterval(this.screensaver_interval);
+			}
+            //this.screensaver_interval = setInterval(myCallback, 500);
+            this.screensaver_interval = setInterval(() => {
+
+				if(this.screensaver_interval_busy == false){
+					this.do_screensaver_interval();
+				}
+				else if(this.debug){
+					console.warn("screensaver_interval was still busy, skipping calling it again");
+					this.screensaver_interval_busy = false; // but only skipping it once
+				}
+            }, 1000);
+
+
+
+            //console.log('starting activity timeout check for screensaver. Delay seconds: ', this.screensaver_delay);
+
+            // Mouse
+            window.addEventListener('mousemove', () => {
+                if (!this.screensaver_ignore_click) {
+					this.last_activity_time = new Date().getTime();
+				}
+            }, {
+                passive: true
+            });
+            window.addEventListener('mousedown', () => {
+				if (!this.screensaver_ignore_click) {
+                	this.last_activity_time = new Date().getTime();
+				}
+            }, {
+                passive: true
+            });
+            window.addEventListener('click', () => {
+                if (this.screensaver_ignore_click) {
+                    if(this.debug){
+						console.log('ignoring click');
+                    }
+                } else {
+                    this.last_activity_time = new Date().getTime();
+                }
+            }, {
+                passive: true
+            });
+
+            // Touch
+            window.addEventListener('touchstart', () => {
+                if (!this.screensaver_ignore_click) {
+					this.last_activity_time = new Date().getTime();
+				}
+            }, {
+                passive: true
+            });
+            window.addEventListener('touchmove', () => {
+                if (!this.screensaver_ignore_click) {
+					this.last_activity_time = new Date().getTime();
+				}
+            }, {
+                passive: true
+            });
+
+            // Scroll
+            window.addEventListener('scroll', () => {
+                if (!this.screensaver_ignore_click) {
+					this.last_activity_time = new Date().getTime();
+				}
+            }, true);
+
+        }
+		
+		
+		
 		
 		
 		
