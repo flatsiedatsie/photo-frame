@@ -1916,10 +1916,13 @@
                         var spotted_in_menu = false;
                         const addon_name_css = short_path.replace(/_/g, "-");
                         //console.log(addon_name_css);
-                        const menu_elements = document.querySelectorAll('#main-menu li a');
+                        const menu_elements = document.querySelectorAll('#main-menu > ul > li > a');
                         var id_to_click_on = "extension-photo-frame-menu-item";
                         menu_elements.forEach(element => {
                             var link_id = element.getAttribute('id');
+							if(typeof link_id != 'string'){
+								continue
+							}
                             var short_link_id = link_id.replace("-menu-item", "");
                             short_link_id = short_link_id.replace("extension-", "");
                             //short_link_id = link_id.replace("extension-", "");
