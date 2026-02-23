@@ -706,7 +706,7 @@
 				}
 				
                 if (this.debug) {
-                    console.log("photo-frame: get_init: /list response: ", body);
+                    console.log("photo-frame debug: get_init: /list response: ", body);
                 }
 				
 				// printer
@@ -842,7 +842,7 @@
 			}
             catch(e){
             	if (this.debug) {
-					console.error("photo frame: error parsing update list data: ", e);
+					console.error("photo frame debug: error parsing update list data: ", e);
 				}
             }
 			
@@ -890,7 +890,7 @@
 			}
 			this.show_file( this.filenames[this.current_photo_number] );
 			if(this.debug){
-				console.log("photo-frame: previous_picture: after this.current_photo_number: ", this.current_photo_number);
+				console.log("photo-frame debug: previous_picture: after this.current_photo_number: ", this.current_photo_number);
 			}
 			this.show_selected_photo_indicator();
 		}
@@ -898,7 +898,7 @@
 
 		next_picture(){
 			if(this.debug){
-				console.log("next_picture: before this.current_photo_number: ", this.current_photo_number);
+				console.log("photo-frame debug: next_picture: before this.current_photo_number: ", this.current_photo_number);
 			}
 			this.current_photo_number++;
 			if(this.current_photo_number >= this.filenames.length){
@@ -906,7 +906,7 @@
 			}
 			this.show_file( this.filenames[this.current_photo_number] );
 			if(this.debug){
-				console.log("photo-frame: next_picture: after this.current_photo_number: ", this.current_photo_number);
+				console.log("photo-frame debug: next_picture: after this.current_photo_number: ", this.current_photo_number);
 			}
 			this.show_selected_photo_indicator();
 		}
@@ -928,11 +928,11 @@
 				
 				this.current_photo_number = new_pic_nr;
 				if(this.debug){
-					console.log("photo frame: random_picture: after this.current_photo_number: ", this.current_photo_number);
+					console.log("photo-frame debug: random_picture: after this.current_photo_number: ", this.current_photo_number);
 				}
                 var random_file = this.filenames[this.current_photo_number];
 				if(this.debug){
-					console.log("new random picture: /extensions/photo-frame/photos/" + random_file);
+					console.log("photo-frame debug: new random picture: /extensions/photo-frame/photos/" + random_file);
 				}
                 this.show_file(random_file);
             }
@@ -941,7 +941,7 @@
 
         show_file(filename) {
 			if(this.debug){
-				console.log("photo-frame: show_file. filename: ", filename);
+				console.log("photo-frame debug:  show_file. filename: ", filename);
 			}
 			
 			const picture_holder = document.getElementById('extension-photo-frame-picture-holder');
@@ -1646,7 +1646,7 @@
 
         delete_file(filename) {
             if(this.debug){
-				console.log("Deleting file:" + filename);
+				console.log("photoframe debug: deleting file:" + filename);
 			}
 	        window.API.postJson(
                 `/extensions/${this.id}/api/delete`, {
@@ -1656,7 +1656,7 @@
 
             ).then((body) => {
                 if(this.debug){
-					console.log("photo frame: delete file response: ", body);
+					console.log("photo frame debug: delete file response: ", body);
 				}
                 //this.show_list(body['data']);
 
@@ -1724,7 +1724,7 @@
 
 		                    image.onload = function() {
 								if(this.debug){
-									console.log("photo-frame: offscreen image loaded. filetype, filename: ", filetype, filename);
+									console.log("photo-frame debug: offscreen image loaded. filetype, filename: ", filetype, filename);
 									//console.log("photo-frame: offscreen image loaded. file_data: ", file_data);
 									//console.log("photo-frame: offscreen image loaded. file_data.result: ", reader.result);
 								}
@@ -1789,7 +1789,7 @@
 
 		                        ).then((body) => {
 		                            if(this.debug){
-										console.log("saved photo. body:", body);
+										console.log("saved photo debug. body:", body);
 									}
 									//if(i == files.length - 1){
 									
@@ -1807,7 +1807,7 @@
 								
 									if(i == files.length  - 1){
 										if(this.debug){
-											console.log("photo frame: ALL UPLOADED");
+											console.log("photo frame debug: ALL UPLOADED");
 										}
 										setTimeout(() => {
 											upload_progress_overlay_el.classList.add('extension-photo-frame-hidden');
@@ -1816,7 +1816,7 @@
 									}
 
 		                        }).catch((err) => {
-		                            console.log("Error uploading image: ", err);
+		                            console.log("photo frame: error uploading image: ", err);
 									if(progress_indicator_elements[i]){
 										progress_indicator_elements[i].style.background = 'red';
 									}
@@ -1878,7 +1878,7 @@
             if (delta > this.screensaver_delay * 1000) {
                 if (this.showing_screensaver == false) {
 					if(this.debug){
-						console.log("Photo frame: STARTING SCREENSAVER");
+						console.log("Photo frame debug: STARTING SCREENSAVER");
 					}
                     this.screensaver_ignore_click = true;
                     window.setTimeout(() => {
@@ -1910,7 +1910,7 @@
 
 					if(short_path != "photo-frame"){
 						if(this.debug){
-							console.log("photo-frame: screensaver: short_path to return to: ", short_path);
+							console.log("photo-frame debug: screensaver: short_path to return to: ", short_path);
 						}
 
                         var spotted_in_menu = false;
@@ -1921,7 +1921,7 @@
                         menu_elements.forEach(element => {
                             var link_id = element.getAttribute('id');
 							if(typeof link_id != 'string'){
-								continue
+								return
 							}
                             var short_link_id = link_id.replace("-menu-item", "");
                             short_link_id = short_link_id.replace("extension-", "");
@@ -2006,7 +2006,7 @@
 					this.do_screensaver_interval();
 				}
 				else if(this.debug){
-					console.warn("screensaver_interval was still busy, skipping calling it again");
+					console.warn("photo frame debug: screensaver_interval was still busy, skipping calling it again");
 					this.screensaver_interval_busy = false; // but only skipping it once
 				}
             }, 1000);
