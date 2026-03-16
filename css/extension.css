@@ -3,6 +3,78 @@
 	background-color:rgba(255,255,255,.1);
 }
 
+#extension-photo-frame-view h3{
+	margin-bottom:3rem;
+}
+
+#extension-photo-frame-view p,
+#extension-photo-frame-view span{
+	line-height:180%;
+}
+
+#extension-photo-frame-view input[type="checkbox"]{
+	position: absolute;
+    left: -1000em;
+}
+	
+#extension-photo-frame-view input[type="checkbox"] + label::before{
+	content: '';
+    display: inline-block;
+    width: 3rem;
+    height: 3rem;
+    float: right;
+    margin-top: 0;
+    background: url(/images/checkbox-sprite.png) no-repeat 0 0;
+    background-size: 3rem auto;
+}
+
+#extension-photo-frame-view input[type="checkbox"]:checked + label::before{
+	background-position: 0 -3rem;
+}
+
+
+#extension-photo-frame-view #extension-photo-frame-privacy-mode-container .text-button{
+	font-size:2rem;
+	padding:1.5rem 2rem;
+}
+
+.extension-photo-frame-area{
+	background-color:rgba(0,0,0,.15);
+	border-radius:1rem;
+	padding:2rem;
+	margin:2rem auto;
+	width:100%;
+	box-sizing:border-box;
+}
+
+.extension-photo-frame-flex-wrap{
+	display:flex;
+	flex-wrap:wrap;
+}
+
+.extension-photo-frame-flex-between{
+	display:flex;
+	justify-content:space-between;
+}
+
+.extension-photo-frame-flex-align-center{
+	display:flex;
+	align-items:center;
+}
+
+.extension-photo-frame-green-bg{
+	background-color:green!important;
+	color:white!important;
+}
+
+
+body:not(.kiosk) .extension-photo-frame-show-if-kiosk,
+body.kiosk .extension-photo-frame-hide-if-kiosk{
+	display:none!important;
+}
+
+
+
 #extension-photo-frame-overview{
 	margin-top:6rem;
     /*max-width: calc(100% - 2rem);*/
@@ -504,6 +576,8 @@ body:not(.screensaver) .extension-photo-frame-picture:not(.extension-photo-frame
 	width:auto;
 }
 
+
+
 #extension-photo-frame-print-button{
 	background: rgba(255,255,255,.15) no-repeat center/50% url(../images/printer.svg);
 }
@@ -512,7 +586,7 @@ body:not(.screensaver) .extension-photo-frame-picture:not(.extension-photo-frame
 	background-color:rgba(255,255,255,.4);
 }
 
-body.cups-printing:not(.screensaver) #extension-photo-frame-print-button-container{
+body:not(.screensaver) #extension-photo-frame-view.extension-photo-frame-printer-available #extension-photo-frame-print-button-container{
 	display:block;
 }
 
@@ -906,11 +980,11 @@ body.screensaver .extension-photo-frame-effect{
 
 
 #extension-photo-frame-photos-list{
-	background-color:rgba(0,0,0,.2);
+	background-color:rgba(255,255,255,.4);
 	display:flex;
 	flex-wrap:wrap;
     padding:2rem;
-    border-radius:.5rem;
+    border-radius:.8rem;
     box-sizing:border-box;
 }
 
@@ -933,11 +1007,6 @@ body.screensaver .extension-photo-frame-effect{
 	margin-bottom:1rem;
     position:relative;
 }
-/*
-.extension-photo-frame-printer-available .extension-photo-frame-list-item{
-    margin-bottom:4rem;
-}
-*/
 
 .extension-photo-frame-list-item > span{
 	word-wrap: break-word;
@@ -946,10 +1015,12 @@ body.screensaver .extension-photo-frame-effect{
 
 /*  ADD RANDOM PHOTO BUTTON  */
 
-#extension-photo-frame-add-random-photo-button{
+#extension-photo-frame-view #extension-photo-frame-add-random-photo-button{
 	display:block;
 	margin-top:2rem;
 	margin-left:auto;
+	font-size:1.6rem;
+	padding:1rem;
 }
 
 
@@ -1130,10 +1201,137 @@ body.screensaver .extension-photo-frame-effect{
 
 
 
+/*  PRIVACY MODE  */
+
+#extension-photo-frame-overview:not(.extension-photo-frame-privacy-mode-selecting-photos) .extension-photo-frame-show-if-selecting-privacy-mode-photos,
+#extension-photo-frame-overview.extension-photo-frame-privacy-mode-selecting-photos .extension-photo-frame-hide-if-selecting-privacy-mode-photos,
+#extension-photo-frame-overview.extension-photo-frame-privacy-mode-selecting-photos .extension-photo-frame-thumbnail-delete-button,
+#extension-photo-frame-overview:not(.extension-photo-frame-privacy-mode-photos-selected) .extension-photo-frame-hide-if-selected-privacy-mode-photos,
+#extension-photo-frame-overview.extension-photo-frame-privacy-mode-photos-selected .extension-photo-frame-show-if-privacy-mode-photos-selected{
+	display:none!important;
+}
+
+/* the second class, which has 1 letter difference, is used to pretend that privacy mode is still available, even though it's already running */
+body:not(.extension-photo-frame-privacy-mode) #extension-photo-frame-overview.extension-photo-frame-privacy-mode-selecting-photos .extension-photo-frame-list-item.extension-photo-frame-list-item-privacy-safe,
+body.extension-photo-frame-privacy-mode #extension-photo-frame-overview.extension-photo-frame-privacy-mode-selecting-photos .extension-photo-frame-list-item.extension-photo-frame-list-item-privacy-save{
+	box-shadow: inset 0 0 10px 10px green;
+}
+
+#extension-photo-frame-done-selecting-button,
+#extension-photo-frame-privacy-mode-container button{
+	padding:1.5rem 2rem;
+	font-size:2rem;
+}
+#extension-photo-frame-privacy-mode-start-buttons-container button{
+	margin-bottom:2rem;
+}
+#extension-photo-frame-privacy-mode-start-buttons-container button:not(:last-of-type){
+	margin-right:2rem;
+}
+
+
+#extension-photo-frame-view input[type="checkbox"]#extension-photo-frame-privacy-mode-local-checkbox + label::before{
+	float:none;
+	margin-right:1.2rem;
+}
+
+.extension-photo-frame-privacy-mode-explanation-container > *{
+	width:45%;
+	min-width:200px;
+}
+
+#extension-photo-frame-privacy-mode-explanation-text-wrapper > p{
+	max-width:50rem;
+	margin-bottom:4rem;
+}
+
+#extension-photo-frame-privacy-mode-explanation-container{
+	
+}
+
+#extension-photo-frame-privacy-mode-explanation-text-wrapper{
+	margin-top:2rem;
+}
+
+#extension-photo-frame-privacy-mode-image-wrapper{
+	display:flex;
+	flex-direction:column;
+	margin-top:4rem;
+	margin-right:4rem;
+	max-width:200px;
+}
+
+
+
+#extension-photo-frame-privacy-mode-speech-bubble{
+	background-color:white;
+	border-radius:4rem;
+	min-height:6rem;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	padding:2rem;
+	pointer-events:none;
+}
+
+#extension-photo-frame-view #extension-photo-frame-privacy-mode-speech-bubble-text{
+	display:inline-block;
+	color:#666;
+	font-style:italic;
+	font-size:2rem;
+	text-align:center;
+	line-height:140%;
+}
+
+#extension-photo-frame-privacy-mode-start-buttons-container-area{
+	margin-top:6rem;
+}
+
+
+body#path-extensions-photo-frame.extension-photo-frame-privacy-mode li.extension-photo-frame-list-item:not(.extension-photo-frame-list-item-privacy-safe){
+	display:none!important;
+}
 
 
 
 
+
+/*  LOCKED MODE  */
+
+/*
+body#path-extensions-photo-frame.extension-photo-frame-privacy-mode #menu-button,
+body#path-extensions-photo-frame.extension-photo-frame-privacy-mode #extension-photo-frame-more-button,
+*/
+body#path-extensions-photo-frame.extension-photo-frame-locked #menu-button,
+body#path-extensions-photo-frame.extension-photo-frame-locked #extension-photo-frame-more-button{
+	pointer-events:none;
+	opacity:.2;
+}
+body#path-extensions-photo-frame.extension-photo-frame-locked #extension-photo-frame-print-button-container{
+	display:none;
+}
+
+
+
+/*  EXTRA SETTINGS  */
+
+#extension-photo-frame-privacy-mode-password-container{
+	display:none;
+	flex-direction:column;
+	align-items: flex-start;
+	margin-top:2rem;
+}
+#extension-photo-frame-enable-password-checkbox:checked ~ #extension-photo-frame-privacy-mode-password-container{
+	display:flex;
+}
+
+#extension-photo-frame-view #extension-photo-frame-test-sound-button{
+	margin-left:2rem;
+	background-image: url(/images/enable.svg);
+	background-position:center;
+	background-repeat:no-repeat;
+	padding:1rem 2rem;
+}
 
 
 @media screen and (max-width: 640px) {
@@ -1150,6 +1348,25 @@ body.screensaver .extension-photo-frame-effect{
     #extension-photo-frame-view li{
         margin:.5rem;
     }
+	
+	.extension-photo-frame-flex-wrap-when-narrow{
+		flex-wrap:wrap;
+	}
+	
+	#extension-photo-frame-privacy-mode-start-buttons-container button{
+		width:100%;
+		text-align:center;
+	}
+	#extension-photo-frame-view #extension-photo-frame-test-sound-button{
+		display: block;
+	    padding: 2rem;
+	    margin-top: 2rem;
+	    width: 100%;
+		box-sizing: border-box;
+		margin-left: 0;
+		padding: 2rem;
+	}
+	
 }
 
 
@@ -1200,6 +1417,11 @@ body.screensaver .extension-photo-frame-effect{
 	
 	#extension-photo-frame-response{
 		width: calc(100% - 22rem);
+	}
+	
+	
+	#extension-photo-frame-privacy-mode-image-wrapper{
+		margin-left:2rem;
 	}
 	
 }

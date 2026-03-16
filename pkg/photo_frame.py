@@ -42,11 +42,10 @@ try:
     from gateway_addon import Adapter, Device, Database
 except:
     print("Gateway addon not loaded?!")
+    
+from .photo_frame_adapter import *
 
 print = functools.partial(print, flush=True)
-
-
-
 
 
 
@@ -94,11 +93,31 @@ class PhotoFrameAPIHandler(APIHandler):
         self.animations = True
         self.greyscale = False
         
+        self.boot_path = '/boot'
+        if os.path.exists('/boot/firmware'):
+            self.boot_path = '/boot/firmware'
+        
+        # Printers
+        self.printing_allowed = False
+        if not os.path.exists(self.boot_path + '/candle_disable_printing.txt'):
+            self.printing_allowed = True
+        self.has_cups = False
+        if os.path.exists('/etc/cups'):
+            self.has_cups = True
+            
         self.cups_printer_available = False
         self.peripage_printer_available = False
+        self.last_printers_check_time = 0
         #os.environ["DISPLAY"] = ":0.0"
             
         self.weather_addon_exists = False
+        
+        
+        # Privacy mode
+        
+        self.check_for_new_things = True
+        
+        
             
         try:
             manifest_fname = os.path.join(
@@ -118,11 +137,7 @@ class PhotoFrameAPIHandler(APIHandler):
             self.manager_proxy.add_api_handler(self)
             
 
-            # LOAD CONFIG
-            try:
-                self.add_from_config()
-            except Exception as ex:
-                print("Error loading config: " + str(ex))
+            
 
             
             if self.DEBUG:
@@ -131,44 +146,68 @@ class PhotoFrameAPIHandler(APIHandler):
         except Exception as e:
             print("Failed to init UX extension API handler: " + str(e))
         
+        
+        self.create_thing = False
+        
+        # LOAD CONFIG
         try:
-            self.addon_path = os.path.join(self.user_profile['addonsDir'], self.addon_name)
-            #self.persistence_file_folder = os.path.join(self.user_profile['configDir'])
-            self.persistence_file_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'persistence.json')
-            self.photos_dir_path = os.path.join(self.addon_path, 'photos')
-            self.photos_data_dir_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'photos')
-            self.demo_photo_file_path = os.path.join(self.addon_path, 'demo_photo.jpg')
-            self.demo_photo2_file_path = os.path.join(self.addon_path, 'demo_photo2.jpg')
-            self.external_picture_drop_dir = os.path.join(self.user_profile['dataDir'], 'privacy-manager', 'printme')
-            self.display_toggle_path = os.path.join(self.user_profile['addonsDir'], 'display-toggle')
-            
-            # weather
-            self.weather_addon_path =  os.path.join(self.user_profile['addonsDir'], 'weather-adapter')
-            if os.path.isdir(self.weather_addon_path):
-                self.weather_addon_exists = True
-            
-            # Voco
-            self.voco_persistent_data = {}
-            self.voco_persistence_file_path =  os.path.join(self.user_profile['dataDir'], 'voco','persistence.json')
-            if not os.path.isfile(self.voco_persistence_file_path):
-                if self.DEBUG:
-                    print("Voco is not installed, no need to check voco timers")
-                self.show_voco_timers = False
-            
-            if not os.path.isdir(self.photos_data_dir_path):
-                if self.DEBUG:
-                    print("creating photos directory in data path")
-                os.mkdir(self.photos_data_dir_path)
-            
-            soft_link = 'ln -s ' + str(self.photos_data_dir_path) + " " + str(self.photos_dir_path)
-            if self.DEBUG:
-                print("linking: " + soft_link)
-            os.system('rm -rf ' + str(self.photos_dir_path))
-            os.system(soft_link)
-            
+            self.add_from_config()
         except Exception as ex:
-            print("Failed to make paths: " + str(ex))
+            print("Error loading config: " + str(ex))
             
+        
+
+        self.adapter = None  
+        if self.create_thing:
+            try:
+                self.adapter = PhotoFrameAdapter(self,verbose=False)
+                if self.DEBUG:
+                    print("ADAPTER created")
+            except Exception as ex:
+                print("Failed to start ADAPTER. Error: " + str(ex))
+        
+        
+        
+        
+            
+            
+            
+        self.addon_path = os.path.join(self.user_profile['addonsDir'], self.addon_name)
+        #self.persistence_file_folder = os.path.join(self.user_profile['configDir'])
+        self.persistence_file_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'persistence.json')
+        self.photos_dir_path = os.path.join(self.addon_path, 'photos')
+        self.photos_data_dir_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'photos')
+        self.demo_photo_file_path = os.path.join(self.addon_path, 'demo_photo.jpg')
+        self.demo_photo2_file_path = os.path.join(self.addon_path, 'demo_photo2.jpg')
+        self.external_picture_drop_dir = os.path.join(self.user_profile['dataDir'], 'privacy-manager', 'printme')
+        self.display_toggle_path = os.path.join(self.user_profile['addonsDir'], 'display-toggle')
+        
+        # weather
+        self.weather_addon_path =  os.path.join(self.user_profile['addonsDir'], 'weather-adapter')
+        if os.path.isdir(self.weather_addon_path):
+            self.weather_addon_exists = True
+        
+        # Voco
+        self.voco_persistent_data = {}
+        self.voco_persistence_file_path =  os.path.join(self.user_profile['dataDir'], 'voco','persistence.json')
+        if not os.path.isfile(self.voco_persistence_file_path):
+            if self.DEBUG:
+                print("Voco is not installed, no need to check voco timers")
+            self.show_voco_timers = False
+        
+        if not os.path.isdir(self.photos_data_dir_path):
+            if self.DEBUG:
+                print("creating photos directory in data path")
+            os.mkdir(self.photos_data_dir_path)
+        
+        soft_link = 'ln -s ' + str(self.photos_data_dir_path) + " " + str(self.photos_dir_path)
+        if self.DEBUG:
+            print("linking: " + soft_link)
+        os.system('rm -rf ' + str(self.photos_dir_path))
+        os.system(soft_link)
+        
+        
+        
         # Get persistent data
         self.persistent_data = {}
         try:
@@ -177,21 +216,37 @@ class PhotoFrameAPIHandler(APIHandler):
                 if self.DEBUG:
                     print('self.persistent_data loaded from file: ' + str(self.persistent_data))
                 
-        except:
+        except Exception as ex:
             if self.DEBUG:
-                print("Could not load persistent data (if you just installed the add-on then this is normal)")
+                print("Could not load persistent data (if you just installed the add-on then this is normal). The error was: ", ex)
+
+        if not 'safe_photos' in self.persistent_data:
+            self.persistent_data['safe_photos'] = []
+
+        if not 'password_enabled' in self.persistent_data:
+            self.persistent_data['password_enabled'] = False
+        
+        if not 'password_hash' in self.persistent_data:
+            self.persistent_data['password_hash'] = ''
+            
+        if not 'password_length' in self.persistent_data:
+            self.persistent_data['password_length'] = None
+
+        if not 'privacy_mode_end_time' in self.persistent_data:
+            self.persistent_data['privacy_mode_end_time'] = 0
+        
 
         # Can we print photos?
         self.check_photo_printer()
               
         # Screensaver
-        if self.display_toggle_path:
-            if not os.path.isdir(self.display_toggle_path):
-                # Only keep the display on if the display toggle addon isn't installed.
-                if self.screensaver_delay > 0:
-                    os.system('xset -display :0 s off')
-                    os.system('xset -display :0 s noblank')
-                    os.system('xset -display :0 -dpms')
+        if not os.path.isdir(self.display_toggle_path):
+            # Only keep the display on if the display toggle addon isn't installed.
+            if self.screensaver_delay > 0:
+                os.system('xset -display :0 s off')
+                os.system('xset -display :0 s noblank')
+                os.system('xset -display :0 -dpms')
+            
             
         # Respond to gateway version
         try:
@@ -296,7 +351,13 @@ class PhotoFrameAPIHandler(APIHandler):
         if 'Show Voco timers' in config:
             self.show_voco_timers = bool(config['Show Voco timers'])
             if self.DEBUG:
-                print("-Date preference was in config: " + str(self.show_date))
+                print("-Show Voco timers preference was in config: " + str(self.show_voco_timers))
+
+        if 'Create control thing' in config:
+            self.create_thing = bool(config['Create control thing'])
+            if self.DEBUG:
+                print("-Create thing preference was in config: " + str(self.create_thing))
+        
 
 
 
@@ -310,14 +371,57 @@ class PhotoFrameAPIHandler(APIHandler):
         try:
         
             if request.method != 'POST':
-                print("not post")
+                if self.DEBUG:
+                    print("api error, not post")
                 return APIResponse(status=404)
             
-            if request.path == '/init' or request.path == '/list' or request.path == '/poll' or request.path == '/delete' or request.path == '/save' or request.path == '/get_random' or request.path == '/wake' or request.path == '/print' or request.path == '/get_time':
+            if request.path == '/ajax' or request.path == '/init' or request.path == '/list' or request.path == '/poll' or request.path == '/delete' or request.path == '/save' or request.path == '/get_random' or request.path == '/wake' or request.path == '/print' or request.path == '/get_time':
 
                 try:
                     
-                    if request.path == '/list':
+                    if request.path == '/ajax':
+                        if self.DEBUG:
+                            print("API received request to /ajax")
+                        
+                        state = False
+                        
+                        if 'action' in request.body:
+                            action = str(request.body['action'])
+                        
+                            if action == 'save_safe_photos':
+                                if 'safe_photos' in request.body and isinstance(request.body['safe_photos'],list):
+                                    self.persistent_data['safe_photos'] = request.body['safe_photos']
+                                    self.save_persistent_data()
+                                    state = True
+                            
+                            elif action == 'enable_password':
+                                if 'password_hash' in request.body and isinstance(request.body['password_hash'],str):
+                                    self.persistent_data['password_hash'] = request.body['password_hash']
+                                if 'password_length' in request.body and isinstance(request.body['password_length'],int):
+                                    self.persistent_data['password_length'] = request.body['password_length']
+                                if 'enabled' in request.body and isinstance(request.body['enabled'],bool):
+                                    self.persistent_data['password_enabled'] = request.body['enabled']
+                                    self.save_persistent_data()
+                                    state = True
+                            
+                            elif action == 'save_privacy_mode_end_time':
+                                if 'value' in request.body and isinstance(request.body['value'],(int,float)):
+                                    self.persistent_data['privacy_mode_end_time'] = request.body['value']
+                                    self.save_persistent_data()
+                                    state = True
+                            
+                        
+                        return APIResponse(
+                          status=200,
+                          content_type='application/json',
+                          content=json.dumps({'state' : state,
+                                              'safe_photos':self.persistent_data['safe_photos'],
+                                              'privacy_mode_end_time':self.persistent_data['privacy_mode_end_time']
+                                            }),
+                        )
+                                
+                            
+                    elif request.path == '/list':
                         if self.DEBUG:
                             print("LISTING")
                         # Get the list of photos
@@ -335,6 +439,8 @@ class PhotoFrameAPIHandler(APIHandler):
                               content_type='application/json',
                               content=json.dumps({'state' : state, 
                                                   'data' : data, 
+                                                  'safe_photos': self.persistent_data['safe_photos'],
+                                                  'privacy_mode_end_time':self.persistent_data['privacy_mode_end_time'],
                                                   'interval':self.interval,
                                                   'screensaver_delay': self.screensaver_delay, 
                                                   'fit_to_screen':self.fit_to_screen, 
@@ -347,6 +453,12 @@ class PhotoFrameAPIHandler(APIHandler):
                                                   'weather_addon_exists':self.weather_addon_exists, 
                                                   'animations':self.animations,
                                                   'greyscale':self.greyscale,
+                                                  'printing_allowed':self.printing_allowed,
+                                                  'cups_printer_available':self.cups_printer_available,
+                                                  'peripage_printer_available':self.peripage_printer_available,
+                                                  'password_hash':self.persistent_data['password_hash'],
+                                                  'password_length':self.persistent_data['password_length'],
+                                                  'password_enabled':self.persistent_data['password_enabled'],
                                                   'debug':self.DEBUG
                                                 }),
                             )
@@ -418,7 +530,11 @@ class PhotoFrameAPIHandler(APIHandler):
                                 except Exception as ex:
                                     if self.DEBUG:
                                         print("Error, could not load Voco persistent data file: " + str(ex))
-                                
+                            
+                            if time.time() - self.last_printers_check_time > 600:
+                                self.last_printers_check_time = time.time()
+                                self.check_photo_printer()
+                            
                             return APIResponse(
                               status=200,
                               content_type='application/json',
@@ -426,7 +542,10 @@ class PhotoFrameAPIHandler(APIHandler):
                                                   'show_voco_timers':self.show_voco_timers,
                                                   'action_times':self.voco_persistent_data['action_times'],
                                                   'timezone':self.time_zone,
-                                                  'seconds_offset_from_utc':self.seconds_offset_from_utc
+                                                  'seconds_offset_from_utc':self.seconds_offset_from_utc,
+                                                  'printing_allowed':self.printing_allowed,
+                                                  'cups_printer_available':self.cups_printer_available,
+                                                  'peripage_printer_available':self.peripage_printer_available
                                                 }),
                             )
                         except Exception as ex:
@@ -643,7 +762,7 @@ class PhotoFrameAPIHandler(APIHandler):
                         
                     else:
                         return APIResponse(
-                          status=500,
+                          status=404,
                           content_type='application/json',
                           content=json.dumps("API error"),
                         )
@@ -663,11 +782,12 @@ class PhotoFrameAPIHandler(APIHandler):
                 
         except Exception as e:
             print("Failed to handle UX extension API request: " + str(e))
-            return APIResponse(
-              status=500,
-              content_type='application/json',
-              content=json.dumps("API Error"),
-            )
+        
+        return APIResponse(
+          status=500,
+          content_type='application/json',
+          content=json.dumps("API Error"),
+        )
         
 
 
@@ -711,12 +831,21 @@ class PhotoFrameAPIHandler(APIHandler):
 
 
 
+
     def check_photo_printer(self):
         if self.DEBUG:
             print("Checking if a cups or bluetooth photo printer is paired")
         
         self.cups_printer_available = False
         self.peripage_printer_available = False
+        
+        if os.path.exists(self.boot_path + '/candle_disable_printing.txt'):
+            self.printing_allowed = False
+            if self.DEBUG:
+                print("spotted candle_disable_printing.txt, not allowing printing")
+            return
+        else:
+            self.printing_allowed = True
 
         try:
             
@@ -820,10 +949,23 @@ class PhotoFrameAPIHandler(APIHandler):
 
 
 
+
+
     def save_persistent_data(self):
         if self.DEBUG:
             print("Saving to persistence data store")
 
+
+
+        try:
+            json.dump( self.persistent_data, open( self.persistence_file_path, 'w+' ) )
+            if self.DEBUG:
+                print("OK, saved persistent_data")
+        except Exception as ex:
+            if self.DEBUG:
+                print("caught error saving to persistence file: " + str(ex))
+            
+        """
         try:
             if not os.path.isfile(self.persistence_file_path):
                 open(self.persistence_file_path, 'a').close()
@@ -847,7 +989,7 @@ class PhotoFrameAPIHandler(APIHandler):
             if self.DEBUG:
                 print("Error: could not store data in persistent store: " + str(ex) )
             return False
-
+        """
 
 
 def run_command(cmd, timeout_seconds=20):

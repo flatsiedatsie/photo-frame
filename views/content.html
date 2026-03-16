@@ -43,18 +43,19 @@
     </div>
 		
         
-        
 		<div id="extension-photo-frame-overview" class="extension-photo-frame-hidden">
       		<h3>Your pictures</h3>
 			
 	      	<ul id="extension-photo-frame-photos-list"></ul>
             
 			<div>
-				<div id="extension-photo-frame-dropzone">
+				<div id="extension-photo-frame-dropzone" class="extension-photo-frame-hide-if-selecting-privacy-mode-photos">
 					<div>Drop files here to upload</div>
 				</div>
-				<div>
-					<button id="extension-photo-frame-add-random-photo-button" class="text-button">Add random photo</button>
+				<div class="extension-photo-frame-flex-between extension-photo-frame-flex-align-center">
+					<button id="extension-photo-frame-add-random-photo-button" class="text-button extension-photo-frame-hide-if-selecting-privacy-mode-photos">Add random photo</button>
+					<button id="extension-photo-frame-cancel-selecting-button" class="text-button extension-photo-frame-show-if-selecting-privacy-mode-photos">Cancel</button>
+					<button id="extension-photo-frame-done-selecting-button" class="text-button extension-photo-frame-show-if-selecting-privacy-mode-photos">Done</button>
 				</div>
 			</div>
 
@@ -69,6 +70,47 @@
             </div>
             
             <div id="extension-photo-frame-upload-progress-container"></div>
+			
+			<div id="extension-photo-frame-privacy-mode-container" class="extension-photo-frame-area">
+				<div>
+					<h3>Privacy mode</h3>
+					<div id="extension-photo-frame-privacy-mode-explanation-container" class="extension-photo-frame-flex-wrap-when-narrow extension-photo-frame-flex-between">
+						<div id="extension-photo-frame-privacy-mode-image-wrapper"><div id="extension-photo-frame-privacy-mode-speech-bubble"><span id="extension-photo-frame-privacy-mode-speech-bubble-text"></span></div><img src="/extensions/photo-frame/images/child_with_questions.svg" alt="A child with some questions"></div>
+						<div id="extension-photo-frame-privacy-mode-explanation-text-wrapper"><p>Select some photos that are 'safe' to show no matter who your guests are. Then you can enable privacy mode, which will only show those 'safe' photos for a while.<br><br>During that time there will be no indication that privacy mode is active, and it will look like the 'unsafe' photos have been deleted. But don't worry, they're only hidden.</p><div style="text-align:right"><button class="text-button" id="extension-photo-frame-select-safe-photos-button">Select safe photos</button></div></div>
+					</div>
+					<div id="extension-photo-frame-privacy-mode-start-buttons-container-area" class="extension-photo-frame-area">
+						<div id="extension-photo-frame-privacy-mode-start-buttons-container">
+							<button class="text-button" id="extension-photo-frame-privacy-mode-4hours-button">4 hours</button>
+							<button class="text-button" id="extension-photo-frame-privacy-mode-9pm-button">Util 9 pm</button>
+							<button class="text-button" id="extension-photo-frame-privacy-mode-noon-tomorrow-button">Until noon tomorrow</button>
+							<button class="text-button" id="extension-photo-frame-privacy-mode-3days-button">For 3 days</button>
+							<!--
+							<button class="text-button" id="extension-photo-frame-privacy-mode-start-button" class="extension-photo-frame-hidden">Until stopped</button>
+							//-->
+						</div>
+						<div class="extension-photo-frame-flex-align-center"><input type="checkbox" id="extension-photo-frame-privacy-mode-local-checkbox" name="extension-photo-frame-privacy-mode-local-checkbox"><label for="extension-photo-frame-privacy-mode-local-checkbox"></label><span>Only enable privacy mode for this <span class="extension-photo-frame-show-if-kiosk">display</span><span class="extension-photo-frame-hide-if-kiosk">browser</span></span></div>
+					</div>
+				</div>
+			</div>
+			
+			<div id="extension-photo-frame-extra-settings-container">
+				<div class="extension-photo-frame-area"><input type="checkbox" id="extension-photo-frame-allow-screensaver-checkbox" name="extension-photo-frame-allow-screensaver-checkbox"><label for="extension-photo-frame-allow-screensaver-checkbox"></label><span>Enable screensaver in this <span class="extension-photo-frame-show-if-kiosk">display</span><span class="extension-photo-frame-hide-if-kiosk">browser</span></span></div>
+				
+				<div class="extension-photo-frame-area extension-photo-frame-hidden">
+					<input type="checkbox" id="extension-photo-frame-enable-password-checkbox" name="extension-photo-frame-enable-password-checkbox">
+					<label for="extension-photo-frame-enable-password-checkbox"></label>
+					<span>Require a password to unlock screensaver in this browser</span>
+					<div id="extension-photo-frame-privacy-mode-password-container" class="extension-photo-frame-flex-align-center">
+						<input id="extension-photo-frame-privacy-mode-password" type="text" placeholder="Password">
+						<p style="text-style:italic; opacity:.5">This is not a very secure protection, but should disuade casual guests. This will also allow you to exit privacy mode early.</p>
+					</div>
+				</div>
+				
+				<div class="extension-photo-frame-area extension-photo-frame-hidden"><input type="checkbox" id="extension-photo-frame-unlock-sound-checkbox" name="extension-photo-frame-unlock-sound-checkbox"><label for="extension-photo-frame-unlock-sound-checkbox"></label><span>Play a sound when attempting to unlock</span> <span id="extension-photo-frame-test-sound-button" class="text-button"> </span></div>
+				<div class="extension-photo-frame-area extension-photo-frame-hidden"><input type="checkbox" id="extension-photo-frame-create-thing-checkbox" name="extension-photo-frame-create-thing-checkbox"><label for="extension-photo-frame-create-thing-checkbox"></label><span>Create a thing to control photo frame</span></div>
+				
+				<div style="text-align:right;margin:4rem 0 12rem 0"><a href="/extensions/candleappstore#photo-frame" class="text-button" style="text-decoration:none">More settings</a></div>
+			</div>
 			
         </div>
         

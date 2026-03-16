@@ -5,12 +5,13 @@
             //console.log("Adding Photo frame to menu");
             this.addMenuEntry('Photo Frame');
 
+
             this.kiosk = false;
             if (document.getElementById('virtualKeyboardChromeExtension') != null) {
                 document.body.classList.add('kiosk');
                 this.kiosk = true;
             }
-			
+
             this.debug = false;
 			this.developer = false;
 			
@@ -27,40 +28,11 @@
 				this.screensaver_allowed_in_this_browser = true;
 			}
 			
-		
-			// password hash
-			// The value from local storage is only used as a backup in case of network issues.
-			this.password_hash = null;
-			const password_hash_check = localStorage.getItem('extension-photo-frame-password-hash');
-			if(typeof password_hash_check == 'string'){
-				this.password_hash = password_hash_check;
-			}
-			
-			// password length
-			// The value from local storage is only used as a backup in case of network issues.
-			this.password_length = 8;
-			const password_length_check = localStorage.getItem('extension-photo-frame-password-length');
-			if(typeof password_length_check == 'string'){
-				this.password_length = parseInt(password_length_check);
-				//console.log("found password length in local storage: ", this.password_length);
-			}
-			
-			// password enabled
-			// The value from local storage is only used as a backup in case of network issues.
-			this.password_enabled = false;
-			const password_enabled_check = localStorage.getItem('extension-photo-frame-password-enabled');
-			if(typeof password_enabled_check == 'boolean'){
-				this.password_enabled = password_enabled_check;
-				//console.log("found password enabled state in local storage: ", this.password_enabled);
-			}
-			
 			// Locked mode
-			// Only restored if the password hash was also restored
 			this.locked = false;
 			const locked_check = localStorage.getItem('extension-photo-frame-locked');
-			if(this.password_hash && typeof locked_check == 'string' && locked_check == 'true'){
-				// Go to the photo frame addon
-				if (window.location.pathname != "/extensions/photo-frame") {
+			if(typeof locked_check == 'string' && locked_check == 'true'){
+				if (!window.location.href.endsWith("/photo-frame")) {
 					window.location.href = window.location.origin + '/extensions/photo-frame';
 				}
 				this.locked = true;
@@ -68,20 +40,13 @@
 			}
 
 			// Privacy mode
-			this.privacy_mode_enabled = false;
-			this.privacy_mode_end_time = 0;
-			const check_privacy_mode_end_time = localStorage.getItem('extension-photo-frame-privacy-mode-end-time');
+			const check_privacy_mode_end_time = localStorage.getItem('extension-photo-frame-privacy-mode');
 			if(typeof check_privacy_mode_end_time == 'number'){
 				this.privacy_mode_end_time = check_privacy_mode_end_time;
+				if(this.privacy_mode_end_time > Date.now()){
+					document.body.classList.add('extension-photo-frame-privacy-mode');
+				}
 			}
-			this.ensure_privacy_mode();
-			
-			this.privacy_mode_only_in_this_browser = false;
-			const privacy_mode_only_in_this_browser_check = localStorage.getItem('extension-photo-frame-privacy-mode-only-in-this-browser');
-			if(typeof privacy_mode_only_in_this_browser_check == 'boolean'){
-				this.privacy_mode_only_in_this_browser = privacy_mode_only_in_this_browser_check;
-			}
-			
 			
 			
 			this.current_photo_number = 0;
@@ -166,7 +131,7 @@
 			// Privacy mode
 			this.safe_photos = [];
 			this.sentences = ["What is a rave?", "Daddy is Santa Claus?", "Where are their clothes?", "What are they doing to each other?"];
-			
+			this.privacy_mode_end_time = 0;
 			
             
         	fetch(`/extensions/${this.id}/views/content.html`)
@@ -178,12 +143,16 @@
             .catch((err) => console.error('photo frame: failed to fetch content:', err));
 
 			
+			
+			
+            
+
 
 			// Listen for keyboard mouse arrow presses
 			this.photo_frame_key_listener = (event) => {
 				//console.log("in photo_frame_key_listener. Event: ", event);
 				//console.log("in photo_frame_key_listener. this: ", this);
-				if (window.location.pathname == "/extensions/photo-frame") {
+				if (document.location.href.endsWith("photo-frame")) {
 					const arrow_key = event.key; // "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"
 					//console.log("photo_frame_key_listener: arrow_key: ", arrow_key);
 					if(arrow_key == 'ArrowRight'){
@@ -193,6 +162,7 @@
 						this.previous_picture();
 					}
 				}
+				
 			}
 			
 			// Listen for presses of the left and right arrow keys
@@ -220,36 +190,23 @@
 				
 				if(typeof body['data'] != 'undefined'){
                     this.filenames = body['data'];
-					this.ensure_privacy_mode();
 				}
 				
                 
+				this.start_main_interval();
 				
 				
-				
-                if (typeof body.screensaver_delay == 'number') {
+                if (typeof body.screensaver_delay != 'undefined') {
                     this.screensaver_delay = body.screensaver_delay;
-                    /*
-		            if (this.screensaver_delay > 1) {
-		                if(this.debug){
-							console.log('photo-frame debug: early init: calling start screensaver listeners');
-						}
-		                this.start_screensaver_listeners();
-		            }
-					else{
-		                if(this.debug){
-							console.log('photo-frame debug: early init:  screen saver is disabled');
-						}
-					}
-					*/
-					
+                    
 				}
 				
-                if (window.location.pathname == "/extensions/photo-frame") {
+                if (document.location.href.endsWith("photo-frame")) {
                     this.show();
                 }
 				
-				this.start_main_interval();
+				//if (document.location.pathname.endsWith("/photo-frame")) {}
+				
 			
             }).catch((err) => {
                 console.error("Photo frame: error in early init function: ", err);
@@ -366,9 +323,7 @@
 
 
 			picture_holder_el.addEventListener('click', () => {
-				if(this.debug){
-					console.log("photo frame debug: clicked on picture holder");
-				}
+				
 			})
 
 			// manage photos button
@@ -567,7 +522,6 @@
 					}
 					if(typeof body['data'] != 'undefined'){
 	                    this.filenames = body['data'];
-						this.ensure_privacy_mode();
 	                    this.show_list(body['data']);
 		                this.show_file(this.filenames[this.filenames.length-1]);
 					}
@@ -625,47 +579,11 @@
 				this.update_privacy_mode_photos();
             });
 			
-			const privacy_mode_local_checkbox_el = this.view.querySelector('#extension-photo-frame-privacy-mode-local-checkbox');
-			privacy_mode_local_checkbox_el.checked = this.privacy_mode_only_in_this_browser;
-			privacy_mode_local_checkbox_el.addEventListener('change', () => {
-				this.privacy_mode_only_in_this_browser = privacy_mode_local_checkbox_el.checked;
-				localStorage.setItem('extension-photo-frame-privacy-mode-only-in-this-browser', this.privacy_mode_only_in_this_browser);
-            });
-			
-			
-			
 			
 			
 			this.view.querySelector('#extension-photo-frame-privacy-mode-4hours-button').addEventListener('click', () => {
-				console.log("enabling privacy mode for 4 hours");
-				this.start_privacy_mode(3600000 * 4, this.view.querySelector('#extension-photo-frame-privacy-mode-4hours-button'));
-			});
-			
-			this.view.querySelector('#extension-photo-frame-privacy-mode-9pm-button').addEventListener('click', () => {
-				console.log("enabling privacy mode until 9 pm");
-				
-				let start_of_day = Date.now();
-				start_of_day = start_of_day - (start_of_day % (3600000 * 24));
-				const ninepm = start_of_day + (3600000 * 21);
-				this.start_privacy_mode(ninepm, this.view.querySelector('#extension-photo-frame-privacy-mode-9pm-button'));
-			});
-			
-			this.view.querySelector('#extension-photo-frame-privacy-mode-noon-tomorrow-button').addEventListener('click', () => {
-				console.log("enabling privacy mode until noon tomorrow");
-				
-				let start_of_day = Date.now();
-				start_of_day = start_of_day - (start_of_day % (3600000 * 24));
-				const noon_tomorrow = start_of_day + (3600000 * 36);
-				this.start_privacy_mode(noon_tomorrow, this.view.querySelector('#extension-photo-frame-privacy-mode-noon-tomorrow-button'));
-			});
-			
-			this.view.querySelector('#extension-photo-frame-privacy-mode-3days-button').addEventListener('click', () => {
-				console.log("enabling privacy mode for 3 days");
-				
-				let start_of_day = Date.now();
-				start_of_day = start_of_day - (start_of_day % (3600000 * 24));
-				const threedays = Date.now() + (3600000 * 24 * 3);
-				this.start_privacy_mode(threedays, this.view.querySelector('#extension-photo-frame-privacy-mode-3days-button'));
+				this.privacy_mode_end_time = Date.now() + (3600000 * 4)
+				localStorage.setItem('extension-photo-frame-privacy-mode', this.privacy_mode_end_time);
 			});
 			
 			
@@ -691,17 +609,13 @@
 	            });
 			});
 			
-			this.view.querySelector('#extension-photo-frame-test-sound-button').addEventListener('click', () => {
+			this.view.querySelector('#extension-photo-frame-test-sound-button').addEventListener('change', () => {
 				this.play_a_sound();
 			});
 			
-			
 			// Allow screensaver
-			const allow_screensaver_checkbox_el = this.view.querySelector('#extension-photo-frame-allow-screensaver-checkbox');
-			console.warn("photo frame: show: setting allow_screensaver checkbox to: ", this.screensaver_allowed_in_this_browser);
-			allow_screensaver_checkbox_el.checked = this.screensaver_allowed_in_this_browser;
-			allow_screensaver_checkbox_el.addEventListener('change', () => {
-	            if(this.screensaver_allowed_in_this_browser == true){
+			this.view.querySelector('#extension-photo-frame-allow-screensaver-checkbox').addEventListener('change', () => {
+	            if(this.screensaver_allowed_in_this_browser){
 	            	this.screensaver_allowed_in_this_browser = false;
 					localStorage.setItem('extension-photo-frame-allow-screensaver', 'false');
 	            }
@@ -709,31 +623,8 @@
 					this.screensaver_allowed_in_this_browser = true;
 					localStorage.setItem('extension-photo-frame-allow-screensaver', 'true');
 				}
-				console.log("photo frame: this.screensaver_allowed_in_this_browser is now: ", this.screensaver_allowed_in_this_browser);
 				
 			});
-			
-			
-			/*
-			this.view.querySelector('#extension-photo-frame-create-thing-checkbox').addEventListener('change', () => {
-	            window.API.postJson(
-	                `/extensions/${this.id}/api/ajax`, {
-	                    'action': 'save_setting',
-						'setting': 'create_thing',
-						'value':this.view.querySelector('#extension-photo-frame-create-thing-checkbox').checked
-	                }
-	            ).then((body) => {
-					if(this.debug){
-						console.log("photo frame debug: save create_thing setting response: ", body);
-					}
-			
-	            }).catch((err) => {
-	                if (this.debug) {
-						console.error("Photo frame debug: caught error saving create_thing setting: ", err);
-					}
-	            });
-			});
-			*/
 			
 			
 			// Use password
@@ -744,23 +635,23 @@
 				if(is_checked){
 					const password_input_el = this.view.querySelector('#extension-photo-frame-privacy-mode-password');
 					password = password_input_el.value.trim();
-					const fresh_password_length = password.length;
+					const password_length = password.length;
 					if(password_length > 2){
-						this.password_length = fresh_password_length;
-						crypto.subtle.digest("SHA-384", new TextEncoder().encode('candlesalt' + password))
+						crypto.subtle.digest("SHA-384", new TextEncoder().encode(password))
 						.then((hashBuffer) => {
 							const hashArray = Array.from(new Uint8Array(hashBuffer));
-						    this.password_hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-						    
+						    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+						    password = hashHex;
 							if(this.debug){
-								console.log("photo frame debug: saving this.password_hash: ", this.password_hash);
+								console.log("hashed password: ", password);
 							}
 						    return window.API.postJson(
 				                `/extensions/${this.id}/api/ajax`, {
-				                    'action': 'enable_password',
-									'enabled': is_checked,
-									'password_hash':this.password_hash,
-									'password_length':this.password_length
+				                    'action': 'save_setting',
+									'setting': 'enable_password',
+									'value': is_checked,
+									'password':password,
+									'password_length':password_length
 				                }
 				            )
 						})
@@ -772,16 +663,7 @@
 								password_input_el.classList.add('extension-photo-frame-green-bg');
 								setTimeout(() => {
 									password_input_el.classList.remove('extension-photo-frame-green-bg');
-								},1000);
-								password_input_el.value = '';
-								let password_placeholder = '';
-								for(let pl = 0; pl < password_length; pl++){
-									password_placeholder += '*';
-								}
-								password_input_el.setAttribute('placeholder',password_placeholder);
-								localStorage.setItem('extension-photo-frame-password-hash',this.password_hash);
-								localStorage.setItem('extension-photo-frame-password-length','' + this.password_length);
-								
+								},1000)
 							}
 
 						}).catch((err) => {
@@ -792,37 +674,7 @@
 					}
 					else{
 						//alert('The password should be at least 3 characters');
-						password_input_el.value = '';
-						password_input_el.setAttribute('placeholder','Not long enough');
 					}
-					
-				}
-				else{
-					
-		            window.API.postJson(
-		                `/extensions/${this.id}/api/ajax`, {
-		                    'action': 'enable_password',
-							'value':false
-		                }
-		            ).then((body) => {
-						if(this.debug){
-							console.log("photo frame debug: disable password setting response: ", body);
-						}
-						
-						if(localStorage.getItem('extension-photo-frame-password-hash')){
-							localStorage.removeItem('extension-photo-frame-password-hash');
-						}
-						if(typeof localStorage.getItem('extension-photo-frame-password-length') == 'string'){
-							localStorage.removeItem('extension-photo-frame-password-length');
-						}
-						localStorage.setItem('extension-photo-frame-password-enabled','false');
-			
-		            }).catch((err) => {
-		                if (this.debug) {
-							console.error("Photo frame debug: caught error saving disabled password setting: ", err);
-						}
-		            });
-					
 					
 				}
 			});
@@ -862,7 +714,12 @@
 			// Get list of photos (as well as other variables)
 			
 			
-            
+            if (this.screensaver_delay > 1) {
+                if(this.debug){
+					console.log('photo-frame debug: calling start screensaver listeners');
+				}
+                this.start_screensaver_listeners();
+            }
 			
 			
 
@@ -914,77 +771,52 @@
 				}
 				if(this.page_visible){
 					
+					if (document.location.href.endsWith("photo-frame")) {
+						this.interval_counter++;
+						this.slow_interval_counter++
 					
-					this.interval_counter++;
-					this.slow_interval_counter++
-				
-					const screensaver_allowed_check = localStorage.getItem('extension-photo-frame-allow-screensaver');
-					if(typeof screensaver_allowed_check == 'string'){
-						if(screensaver_allowed_check == 'true'){
+						const screensaver_allowed_check = localStorage.getItem('extension-photo-frame-screensaver');
+						if(typeof screensaver_allowed_check == 'string'){
+							if(screensaver_allowed_check == 'true'){
+								this.screensaver_allowed_in_this_browser = true;
+							}
+							else{
+								this.screensaver_allowed_in_this_browser = false;
+							}
+						}else{
 							this.screensaver_allowed_in_this_browser = true;
 						}
-						else{
-							this.screensaver_allowed_in_this_browser = false;
+					
+						if(this.showing_screensaver && this.screensaver_allowed_in_this_browser == false){
+							this.last_activity_time = new Date().getTime();
 						}
-					}else{
-						this.screensaver_allowed_in_this_browser = false;
-					}
+						
 					
-					if(this.showing_screensaver && this.screensaver_allowed_in_this_browser == false){
-						this.last_activity_time = new Date().getTime();
-					}
-					
+						// change to new random picture after X seconds
+		                if (this.interval_counter > this.interval) {
+							this.interval_counter = 0;
+		                    this.random_picture();
+		                }
+			
+			
+						// Every X seconds run the slow update of settings
+						if (this.slow_interval_counter > this.slow_interval) {
+							this.slow_interval_counter = 0;
 				
-					// change to new random picture after X seconds
-	                if (this.interval_counter > this.interval) {
-						this.interval_counter = 0;
-	                    this.random_picture();
-	                }
-		
-		
-					// Every X seconds run the slow update of settings
-					if (this.slow_interval_counter > this.slow_interval) {
-						this.slow_interval_counter = 0;
-			
-						// if there are network connection issues, wait before doing the next request until this counter is zero again.
-						if(this.get_init_error_counter > 0){
-							this.get_init_error_counter--;
+							// if there are network connection issues, wait before doing the next request until this counter is zero again.
+							if(this.get_init_error_counter > 0){
+								this.get_init_error_counter--;
+							}
+				
+							this.get_init();
 						}
 			
-						this.get_init();
-					}
-		
-		
-					if(this.screensaver_allowed_in_this_browser && this.screensaver_delay){
-						
-						if(this.screensaver_listeners_added == false){
-							this.start_screensaver_listeners();
-						}
-		
-						if(this.screensaver_interval_busy == false){
-							console.log("calling do_screensaver_interval");
-							this.do_screensaver_interval();
-						}
-						else if(this.debug){
-							console.warn("photo frame debug: screensaver_interval was still busy, skipping calling it again");
-							this.screensaver_interval_busy = false; // but only skipping it once
-						}
-						
-					}
-					else if(this.showing_screensaver){
-						// Run it one more time to clean it up
-						this.last_activity_time = new Date().getTime();
-						this.do_screensaver_interval();
-					}
-					
-		
-		
-					// every X seconds run the Voco timers poll interval
-					if (window.location.pathname == "/extensions/photo-frame") {
+			
+						// every X seconds run the Voco timers poll interval
 						if(this.show_voco_timers){
-				
+					
 							this.voco_interval_counter++;
-			
+				
 							if(this.voco_interval_counter > 5){
 								this.voco_interval_counter = 0;
 								if(this.poll_fail_count > 0){
@@ -997,13 +829,13 @@
 									this.get_poll();
 								}
 							}
-			
+				
 							// every second adjust the second counters of voco timers
 							this.update_voco_actions();
-			
+				
 						}
+				
 			
-		
 						//console.log("this.show_clock: ", this.show_clock);
 						// Every minute on the minute update the clock
 						if (this.show_clock || this.show_date) {
@@ -1011,22 +843,13 @@
 								this.update_clock();
 							}
 						}
-					}
-				
-				
 					
-				
-					this.ensure_privacy_mode();
 					
-					/*
-					if (window.location.pathname == "/extensions/photo-frame") {
-						
 						
 					}
 					else{
 						this.interval_counter = 0;
 					}
-					*/
 					
 				}
 				
@@ -1048,7 +871,7 @@
 		// This is called regularly, for example to make the photo frame reflect any photos that were added on another device
 		get_init(){
 			if(this.debug){
-				console.log("photo frame debug: in get_init");
+				console.log("photo frame: in get_init");
 			}
 			
 			return new Promise((resolve, reject) => {
@@ -1113,122 +936,12 @@
 		}
 		
 		
-		start_locked_mode(){
-			document.body.classList.add('extension-photo-frame-locked');
-			
-			locked_overlay_el = document.getElementById('extension-photo-frame-locked-mode-overlay');
-			if(!locked_overlay_el){
-				const locked_mode_overlay_el = document.createElement('div');
-				privacy_mode_overlay_el.setAttribute('extension-photo-frame-locked-mode-overlay');
-				privacy_mode_overlay_el.classList.add('extension-photo-frame-hidden');
-				
-				const unlock_with_password_input_el = document.createElement('input');
-				unlock_with_password_input_el.setAttribute('type','password');
-				privacy_mode_overlay_el.appendChild(unlock_with_password_input_el);
-				
-				const unlock_with_password_button_el = document.createElement('button');
-				unlock_with_password_button_el.classList.add('text-button');
-				unlock_with_password_button_el.textContent = 'Unlock';
-				unlock_with_password_button_el.addEventListener('click', () => {
-					let password = unlock_with_password_input_el.value.trim();
-					if(password.length > 2){
-						crypto.subtle.digest("SHA-384", new TextEncoder().encode('candlesalt' + password))
-						.then((hashBuffer) => {
-							const hashArray = Array.from(new Uint8Array(hashBuffer));
-						    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-						    if(hashHex == this.password_hash){
-						    	if(this.debug){
-						    		console.log("password match");
-						    	}
-						    }
-							else{
-						    	if(this.debug){
-						    		console.warn("password do not match");
-						    	}
-							}
-							
-						})
-						.catch((err) => {
-							if (this.debug) {
-								console.error("Photo frame debug: caught error hashing unlock password: ", err);
-							}
-						});
-					}
-				});
-				
-				document.body.appendChild(privacy_mode_overlay_el);
-			}
-			
+		start_privacy_mode(){
+			document.body.classList.add('extension-photo-frame-privacy-mode');
+			const privacy_mode_overlay_el = document.createElement('div');
+			privacy_mode_overlay_el.setAttribute('extension-photo-frame-privacy-mode-overlay');
 		}
 		
-		
-		
-		
-		start_privacy_mode(duration=null,button_el=null){
-			if(this.debug){
-				console.log("photo frame debug: in set_privacy_mode.  duration: ", duration);
-			}
-			
-			if(typeof duration == 'number'){
-				this.privacy_mode_end_time = Date.now() + duration;
-				localStorage.setItem('extension-photo-frame-privacy-mode-end-time', this.privacy_mode_end_time);
-				this.ensure_privacy_mode();
-				if(this.privacy_mode_only_in_this_browser == false){
-					if(this.debug){
-						console.log("set_privacy_mode: sending end time to backend");
-					}
-		            window.API.postJson(
-		                `/extensions/${this.id}/api/ajax`, {
-		                    'action': 'save_privacy_mode_end_time',
-							'value': this.privacy_mode_end_time
-		                }
-		            ).then((body) => {
-						if(this.debug){
-							console.log("photo frame debug: save privacy_mode_end_time setting response: ", body);
-						}
-						if(button_el){
-							button_el.classList.add('extension-photo-frame-green-bg');
-							setTimeout(() => {
-								button_el.classList.remove('extension-photo-frame-green-bg');
-							},1000);
-						}
-						
-		
-		            }).catch((err) => {
-		                if (this.debug) {
-							console.error("Photo frame debug: caught error saving privacy_mode_end_time setting: ", err);
-						}
-		            });
-				}
-			}
-			
-		}
-		
-		
-		ensure_privacy_mode(){
-			if(this.privacy_mode_end_time > Date.now()){
-				this.privacy_mode_enabled = true;
-				document.body.classList.add('extension-photo-frame-privacy-mode');
-				try{
-					for(let x = this.filenames.length - 1; x >= 0; x--){
-						if(this.safe_photos.indexOf(this.filenames[x]) == -1){
-							if(this.debug){
-								console.log("photo frame debug: ensure_privacy_mode: removing photo from this.filenames: " + this.filenames[x]);
-							}
-							this.filenames.splice(x,1);
-						}
-					}
-				}
-				catch(err){
-					console.error('photo frame: caught error in ensure_privacy_mode: ', err);
-				}
-				
-			}
-			else{
-				this.privacy_mode_enabled = false;
-				document.body.classList.remove('extension-photo-frame-privacy-mode');
-			}
-		}
 		
 		
 
@@ -1240,6 +953,8 @@
 		//
 		//  CHANGE CURRENTLY SHOWN PHOTO
 		//
+		
+		
 		
 		
 		// swipe left or right on a photo to navigate between them
@@ -1257,6 +972,7 @@
 				}
 				this.previous_picture();
 			}
+	
 		}
 
 
@@ -1291,6 +1007,7 @@
 			this.show_selected_photo_indicator();
 		}
 
+		
 
         random_picture() {
             if (this.filenames.length > 0 && this.do_not_show_next_random_photo == false) {
@@ -1814,6 +1531,7 @@
 		
 		parse_body(body){
 			
+			
 			if(typeof body.debug != 'undefined'){
 				this.debug = body.debug;
 			}
@@ -1822,36 +1540,9 @@
                 console.log("photo-frame debug: get_init: /list response: ", body);
             }
 			
-			if(typeof body['password_hash'] == 'string'){
-				this.password_hash = body['password_hash'];
-			}
-			if(typeof body['password_enabled'] == 'boolean'){
-				const password_checkbox_el = this.view.querySelector('#extension-photo-frame-enable-password-checkbox');
-				if(password_checkbox_el){
-					password_checkbox_el.checked = body['password_enabled'];
-				}
-			}
-			if(typeof body['password_length'] == 'number'){
-				this.password_length = body['password_length'];
-				const password_input_el = this.view.querySelector('#extension-photo-frame-privacy-mode-password');
-				if(password_input_el){
-					password_input_el.value = '';
-					let password_placeholder = '';
-					for(let pl = 0; pl < body['password_length']; pl++){
-						password_placeholder += '*';
-					}
-					password_input_el.setAttribute('placeholder',password_placeholder);
-				}
-			}
-			
 			if(typeof body['safe_photos'] != 'undefined'){
 				this.safe_photos = body['safe_photos'];
 			}
-			if(typeof body['privacy_mode_end_time'] == 'number'){
-				this.privacy_mode_end_time = body['privacy_mode_end_time'];
-				this.ensure_privacy_mode();
-			}
-			
 				
 			if(typeof body['interval'] != 'undefined'){
                 this.interval = parseInt(body['interval']);
@@ -1915,7 +1606,6 @@
 					//console.log("--previous_length: ", previous_length);
 					
                     this.filenames = body['data'];
-					this.ensure_privacy_mode();
 					//console.log("--this.filenames.length: ", this.filenames.length);
 					if(previous_length != this.filenames.length || this.show_list_called == false){
                     
@@ -1993,19 +1683,6 @@
 				}
 				
             }
-			
-			// This does not parse the body, but checks if this value has been changed in a sibling browser window
-			const screensaver_allowed_check = localStorage.getItem('extension-photo-frame-allow-screensaver');
-			if(typeof screensaver_allowed_check == 'string'){
-				if(screensaver_allowed_check == 'true' && this.screensaver_allowed_in_this_browser != true){
-					this.view.querySelector('#extension-photo-frame-allow-screensaver-checkbox').checked = true;
-					this.screensaver_allowed_in_this_browser = true;
-				}
-				else if(screensaver_allowed_check == 'false' && this.screensaver_allowed_in_this_browser != false){
-					this.view.querySelector('#extension-photo-frame-allow-screensaver-checkbox').checked = false;
-					this.screensaver_allowed_in_this_browser = false;
-				}
-			}
 			
 			
 		}
@@ -2122,7 +1799,6 @@
             file_list.sort();
 
             this.filenames = file_list;
-			this.ensure_privacy_mode();
             //this.filenames = file_list;
 
 			if(photo_list == null){
@@ -2138,41 +1814,30 @@
 			var photo_counter = 0;
             for (var key in file_list) {
 				
-				const photo_filename = file_list[key];
 				const photo_count = photo_counter;
-                let node = document.createElement("li"); // Create a <li> node
+                var node = document.createElement("li"); // Create a <li> node
                 node.setAttribute("class", "extension-photo-frame-list-item");
                 node.setAttribute("data-filename", file_list[key]);
 
-				if(this.safe_photos.indexOf(photo_filename) != -1){
+				if(this.safe_photos.indexOf(file_list[key]) != -1){
 					node.classList.add('extension-photo-frame-list-item-privacy-safe');
 				}
 
                 var img_container_node = document.createElement("div"); // Create a <li> node
                 img_container_node.setAttribute("class", "extension-photo-frame-list-thumbnail-container");
 
-                let imgnode = document.createElement("img"); // Create a text node
+                var imgnode = document.createElement("img"); // Create a text node
                 imgnode.setAttribute("class", "extension-photo-frame-list-thumbnail");
-                imgnode.setAttribute("data-filename", photo_filename);
-                imgnode.src = "/extensions/photo-frame/photos/" + photo_filename;
-                imgnode.addEventListener('click', () => {
-					console.log("clicked on a thumbnail.  photo_filename, this.busy_selecting_safe_photos: ", photo_filename, this.busy_selecting_safe_photos);
+                imgnode.setAttribute("data-filename", file_list[key]);
+                imgnode.src = "/extensions/photo-frame/photos/" + file_list[key];
+                imgnode.onclick = (event) => {
+					
 					if(this.busy_selecting_safe_photos){
-						if(this.privacy_mode_enabled){
-							if(node.classList.contains('extension-photo-frame-list-item-privacy-save')){
-								node.classList.remove('extension-photo-frame-list-item-privacy-save');
-							}else{
-								node.classList.add('extension-photo-frame-list-item-privacy-save');
-							}
+						if(node.classList.contains('extension-photo-frame-list-item-privacy-safe')){
+							node.classList.remove('extension-photo-frame-list-item-privacy-safe');
+						}else{
+							node.classList.add('extension-photo-frame-list-item-privacy-safe');
 						}
-						else{
-							if(node.classList.contains('extension-photo-frame-list-item-privacy-safe')){
-								node.classList.remove('extension-photo-frame-list-item-privacy-safe');
-							}else{
-								node.classList.add('extension-photo-frame-list-item-privacy-safe');
-							}
-						}
-						
 					}
 					else{
 						this.current_photo_number = photo_count;
@@ -2183,7 +1848,9 @@
 						//console.log("clicked on image #: ", photo_count);
 						this.get_init();
 					}
-                });
+					
+					
+                };
                 //console.log(imgnode);
                 img_container_node.appendChild(imgnode);
                 node.appendChild(img_container_node);
@@ -2255,7 +1922,7 @@
 
         delete_file(filename) {
             if(this.debug){
-				console.log("photo frame debug: deleting file: ", filename);
+				console.log("photo frame debug: deleting file:" + filename);
 			}
 	        window.API.postJson(
                 `/extensions/${this.id}/api/delete`, {
@@ -2449,7 +2116,7 @@
 
         
     	createDropzoneMethods() {
-			//console.log("photo-frame: in createDropzoneMethods");
+			console.log("photo-frame: in createDropzoneMethods");
     	    let dropzone = this.view.querySelector('#extension-photo-frame-dropzone');
 
     		//var this = this;
@@ -2487,7 +2154,7 @@
             if (delta > this.screensaver_delay * 1000) {
                 if (this.showing_screensaver == false) {
 					
-					let screensaver_allowed_check = localStorage.getItem('extension-photo-frame-allow-screensaver');
+					let screensaver_allowed_check = localStorage.get('extension-photo-frame-screensaver');
 					if(typeof screensaver_allowed_check == 'string'){
 						if(screensaver_allowed_check == 'true'){
 							this.screensaver_allowed_in_this_browser = true;
@@ -2496,7 +2163,7 @@
 							this.screensaver_allowed_in_this_browser = false;
 						}
 					}else{
-						this.screensaver_allowed_in_this_browser = false;
+						this.screensaver_allowed_in_this_browser = true;
 					}
 					
 					if(this.screensaver_allowed_in_this_browser){
@@ -2563,7 +2230,7 @@
 
 	                        if (spotted_in_menu == false) {
 	                            if (this.debug) {
-	                                console.log('photo frame debug: screensaver could not restore the page. addon_name_css: ', addon_name_css);
+	                                console.log('screensaver could not restore the page. addon_name_css: ', addon_name_css);
 	                            }
 	                            //window.location.pathname = this.screensaver_path;
 	                        } else {
@@ -2584,8 +2251,6 @@
                 }
                 this.showing_screensaver = false;
             }
-			
-			
 
             if (delta < 1500) {
                 if (document.body.classList.contains('developer')) {
@@ -2621,10 +2286,11 @@
 
 		// If another view was active, the screensaver will try to jump back to that view if mouse activity is detected
 
+
         start_screensaver_listeners() {
 			if(this.screensaver_listeners_added){
 				if(this.debug){
-					console.error("photo frame debug: start_screensaver_listeners was called again, but has already run");
+					console.error("start_screensaver_listeners was called again, but has already run");
 				}
 				return
 			}
@@ -2633,7 +2299,6 @@
 				clearInterval(this.screensaver_interval);
 			}
             //this.screensaver_interval = setInterval(myCallback, 500);
-			/*
             this.screensaver_interval = setInterval(() => {
 
 				if(this.screensaver_interval_busy == false){
@@ -2644,7 +2309,7 @@
 					this.screensaver_interval_busy = false; // but only skipping it once
 				}
             }, 1000);
-			*/
+
 
 
             //console.log('starting activity timeout check for screensaver. Delay seconds: ', this.screensaver_delay);
