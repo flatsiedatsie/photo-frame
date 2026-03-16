@@ -74,7 +74,7 @@
           "description": "Apply subtle effects to the photos, such as zooms, pans, and the Ken Burns effect.",
           "type": "boolean"
         },
-				"Black and white": {
+        "Black and white": {
           "description": "Show all photos in black and white. This does not permanently change the photos, it's just an effect.",
           "type": "boolean"
         },
@@ -116,6 +116,7 @@
     "photos/*.jpeg",
 	"photos/*.webp",
     "js/*.js",
-    "views/*.html"
+    "views/*.html",
+	"audio/*.mp3"
   ]
 }
