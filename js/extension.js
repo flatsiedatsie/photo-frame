@@ -638,8 +638,7 @@
 			
 			this.view.querySelector('#extension-photo-frame-privacy-mode-4hours-button').addEventListener('click', () => {
 				console.log("enabling privacy mode for 4 hours");
-				// 3600000 * 4
-				this.start_privacy_mode(30000, this.view.querySelector('#extension-photo-frame-privacy-mode-4hours-button'));
+				this.start_privacy_mode((3600000 * 4), this.view.querySelector('#extension-photo-frame-privacy-mode-4hours-button'));
 			});
 			
 			this.view.querySelector('#extension-photo-frame-privacy-mode-9pm-button').addEventListener('click', () => {
