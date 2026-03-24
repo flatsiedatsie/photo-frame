@@ -698,7 +698,9 @@
 			
 			// Allow screensaver
 			const allow_screensaver_checkbox_el = this.view.querySelector('#extension-photo-frame-allow-screensaver-checkbox');
-			console.warn("photo frame: show: setting allow_screensaver checkbox to: ", this.screensaver_allowed_in_this_browser);
+			if(this.debug){
+				console.log("photo frame debug: show: setting allow_screensaver checkbox to: ", this.screensaver_allowed_in_this_browser);
+			}
 			allow_screensaver_checkbox_el.checked = this.screensaver_allowed_in_this_browser;
 			allow_screensaver_checkbox_el.addEventListener('change', () => {
 	            if(this.screensaver_allowed_in_this_browser == true){
@@ -709,7 +711,9 @@
 					this.screensaver_allowed_in_this_browser = true;
 					localStorage.setItem('extension-photo-frame-allow-screensaver', 'true');
 				}
-				console.log("photo frame: this.screensaver_allowed_in_this_browser is now: ", this.screensaver_allowed_in_this_browser);
+				if(this.debug){
+					console.log("photo frame debug: this.screensaver_allowed_in_this_browser is now: ", this.screensaver_allowed_in_this_browser);
+				}
 				
 			});
 			
