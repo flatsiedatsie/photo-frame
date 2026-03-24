@@ -134,7 +134,7 @@ class PhotoFrameAPIHandler(APIHandler):
             
             #print("manifest['id']: " + str(manifest['id']))
             APIHandler.__init__(self, manifest['id'])
-            self.manager_proxy.add_api_handler(self)
+            
             
 
             
@@ -235,6 +235,8 @@ class PhotoFrameAPIHandler(APIHandler):
         if not 'privacy_mode_end_time' in self.persistent_data:
             self.persistent_data['privacy_mode_end_time'] = 0
         
+
+        self.manager_proxy.add_api_handler(self)
 
         # Can we print photos?
         self.check_photo_printer()
@@ -433,6 +435,12 @@ class PhotoFrameAPIHandler(APIHandler):
                                 state = 'ok'
                                 
                             self.check_photo_printer()
+                            
+                            if not 'safe_photos' in self.persistent_data:
+                                self.persistent_data['safe_photos'] = []
+                            
+                            if not 'privacy_mode_end_time' in self.persistent_data:
+                                self.persistent_data['privacy_mode_end_time'] = 0
                             
                             return APIResponse(
                               status=200,
