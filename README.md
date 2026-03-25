@@ -3,5 +3,11 @@ An add-on for the Candle Controller / WebThings Gateway that allows you to view 
 
 ![Screenshot](screenshot.jpg)
 
+
+## Builds on:
+https://github.com/createcandle/localsend-cli
+
+
 ## Learn more
 https://www.candlesmarthome.com
+
