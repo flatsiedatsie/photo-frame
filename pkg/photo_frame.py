@@ -93,6 +93,7 @@ class PhotoFrameAPIHandler(APIHandler):
         self.animations = True
         self.greyscale = False
         
+        
         self.boot_path = '/boot'
         if os.path.exists('/boot/firmware'):
             self.boot_path = '/boot/firmware'
@@ -156,27 +157,23 @@ class PhotoFrameAPIHandler(APIHandler):
             print("Error loading config: " + str(ex))
             
         
-
-        self.adapter = None  
-        if self.create_thing:
-            try:
-                self.adapter = PhotoFrameAdapter(self,verbose=False)
-                if self.DEBUG:
-                    print("ADAPTER created")
-            except Exception as ex:
-                print("Failed to start ADAPTER. Error: " + str(ex))
-        
         
         
         
             
-            
+        
+        
             
         self.addon_path = os.path.join(self.user_profile['addonsDir'], self.addon_name)
         #self.persistence_file_folder = os.path.join(self.user_profile['configDir'])
         self.persistence_file_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'persistence.json')
         self.photos_dir_path = os.path.join(self.addon_path, 'photos')
         self.photos_data_dir_path = os.path.join(self.user_profile['dataDir'], self.addon_name, 'photos')
+        if not os.path.isdir(self.photos_data_dir_path):
+            if self.DEBUG:
+                print("creating photos directory in data path")
+            os.mkdir(self.photos_data_dir_path)
+        
         self.demo_photo_file_path = os.path.join(self.addon_path, 'demo_photo.jpg')
         self.demo_photo2_file_path = os.path.join(self.addon_path, 'demo_photo2.jpg')
         self.external_picture_drop_dir = os.path.join(self.user_profile['dataDir'], 'privacy-manager', 'printme')
@@ -195,10 +192,7 @@ class PhotoFrameAPIHandler(APIHandler):
                 print("Voco is not installed, no need to check voco timers")
             self.show_voco_timers = False
         
-        if not os.path.isdir(self.photos_data_dir_path):
-            if self.DEBUG:
-                print("creating photos directory in data path")
-            os.mkdir(self.photos_data_dir_path)
+        
         
         soft_link = 'ln -s ' + str(self.photos_data_dir_path) + " " + str(self.photos_dir_path)
         if self.DEBUG:
@@ -219,6 +213,7 @@ class PhotoFrameAPIHandler(APIHandler):
         except Exception as ex:
             if self.DEBUG:
                 print("Could not load persistent data (if you just installed the add-on then this is normal). The error was: ", ex)
+            self.persistent_data = {}
 
         if not 'safe_photos' in self.persistent_data:
             self.persistent_data['safe_photos'] = []
@@ -235,8 +230,28 @@ class PhotoFrameAPIHandler(APIHandler):
         if not 'privacy_mode_end_time' in self.persistent_data:
             self.persistent_data['privacy_mode_end_time'] = 0
         
+        if not 'night_mode' in self.persistent_data:
+            self.persistent_data['night_mode'] = False
+            self.save_persistent_data()
+        
+        #print("initial self.persistent_data: ", self.persistent_data)
+        
 
         self.manager_proxy.add_api_handler(self)
+        
+        # TODO: DEBUG TEST
+        self.create_thing = True
+        self.DEBUG = True
+
+        self.adapter = None  
+        if self.create_thing:
+            try:
+                self.adapter = PhotoFrameAdapter(self,verbose=False)
+                if self.DEBUG:
+                    print("ADAPTER created")
+            except Exception as ex:
+                print("Failed to start ADAPTER. Error: " + str(ex))
+
 
         # Can we print photos?
         self.check_photo_printer()
@@ -258,20 +273,24 @@ class PhotoFrameAPIHandler(APIHandler):
             if self.DEBUG:
                 print("self.gateway_version did not exist")
         
+        try:
+            if len(self.scan_photo_dir()) == 0:
+            
+                # only copy the demo photo once, so that the user can choose to have no photos at all, which will turn the screensaver into a black screen.
+                if not 'demo_photo_copied' in self.persistent_data:
+            
+                    if self.DEBUG:
+                        print("no photos yet. Copying demo photos")
+            
+                    os.system('cp ' + str(self.demo_photo_file_path) + ' ' + str(self.photos_data_dir_path))
+                    os.system('cp ' + str(self.demo_photo2_file_path) + ' ' + str(self.photos_data_dir_path))
+            
+                    self.persistent_data = {'demo_photo_copied':True} # this makes it possible to not show any photos at all (a black background)
+                    self.save_persistent_data()
+        except Exception as ex:
+            if self.DEBUG:
+                print("caught error checking scan_photo_dir: ", ex)
         
-        if len(self.scan_photo_dir()) == 0:
-            
-            # only copy the demo photo once, so that the user can choose to have no photos at all, which will turn the screensaver into a black screen.
-            if not 'demo_photo_copied' in self.persistent_data:
-            
-                if self.DEBUG:
-                    print("no photos yet. Copying demo photos")
-            
-                os.system('cp ' + str(self.demo_photo_file_path) + ' ' + str(self.photos_data_dir_path))
-                os.system('cp ' + str(self.demo_photo2_file_path) + ' ' + str(self.photos_data_dir_path))
-            
-                self.persistent_data = {'demo_photo_copied':True} # this makes it possible to not show any photos at all (a black background)
-                self.save_persistent_data()
         
         self.ready = True
 
@@ -421,7 +440,7 @@ class PhotoFrameAPIHandler(APIHandler):
                                               'privacy_mode_end_time':self.persistent_data['privacy_mode_end_time']
                                             }),
                         )
-                                
+                    
                             
                     elif request.path == '/list':
                         if self.DEBUG:
@@ -441,6 +460,12 @@ class PhotoFrameAPIHandler(APIHandler):
                             
                             if not 'privacy_mode_end_time' in self.persistent_data:
                                 self.persistent_data['privacy_mode_end_time'] = 0
+                                
+                            if not 'password_hash' in self.persistent_data:
+                                self.persistent_data['password_hash'] = ''
+                                
+                            if not 'night_mode' in self.persistent_data:
+                                self.persistent_data['night_mode'] = False
                             
                             return APIResponse(
                               status=200,
@@ -467,6 +492,7 @@ class PhotoFrameAPIHandler(APIHandler):
                                                   'password_hash':self.persistent_data['password_hash'],
                                                   'password_length':self.persistent_data['password_length'],
                                                   'password_enabled':self.persistent_data['password_enabled'],
+                                                  'night_mode':self.persistent_data['night_mode'],
                                                   'debug':self.DEBUG
                                                 }),
                             )
@@ -479,7 +505,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             )
                             
                             
-                            
+                    # POll for VoCo timers. /list is used for somewhat slow but regular polling
                     elif request.path == '/poll':
                         if self.DEBUG:
                             print("request at /poll")
@@ -829,11 +855,15 @@ class PhotoFrameAPIHandler(APIHandler):
     def scan_photo_dir(self):
         result = []
         try:
+            if not os.path.isdir(self.photos_data_dir_path):
+                os.system('mkdir ' + str(self.photos_data_dir_path))
+                if self.DEBUG:
+                    print("scan_photo_dir: had to create missing data photos directory: ", self.photos_data_dir_path)
             for fname in os.listdir(self.photos_dir_path):
                 if fname.endswith(".jpg") or fname.endswith(".jpeg") or fname.endswith(".gif")  or fname.endswith(".png")  or fname.endswith(".webp"):
-                    result.append(fname)    
-        except:
-            print("Error scanning photo directory")
+                    result.append(fname)
+        except Exception as ex:
+            print("scan_photo_dir: caught error scanning photo directory: ", ex)
         
         return result
 

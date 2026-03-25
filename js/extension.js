@@ -19,9 +19,12 @@
 			this.get_init_error_counter = 0; // set to a higher number if the slow update failed
 			this.poll_fail_count = 0; // set to a higher number if the voco actions update failed
 			this.busy_polling = false;
+			
+			this.night_mode = false;
 
             // Screensaver allowed
 			this.screensaver_allowed_in_this_browser = false;
+			this.screensaver_allowed_in_this_browser_once = false;
 			const screensaver_allowed_check = localStorage.getItem('extension-photo-frame-allow-screensaver');
 			if(typeof screensaver_allowed_check == 'string' && screensaver_allowed_check == 'true'){
 				this.screensaver_allowed_in_this_browser = true;
@@ -223,7 +226,15 @@
 					this.ensure_privacy_mode();
 				}
 				
-                
+                if(typeof body.night_mode == 'boolean'){
+					this.night_mode = body.night_mode;
+                	if(this.night_mode){
+                		document.body.classList.add('extension-photo-frame-night-mode');
+                	}
+					else{
+						document.body.classList.remove('extension-photo-frame-night-mode');
+					}
+                }
 				
 				
 				
@@ -416,7 +427,8 @@
 			
 			// start screensaver button
             this.view.querySelector('#extension-photo-frame-start-screensaver-button').addEventListener('click', () => {
-				
+                event.stopImmediatePropagation();
+				event.preventDefault();
 				if(document.body.classList.contains('developer')){
 					//this.developer = true;
 				}
@@ -425,10 +437,14 @@
 				}
 				
 				if(this.debug){
-					console.log("photo frame debug: start screensaver button clicked. developer: ", this.developer);
+					console.log("photo frame debug: start screensaver button clicked.  this.developer: ", this.developer);
+					console.log("photo frame debug:  this.screensaver_allowed_in_this_browser: ", this.screensaver_allowed_in_this_browser);
+					console.log("photo frame debug:  this.screensaver_allowed_in_this_browser_once: ", this.screensaver_allowed_in_this_browser_once);
 				}
-                event.stopImmediatePropagation();
-				event.preventDefault();
+				
+				// Enables screensaver, but not permanently
+				this.screensaver_allowed_in_this_browser_once = true
+				
                 this.screensaver_ignore_click = true; // ironically, the click the start the screensaver immediately disables it..
                 window.setTimeout(() => {
                     this.screensaver_ignore_click = false;
@@ -918,7 +934,6 @@
 				}
 				if(this.page_visible){
 					
-					
 					this.interval_counter++;
 					this.slow_interval_counter++
 				
@@ -934,7 +949,7 @@
 						this.screensaver_allowed_in_this_browser = false;
 					}
 					
-					if(this.showing_screensaver && this.screensaver_allowed_in_this_browser == false){
+					if(this.showing_screensaver && this.screensaver_allowed_in_this_browser == false && this.screensaver_allowed_in_this_browser_once == false){
 						this.last_activity_time = new Date().getTime();
 					}
 					
@@ -959,7 +974,7 @@
 					}
 		
 		
-					if(this.screensaver_allowed_in_this_browser && this.screensaver_delay){
+					if((this.screensaver_allowed_in_this_browser || this.screensaver_allowed_in_this_browser_once) && this.screensaver_delay){
 						
 						if(this.screensaver_listeners_added == false){
 							this.start_screensaver_listeners();
@@ -1826,6 +1841,16 @@
                 console.log("photo-frame debug: get_init: /list response: ", body);
             }
 			
+            if(typeof body.night_mode == 'boolean'){
+				this.night_mode = body.night_mode;
+            	if(this.night_mode){
+            		document.body.classList.add('extension-photo-frame-night-mode');
+            	}
+				else{
+					document.body.classList.remove('extension-photo-frame-night-mode');
+				}
+            }
+			
 			if(typeof body['password_hash'] == 'string'){
 				this.password_hash = body['password_hash'];
 			}
@@ -2503,7 +2528,7 @@
 						this.screensaver_allowed_in_this_browser = false;
 					}
 					
-					if(this.screensaver_allowed_in_this_browser){
+					if(this.screensaver_allowed_in_this_browser || this.screensaver_allowed_in_this_browser_once){
 						if(this.debug){
 							console.log("Photo frame debug: STARTING SCREENSAVER");
 						}
@@ -2530,6 +2555,8 @@
                 if (this.showing_screensaver == true) {
 					
 					try{
+						this.screensaver_allowed_in_this_browser_once = false;
+						
 	                    var short_path = "photo-frame";
 						// this.screensaver_path contains the location right before the screensaver started.
 	                    if (this.screensaver_path.startsWith('/extensions')) {
@@ -2636,6 +2663,11 @@
 			if(this.screensaver_interval){
 				clearInterval(this.screensaver_interval);
 			}
+			
+			if(this.debug){
+				console.error("photo frame debug: adding screensaver listeners");
+			}
+			
             //this.screensaver_interval = setInterval(myCallback, 500);
 			/*
             this.screensaver_interval = setInterval(() => {

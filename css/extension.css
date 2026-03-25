@@ -1334,6 +1334,28 @@ body#path-extensions-photo-frame.extension-photo-frame-locked #extension-photo-f
 }
 
 
+
+
+/*  NIGHT MODE  */
+
+body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode menu-button{
+	opacity:.1;
+}
+
+body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #extension-photo-frame-clock-container{
+	color:#550000;
+	position:relative;
+	margin-top: 20rem;
+}
+
+body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #extension-photo-frame-picture1,
+body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #extension-photo-frame-picture2{
+	visibility: hidden;
+}
+
+
+
+
 @media screen and (max-width: 640px) {
 
     #extension-photo-frame-photos-list{
