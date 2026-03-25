@@ -36,6 +36,7 @@
 	  "Show date": true,
 	  "Show weather": true,
 	  "Show Voco timers": true,
+	  "Localsend pin": 0,
       "Debugging": false
     },
     "schema": {
@@ -93,6 +94,10 @@
         "Show Voco timers": {
           "description": "Show active Voco voice control timers on top of the photos when in screensaver mode. It will only show timers that are due to end within the hour. For this the Voco addon must also be installed.",
           "type": "boolean"
+        },
+        "Localsend pin": {
+          "description": "You can add photos from your phone using an app called LocalSend, which works like Airdrop on iPhones, but it's open source and you can install it on any device. You can add an optional security pin code here. Think of it as a password, but it's a number. If this field is left empty or the number is zero, then this security feature is disabled (which is the default).",
+          "type": "integer"
         },
         "Debugging": {
           "description": "Advanced. Enable this to see much more detail in the internal log about what this add-on is doing.",
