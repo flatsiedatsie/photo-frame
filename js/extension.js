@@ -16,9 +16,11 @@
 			
             //console.log(window.API);
             this.content = '';
-			this.get_init_error_counter = 0; // set to a higher number if the slow update failed
-			this.poll_fail_count = 0; // set to a higher number if the voco actions update failed
+			
+			this.busy_getting_list = false;
 			this.busy_polling = false;
+			this.poll_fail_count = 0; // set to a higher number if the voco actions update failed
+			
 			
 			this.night_mode = false;
 
@@ -616,7 +618,46 @@
             		passive: true
         		});
 			}
+			
+			
+			
+			
+			
+			// LOCALSEND
+			
+			const localsend_checkbox_el = this.view.querySelector('#extension-photo-frame-enable-localsend-checkbox');
+			if(localsend_checkbox_el){
+				localsend_checkbox_el.addEventListener('change', () => {
+		            window.API.postJson(
+		                `/extensions/${this.id}/api/ajax`, {
+		                    'action': 'set_localsend',
+							'state': localsend_checkbox_el.checked
+		                }
+		            ).then((body) => {
+						if(this.debug){
+							console.log("photo frame debug: set_localsend response: ", body);
+						}
+						if(typeof body.localsend_name == 'string'){
+							this.view.querySelector('#extension-photo-frame-localsend-name').textContent = body.localsend_name;
+						}
+			
+		            }).catch((err) => {
+		                if (this.debug) {
+							console.error("Photo frame debug: caught error doing set_localsend request: ", err);
+						}
+		            });
+	            });
 				
+				this.view.querySelector('#extension-photo-frame-show-localsend-explanation-button').addEventListener('click', () => {
+					this.view.querySelector('#extension-photo-frame-show-localsend-explanation-button').remove();
+					this.view.querySelector('#extension-photo-frame-localsend-explanation').classList.remove('extension-photo-frame-hidden');
+	            });
+			}
+			
+			
+			
+			
+			
 			
 			// PRIVACY MODE
 			
@@ -849,24 +890,10 @@
 			
 			
 			
+			this.get_list();
+            
 			
-			this.get_init()
-			.then((body) => {
-				if(this.debug){
-					console.log("photo frame debug: show: get_init response: ", body);
-				}
-				this.random_picture();
-
-				this.show_list();
 			
-				this.update_clock();
-				
-			})
-			.catch((err) => {
-				if (this.debug) {
-					console.log("Photo frame: show: caught get_init error: ", err);
-				}
-			});
 			
 			
 
@@ -924,7 +951,6 @@
 
         }
 
-
 		// Called only once, and will run in the background continuously
 		start_main_interval(){
             this.photo_interval = setInterval(() => {
@@ -965,12 +991,7 @@
 					if (this.slow_interval_counter > this.slow_interval) {
 						this.slow_interval_counter = 0;
 			
-						// if there are network connection issues, wait before doing the next request until this counter is zero again.
-						if(this.get_init_error_counter > 0){
-							this.get_init_error_counter--;
-						}
-			
-						this.get_init();
+						this.get_list();
 					}
 		
 		
@@ -1065,36 +1086,41 @@
 
         
 		// This is called regularly, for example to make the photo frame reflect any photos that were added on another device
-		get_init(){
+		get_list(){
 			if(this.debug){
-				console.log("photo frame debug: in get_init");
+				console.log("photo frame debug: in get_list");
 			}
 			
-			return new Promise((resolve, reject) => {
-				
-				if(this.get_init_error_counter == 0){
-		            window.API.postJson(
-		                `/extensions/${this.id}/api/list`, {
-		                    'init': 1
-		                }
-		            ).then((body) => {
-						this.get_init_error_counter = 0;
-			            this.parse_body(body);
-						resolve(body);
-					
-		            }).catch((e) => {
-		                if (this.debug) {
-							console.log("Photo frame: get_init error: ", e);
-						}
-						this.get_init_error_counter = 3;
-						reject({});
-		            });
-				}else{
-					reject({});
+			if(this.busy_getting_list == false){
+				this.busy_getting_list = true;
+				if(this.debug){
+					console.log("photo frame debug: get_list: requesting list");
 				}
-			  
-			});
+	            window.API.postJson(
+	                `/extensions/${this.id}/api/list`, {
+	                    'init': 1
+	                }
+	            ).then((body) => {
+		            this.parse_body(body);
+				
+					this.random_picture();
+
+					this.show_list();
 			
+					this.update_clock();
+					
+					this.busy_getting_list = false;
+			
+	            }).catch((err) => {
+	                if (this.debug) {
+						console.log("Photo frame: caught error getting /list: ", err);
+					}
+					this.busy_getting_list = false;
+	            });
+			}
+			else if(this.debug){
+				console.warn("photo frame debug: already busy getting the list");
+			}
 		}
 		
 		
@@ -1124,7 +1150,7 @@
 			
             }).catch((err) => {
                 if (this.debug) {
-					console.error("Photo frame debug: caught error saving calling save_safe_photos_list: ", err);
+					console.error("Photo frame debug: caught error calling save_safe_photos_list: ", err);
 				}
             });
 			
@@ -1825,7 +1851,7 @@
 			}
             else{
             	if(this.debug){
-            		console.warn("photo frame debug: get_poll: aborting, busy_polling was true");
+            		console.warn("photo frame debug: get_poll: aborting, busy_polling (for voco timers) was true");
             	}
             }
         }
@@ -1838,7 +1864,7 @@
 			}
 			
             if (this.debug) {
-                console.log("photo-frame debug: get_init: /list response: ", body);
+                console.log("photo-frame debug: parse_body:  body: ", body);
             }
 			
             if(typeof body.night_mode == 'boolean'){
@@ -1850,6 +1876,28 @@
 					document.body.classList.remove('extension-photo-frame-night-mode');
 				}
             }
+			
+			if(typeof body.localsend_name == 'string'){
+				const localsend_name_el = this.view.querySelector('#extension-photo-frame-localsend-name');
+				if(localsend_name_el){
+					localsend_name_el.textContent = body.localsend_name;
+				}
+			}
+			if(typeof body.localsend_messages != 'undefined'){
+				const localsend_messages_el = this.view.querySelector('#extension-photo-frame-localsend-messages');
+				if(localsend_messages_el){
+					localsend_messages_el.textContent = body.localsend_messages; //JSON.stringify(body.localsend_messages,null,2);
+				}
+			}
+			if(typeof body.localsend_running == 'boolean'){
+				const localsend_checkbox_el = this.view.querySelector('#extension-photo-frame-enable-localsend-checkbox');
+				if(localsend_checkbox_el){
+		            if (this.debug) {
+		                console.log("photo-frame debug: setting localsend checkbox to: ", body.localsend_running);
+		            }
+					localsend_checkbox_el.checked = body.localsend_running;
+				}
+			}
 			
 			if(typeof body['password_hash'] == 'string'){
 				this.password_hash = body['password_hash'];
@@ -2210,7 +2258,7 @@
 	                    this.addClass(overview, "extension-photo-frame-hidden");
 	                    this.removeClass(picture_holder, "extension-photo-frame-hidden");
 						//console.log("clicked on image #: ", photo_count);
-						this.get_init();
+						this.get_list();
 					}
                 });
                 //console.log(imgnode);

@@ -7,6 +7,10 @@
 	margin-bottom:3rem;
 }
 
+#extension-photo-frame-view img{
+	max-width:100%;
+}
+
 #extension-photo-frame-view p,
 #extension-photo-frame-view span{
 	line-height:180%;
@@ -1354,6 +1358,48 @@ body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #e
 }
 
 
+
+/*  LOCALSEND  */
+
+#extension-photo-frame-localsend-name{
+	display:none;
+}
+#extension-photo-frame-enable-localsend-checkbox:checked ~ #extension-photo-frame-localsend-name:not(:empty){
+	display:block;
+	width:100%;
+	text-align:center;
+	padding:2rem;
+	font-size:2rem;
+	font-weight:bold;
+	margin-top:2rem;
+	box-sizing: border-box;
+}
+#extension-photo-frame-enable-localsend-checkbox:checked ~ #extension-photo-frame-localsend-name:not(:empty)::before{
+	content:'Send photos to: ';
+	font-weight:normal;	
+}
+
+#extension-photo-frame-localsend-messages:not(:empty){
+	white-space:pre-wrap;
+	padding:2rem;
+	font-style:italic;
+	background-color:black;
+	color:white;
+	border-radius:1rem;
+	margin:2rem 0;
+}
+
+#extension-photo-frame-view #extension-photo-frame-show-localsend-explanation-button{
+	display: inline-block;
+	padding: 1rem;
+	line-height: 1.6rem;
+	float: right;
+	margin-top: 1rem;
+	opacity:.85;
+}
+#extension-photo-frame-show-localsend-explanation-button:hover{
+	opacity:1;
+}
 
 
 @media screen and (max-width: 640px) {

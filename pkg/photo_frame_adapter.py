@@ -20,7 +20,6 @@ class PhotoFrameAdapter(Adapter):
         verbose -- whether or not to enable verbose logging
         """
         self.api_handler = api_handler
-        print("self.api_handler: ", self.api_handler)
         self.DEBUG = bool(api_handler.DEBUG)
         self.addon_name = str(self.api_handler.addon_name) #'photo-frame'
         self.name = self.__class__.__name__
@@ -70,12 +69,8 @@ class PhotoFrameDevice(Device):
         Initialize the object.
         adapter -- the Adapter managing this device
         """
-        
-        print("in photo frame device init")
 
         Device.__init__(self, adapter, 'photo-frame')
-		
-        print("in photo frame device init: beyond __init__")
         
         self._id = 'photo-frame'
         self.id = 'photo-frame'
@@ -112,11 +107,22 @@ class PhotoFrameDevice(Device):
                             },
                             bool(self.adapter.api_handler.persistent_data['night_mode']) )
                             
+            if self.adapter.api_handler.is_64_bit:
+                self.properties["localsend"] = PhotoFrameProperty(
+                            self,
+                            "localsend",
+                            {
+                                'title': "Localsend",
+                                'type': 'boolean',
+                                'readOnly': False,
+                            },
+                            False )
+                            
         except Exception as ex:
-            print("caught error adding properties: " + str(ex))
+            print("caught error adding proto-frame properties: " + str(ex))
 
         if self.DEBUG:
-            print("PhotoFrame thing has been created.")
+            print("debug: PhotoFrame thing has been created")
             
             
         """
@@ -188,12 +194,22 @@ class PhotoFrameProperty(Property):
                 #self.device.adapter.set_radio_state(True) # If the user changes the station, we also play it.
                 self.update(bool(value))
 
-            if self.id == 'night_mode':
+            elif self.id == 'night_mode':
                 #self.device.adapter.api_handler.set_screensaver_state(bool(value))
                 #self.device.adapter.set_radio_state(True) # If the user changes the station, we also play it.
                 
                 self.device.adapter.api_handler.persistent_data['night_mode'] = bool(value)
                 self.update(bool(value))
+                
+                
+            elif self.id == 'localsend-cli':
+                #self.device.adapter.api_handler.set_screensaver_state(bool(value))
+                #self.device.adapter.set_radio_state(True) # If the user changes the station, we also play it.
+                
+                self.device.adapter.api_handler.set_localsend(bool(value))
+                self.update(bool(value))
+                
+                
             #if self.title == 'Show next photo':
                 #pass
                 #self.device.adapter.api_handler.set_screensaver_state(bool(value))

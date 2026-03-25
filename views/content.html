@@ -52,6 +52,20 @@
 				<div id="extension-photo-frame-dropzone" class="extension-photo-frame-hide-if-selecting-privacy-mode-photos">
 					<div>Drop files here to upload</div>
 				</div>
+				<div class="extension-photo-frame-area">
+					<div><input type="checkbox" id="extension-photo-frame-enable-localsend-checkbox" name="extension-photo-frame-enable-localsend-checkbox"><label for="extension-photo-frame-enable-localsend-checkbox"></label><span>Receive photos via Localsend&nbsp;</span><span id="extension-photo-frame-localsend-name"></span></div>
+					<div id="extension-photo-frame-localsend-messages" class="extension-photo-frame-show-if-developer"></div>
+					<p><span style="opacity:.7;">Localsend is a popular open source app for mobile phones and laptops that allows for easy sharing of files between your devices.</span> <span class="text-button" id="extension-photo-frame-show-localsend-explanation-button">Learn more</span></p>
+					<div id="extension-photo-frame-localsend-explanation" class="extension-photo-frame-hidden">
+						<img src="/extensions/photo-frame/images/localsend.svg" alt="Localsend photo sharing">
+						<p>Localsend is like Apple's Airdrop, but it's available for all phones, laptops and other devices. To use it you have to install the LocalSend app on your phone or laptop.</p>
+						<p>While Localsend it switched on, any device on your network that also has Localsend installed can upload photos to Photo Frame. When you're done, simply turn Localsend off again.</p>
+						<p>You can add an optional security pin code in this addon's settings. With that enabled the pin code must be entered before the Photo Frame will accept new files.</p>
+						<p>Learn more at localsend.org</p>
+					</div>
+					<div style="clear:both"></div>
+				</div>
+				
 				<div class="extension-photo-frame-flex-between extension-photo-frame-flex-align-center">
 					<button id="extension-photo-frame-add-random-photo-button" class="text-button extension-photo-frame-hide-if-selecting-privacy-mode-photos">Add random photo</button>
 					<button id="extension-photo-frame-cancel-selecting-button" class="text-button extension-photo-frame-show-if-selecting-privacy-mode-photos">Cancel</button>
@@ -107,8 +121,9 @@
 				</div>
 				
 				<div class="extension-photo-frame-area extension-photo-frame-hidden"><input type="checkbox" id="extension-photo-frame-unlock-sound-checkbox" name="extension-photo-frame-unlock-sound-checkbox"><label for="extension-photo-frame-unlock-sound-checkbox"></label><span>Play a sound when attempting to unlock</span> <span id="extension-photo-frame-test-sound-button" class="text-button"> </span></div>
+				<!--
 				<div class="extension-photo-frame-area extension-photo-frame-hidden"><input type="checkbox" id="extension-photo-frame-create-thing-checkbox" name="extension-photo-frame-create-thing-checkbox"><label for="extension-photo-frame-create-thing-checkbox"></label><span>Create a thing to control photo frame</span></div>
-				
+				// -->
 				<div style="text-align:right;margin:4rem 0 12rem 0"><a href="/extensions/candleappstore#photo-frame" class="text-button" style="text-decoration:none">More settings</a></div>
 			</div>
 			

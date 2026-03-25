@@ -27,7 +27,7 @@ from datetime import datetime,timedelta
 
 
 import subprocess
-#import threading
+import threading
 import requests
 import base64
 #from pynput.keyboard import Key, Controller
@@ -70,10 +70,15 @@ class PhotoFrameAPIHandler(APIHandler):
         
         
         self.ready = False
+        self.running = True
         self.addon_name = 'photo-frame'
         self.server = 'http://127.0.0.1:8080'
+        self.is_64_bit = (sys.maxsize > 2**32)
+        
         self.DEV = False
         self.DEBUG = False
+        
+        
             
         self.things = [] # Holds all the things, updated via the API. Used to display a nicer thing name instead of the technical internal ID.
         self.data_types_lookup_table = {}
@@ -118,6 +123,12 @@ class PhotoFrameAPIHandler(APIHandler):
         
         self.check_for_new_things = True
         
+        
+        # Localsend
+        self.localsend_name = str(run_command('hostname')).strip().rstrip()
+        self.localsend_process = None
+        self.localsend_messages = []
+        self.localsend_pin = None
         
             
         try:
@@ -178,6 +189,9 @@ class PhotoFrameAPIHandler(APIHandler):
         self.demo_photo2_file_path = os.path.join(self.addon_path, 'demo_photo2.jpg')
         self.external_picture_drop_dir = os.path.join(self.user_profile['dataDir'], 'privacy-manager', 'printme')
         self.display_toggle_path = os.path.join(self.user_profile['addonsDir'], 'display-toggle')
+        self.localsend_path = os.path.join(self.addon_path,'localsend','localsend_cli64')
+        if os.path.isfile(self.localsend_path):
+            os.system('chmod +x ' + str(self.localsend_path))
         
         # weather
         self.weather_addon_path =  os.path.join(self.user_profile['addonsDir'], 'weather-adapter')
@@ -234,6 +248,7 @@ class PhotoFrameAPIHandler(APIHandler):
             self.persistent_data['night_mode'] = False
             self.save_persistent_data()
         
+        
         #print("initial self.persistent_data: ", self.persistent_data)
         
 
@@ -248,7 +263,7 @@ class PhotoFrameAPIHandler(APIHandler):
             try:
                 self.adapter = PhotoFrameAdapter(self,verbose=False)
                 if self.DEBUG:
-                    print("ADAPTER created")
+                    print("debug: ADAPTER created")
             except Exception as ex:
                 print("Failed to start ADAPTER. Error: " + str(ex))
 
@@ -272,6 +287,9 @@ class PhotoFrameAPIHandler(APIHandler):
         except:
             if self.DEBUG:
                 print("self.gateway_version did not exist")
+        
+        if self.DEBUG:
+            print("self.is_64_bit: ", self.is_64_bit)
         
         try:
             if len(self.scan_photo_dir()) == 0:
@@ -378,8 +396,12 @@ class PhotoFrameAPIHandler(APIHandler):
             self.create_thing = bool(config['Create control thing'])
             if self.DEBUG:
                 print("-Create thing preference was in config: " + str(self.create_thing))
-        
 
+        if 'Localsend pin' in config:
+            self.localsend_pin = int(config['Localsend pin'])
+            if self.DEBUG:
+                print("-Localsend pin was in config: " + str(self.localsend_pin))
+        
 
 
     def handle_request(self, request):
@@ -430,6 +452,11 @@ class PhotoFrameAPIHandler(APIHandler):
                                     self.persistent_data['privacy_mode_end_time'] = request.body['value']
                                     self.save_persistent_data()
                                     state = True
+                                    
+                            elif action == 'set_localsend':
+                                if 'state' in request.body and isinstance(request.body['state'],(bool)):
+                                    self.set_localsend(request.body['state'])
+                                    state = True
                             
                         
                         return APIResponse(
@@ -437,14 +464,15 @@ class PhotoFrameAPIHandler(APIHandler):
                           content_type='application/json',
                           content=json.dumps({'state' : state,
                                               'safe_photos':self.persistent_data['safe_photos'],
-                                              'privacy_mode_end_time':self.persistent_data['privacy_mode_end_time']
+                                              'privacy_mode_end_time':self.persistent_data['privacy_mode_end_time'],
+                                              'localsend_name':self.localsend_name
                                             }),
                         )
                     
-                            
+                    
                     elif request.path == '/list':
                         if self.DEBUG:
-                            print("LISTING")
+                            print("API: /list was called")
                         # Get the list of photos
                         try:
                             data = self.scan_photo_dir()
@@ -455,16 +483,39 @@ class PhotoFrameAPIHandler(APIHandler):
                                 
                             self.check_photo_printer()
                             
+                            localsend_running = False
+                            try:
+                                latest_localsend_messages = self.localsend_messages
+                                if self.DEBUG:
+                                    print("number of localsend stdout messages: ", len(self.localsend_messages))
+                                self.localsend_messages = []
+                                
+                                if self.localsend_process and self.localsend_process.poll() == None:
+                                    localsend_running = True
+                            except Exception as ex:
+                                print("/list caught error checking localsend process: ", ex)
+                            if self.DEBUG:
+                                print("localsend_running: ", localsend_running)
+                            
+                            
                             if not 'safe_photos' in self.persistent_data:
+                                if self.DEBUG:
+                                    print("\nERROR, somehow safe_photos was not in self.persistent_data")
                                 self.persistent_data['safe_photos'] = []
                             
                             if not 'privacy_mode_end_time' in self.persistent_data:
+                                if self.DEBUG:
+                                    print("\nERROR, somehow privacy_mode_end_time was not in self.persistent_data")
                                 self.persistent_data['privacy_mode_end_time'] = 0
                                 
                             if not 'password_hash' in self.persistent_data:
+                                if self.DEBUG:
+                                    print("\nERROR, somehow password_hash was not in self.persistent_data")
                                 self.persistent_data['password_hash'] = ''
                                 
                             if not 'night_mode' in self.persistent_data:
+                                if self.DEBUG:
+                                    print("\nERROR, somehow night_mode was not in self.persistent_data")
                                 self.persistent_data['night_mode'] = False
                             
                             return APIResponse(
@@ -493,11 +544,15 @@ class PhotoFrameAPIHandler(APIHandler):
                                                   'password_length':self.persistent_data['password_length'],
                                                   'password_enabled':self.persistent_data['password_enabled'],
                                                   'night_mode':self.persistent_data['night_mode'],
+                                                  'is_64_bit':self.is_64_bit,
+                                                  'localsend_messages':latest_localsend_messages,
+                                                  'localsend_running':localsend_running,
+                                                  'localsend_name':self.localsend_name,
                                                   'debug':self.DEBUG
                                                 }),
                             )
                         except Exception as ex:
-                            print("Error getting list data: " + str(ex))
+                            print("caught error getting /list data: " + str(ex))
                             return APIResponse(
                               status=500,
                               content_type='application/json',
@@ -867,6 +922,105 @@ class PhotoFrameAPIHandler(APIHandler):
         
         return result
 
+        
+    
+    
+    def set_localsend(self,state):
+        
+        try:
+            if os.path.isfile(self.localsend_path):
+            
+                if bool(state) == True:
+                    if self.localsend_process == None:
+                        if self.DEBUG:
+                            print("starting localsend_cli")
+                
+                        hostname = run_command('hostname')
+                        if isinstance(hostname,str):
+                            hostname = hostname.strip().rstrip()
+                            hostname = hostname.replace(' ','_')
+                        else:
+                            hostname = 'Candle_' + str(generate_random_string(4))
+                        self.localsend_name = str(hostname)
+                        localsend_command = [str(self.localsend_path),"recv","--devname",hostname,"--dir",str(self.photos_data_dir_path)]
+                        
+                        if self.localsend_pin and str(self.localsend_pin).isdigit() and int(self.localsend_pin) > 0:
+                            localsend_command.append('--pin')
+                            localsend_command.append(str(self.localsend_pin))
+                        
+                        if self.DEBUG:
+                            print("\nlocalsend command:\n" + ' '.join(localsend_command) + "\n")
+                        self.localsend_process = subprocess.Popen(localsend_command, stderr=subprocess.DEVNULL, shell=False, stdout=subprocess.DEVNULL)  # stdin=subprocess.PIPE,  stdout=subprocess.PIPE
+                        
+                        """
+                        def read_stdout():
+                            while self.running:
+                                msg = self.localsend_process.stdout.readline()
+                                new_msg = msg.decode();
+                                if len(str(new_msg)) > 2:
+                                    if self.DEBUG:
+                                        print("localsend output: ", new_msg)
+                                    self.localsend_messages.append(new_msg)
+                                time.sleep(0.0001)
+                            if self.DEBUG:
+                                print("localsend read_stdout closed")
+                    
+                            # Superfluous?
+                            if self.localsend_process and self.localsend_process.poll() == None:
+                                 self.localsend_process.terminate()
+                                 time.sleep(0.3)
+                                 if self.localsend_process and self.localsend_process.poll() == None:
+                                     self.localsend_process.kill()
+                                     time.sleep(0.3)
+                                     if self.localsend_process and self.tcpdump.poll() == None:
+                                         os.system('sudo pkill -f localsend_cli')
+                            self.localsend_process = None
+                    
+                        self.stdout_thread = threading.Thread(target=read_stdout)
+                        self.stdout_thread.daemon = True
+                        self.stdout_thread.start()
+                        """
+                        
+                    elif self.localsend_process.poll() == None:
+                        if self.DEBUG:
+                            print("set_localsend: was asked to start localsend, but it's already running?")
+                    else:
+                        if self.DEBUG:
+                            print("set_localsend: self.localsend_process was not null, but it's also not running?")
+                            try:
+                                print("self.localsend_process.returncode: ", self.localsend_process.returncode)
+                            except Exception as ex:
+                                print("caught error getting localsend .returncode: ", ex)
+                        self.localsend_proces = None
+                        
+                else:
+                    if self.localsend_process != None and self.localsend_process.poll() == None:
+                        if self.DEBUG:
+                            print("attempting to terminate localsend_cli")
+                        self.localsend_process.terminate()
+                        time.sleep(.5)
+                        if self.localsend_process != None and self.localsend_process.poll() == None:
+                            if self.DEBUG:
+                                print("ERROR, localsend_cli had to be killed")
+                            self.localsend_process.kill()
+                            time.sleep(.5)
+                            if self.localsend_process != None and self.localsend_process.poll() == None:
+                                if self.DEBUG:
+                                    print("ERROR, resorting to pkill to stop localsend_cli")
+                                os.system('sudo pkill -f localsend_cli')
+                                time.sleep(.5)
+                        self.localsend_process = None
+                    else:
+                        if self.DEBUG:
+                            print("set_localsend: was asked to stop localsend, but it's not running?")
+            
+
+        except Exception as ex:
+            print("\nERROR, caught error in set_localsend: "  + str(ex))
+        
+        
+
+
 
 
 
@@ -925,6 +1079,9 @@ class PhotoFrameAPIHandler(APIHandler):
     def unload(self):
         if self.DEBUG:
             print("Shutting down")
+        self.running = False
+        time.sleep(1)
+        os.system('sudo pkill -f localsend')
         return True
 
 
