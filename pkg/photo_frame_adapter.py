@@ -86,6 +86,7 @@ class PhotoFrameDevice(Device):
         self.properties = {}
 
         try:
+            """
             self.properties["screensaver"] = PhotoFrameProperty(
                             self,
                             "screensaver",
@@ -96,7 +97,8 @@ class PhotoFrameDevice(Device):
                                 'readOnly': False,
                             },
                             False)
-                            
+            """
+            
             self.properties["night_mode"] = PhotoFrameProperty(
                             self,
                             "night_mode",
@@ -115,6 +117,7 @@ class PhotoFrameDevice(Device):
                                 'title': "Localsend",
                                 'type': 'boolean',
                                 'readOnly': False,
+                                '@type': 'OnOffProperty',
                             },
                             False )
                             

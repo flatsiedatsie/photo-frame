@@ -52,7 +52,7 @@
 				<div id="extension-photo-frame-dropzone" class="extension-photo-frame-hide-if-selecting-privacy-mode-photos">
 					<div>Drop files here to upload</div>
 				</div>
-				<div class="extension-photo-frame-area">
+				<div class="extension-photo-frame-area extension-photo-frame-hide-if-selecting-privacy-mode-photos">
 					<div><input type="checkbox" id="extension-photo-frame-enable-localsend-checkbox" name="extension-photo-frame-enable-localsend-checkbox"><label for="extension-photo-frame-enable-localsend-checkbox"></label><span>Receive photos via Localsend&nbsp;</span><span id="extension-photo-frame-localsend-name"></span></div>
 					<div id="extension-photo-frame-localsend-messages" class="extension-photo-frame-show-if-developer"></div>
 					<p><span style="opacity:.7;">Localsend is a popular open source app for mobile phones and laptops that allows for easy sharing of files between your devices.</span> <span class="text-button" id="extension-photo-frame-show-localsend-explanation-button">Learn more</span></p>
@@ -94,15 +94,16 @@
 					</div>
 					<div id="extension-photo-frame-privacy-mode-start-buttons-container-area" class="extension-photo-frame-area">
 						<div id="extension-photo-frame-privacy-mode-start-buttons-container">
+							<button class="text-button" id="extension-photo-frame-privacy-mode-1hour-button">1 hour</button>
 							<button class="text-button" id="extension-photo-frame-privacy-mode-4hours-button">4 hours</button>
-							<button class="text-button" id="extension-photo-frame-privacy-mode-9pm-button">Util 9 pm</button>
+							<button class="text-button" id="extension-photo-frame-privacy-mode-9pm-button">Until 9 pm</button>
 							<button class="text-button" id="extension-photo-frame-privacy-mode-noon-tomorrow-button">Until noon tomorrow</button>
 							<button class="text-button" id="extension-photo-frame-privacy-mode-3days-button">For 3 days</button>
 							<!--
 							<button class="text-button" id="extension-photo-frame-privacy-mode-start-button" class="extension-photo-frame-hidden">Until stopped</button>
 							//-->
 						</div>
-						<div class="extension-photo-frame-flex-align-center"><input type="checkbox" id="extension-photo-frame-privacy-mode-local-checkbox" name="extension-photo-frame-privacy-mode-local-checkbox"><label for="extension-photo-frame-privacy-mode-local-checkbox"></label><span>Only enable privacy mode for this <span class="extension-photo-frame-show-if-kiosk">display</span><span class="extension-photo-frame-hide-if-kiosk">browser</span></span></div>
+						<div class="extension-photo-frame-flex-align-center" style="margin-top: 1rem"><input type="checkbox" id="extension-photo-frame-privacy-mode-local-checkbox" name="extension-photo-frame-privacy-mode-local-checkbox"><label for="extension-photo-frame-privacy-mode-local-checkbox"></label><span>Only enable privacy mode for this <span class="extension-photo-frame-show-if-kiosk">display</span><span class="extension-photo-frame-hide-if-kiosk">browser</span></span></div>
 					</div>
 				</div>
 			</div>
