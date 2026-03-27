@@ -16,6 +16,7 @@
 			
             //console.log(window.API);
             this.content = '';
+			this.early_init_retried = false;
 			
 			this.busy_getting_list = false;
 			this.busy_polling = false;
@@ -215,8 +216,23 @@
                 }
 
             ).then((body) => {
-				if(typeof body.debug !== 'undefined'){
+				if(body && typeof body.debug == 'boolean'){
 					this.debug = body.debug;
+				}
+				else{
+	                if (this.debug) {
+	                    console.log("photo frame debug: aborting, early init response had undefined body or debug value?: ", body);
+	                }
+					if(this.early_init_retried == false){
+						this.early_init_retried = true;
+						setTimeout(() => {
+			                if (this.debug) {
+			                    console.log("photo frame debug: early init: trying again 10 seconds later");
+			                }
+							this.early_init();
+						},10000);
+					}
+					return
 				}
             
                 if (this.debug) {
@@ -266,6 +282,17 @@
 			
             }).catch((err) => {
                 console.error("Photo frame: error in early init function: ", err);
+				
+				if(this.early_init_retried == false){
+					this.early_init_retried = true;
+					setTimeout(() => {
+		                if (this.debug) {
+		                    console.log("photo frame debug: early init caught error. trying again 10 seconds later");
+		                }
+						this.early_init();
+					},10000);
+				}
+				
             });
 		}
 
@@ -537,7 +564,7 @@
 					console.log("proto frame: print button: photo name: ", photo_name);
 				}
 				if(photo_name.endsWith('.gif')){
-					alert("animations cannot be printed");
+					this.flash_message("animations cannot be printed");
 				}
 				else{
 					this.print_file( photo_name );
@@ -855,7 +882,7 @@
 						});
 					}
 					else{
-						//alert('The password should be at least 3 characters');
+						this.flash_message('The password should be at least 3 characters');
 						password_input_el.value = '';
 						password_input_el.setAttribute('placeholder','Not long enough');
 					}
@@ -1635,9 +1662,11 @@
                 if(this.debug){
 					console.log('photo frame debug: file sent to printer. response: ', body);
 				}
-            }).catch((e) => {
-                console.error("Photo frame: caught error in print response: ", e);
-                alert("Could not print file - connection error?");
+            }).catch((err) => {
+                if(this.debug){
+					console.error("photo frame: caught error in print response: ", err);
+				}
+                this.flash_message("Could not print file - connection error?");
             });
         }
 
@@ -1690,8 +1719,10 @@
                             this.view.querySelector('#extension-photo-frame-date-month').innerText = body.month; //months[date.getMonth()];
                         }
                     }
-                }).catch((e) => {
-                    console.error("Photo frame: caught error getting date/time: ", e);   
+                }).catch((err) => {
+                    if(this.debug){
+						console.error("photo frame debug: caught error getting date/time: ", err);
+					}
                 });
             }
         }
@@ -1778,7 +1809,7 @@
                         }
                     }).catch((e) => {
                         if(this.debug){
-							console.log("Photo frame: update_weather: error getting temperature property: ", e);
+							console.log("photo frame debug: update_weather: error getting temperature property: ", e);
 						}
 						this.weather_fail_count = 10;
                     });
@@ -1798,7 +1829,7 @@
                         }
                     }).catch((e) => {
                         if(this.debug){
-							console.log("Photo frame debug: update_weather: error getting current_description property: ", e);
+							console.log("photo frame debug: update_weather: error getting current_description property: ", e);
 						}
 						this.weather_fail_count = 10;
                     });
@@ -1813,7 +1844,7 @@
                 
             } else {
                 if(this.debug){
-					console.warn('Warning, in update_weather, but no thing url');
+					console.warn('photo frame debug: warning, in update_weather, but no thing url');
 				}
             }
         }
@@ -2113,7 +2144,7 @@
 						if(delta >= 0 && delta < 3600){
 							
 							if(this.debug){
-								console.log("photo frame:  item_id, delta: ", item_id, delta);
+								console.log("photo frame debug:  item_id, delta: ", item_id, delta);
 							}
 							
 							if(action_el == null){
@@ -2160,8 +2191,10 @@
 						}
 					}
 				}
-				catch(e){
-					console.error("photo frame: error parsing Voco timer: ", e);
+				catch(err){
+					if(this.debug){
+						console.error("photo frame debug: caught error parsing Voco timer: ", err);
+					}
 				}
 				
 			}
@@ -2186,7 +2219,9 @@
 					file_list = this.filenames;
 				}
 				else{
-					console.error("photo-frame: show_list: no photo file list to show");
+					if(this.debug){
+						console.error("photo-frame debug: show_list: no photo file list to show");
+					}
 					return;
 				}
 			}
@@ -2206,7 +2241,7 @@
             //this.filenames = file_list;
 
 			if(photo_list == null){
-				console.warn("photo-frame: show_list: photo_list element does not exist (yet). aborting.");
+				//console.warn("photo-frame: show_list: photo_list element does not exist (yet). aborting.");
 				return;
 			}
 
@@ -2236,7 +2271,9 @@
                 imgnode.setAttribute("data-filename", photo_filename);
                 imgnode.src = "/extensions/photo-frame/photos/" + photo_filename;
                 imgnode.addEventListener('click', () => {
-					console.log("clicked on a thumbnail.  photo_filename, this.busy_selecting_safe_photos: ", photo_filename, this.busy_selecting_safe_photos);
+		            if(this.debug){
+						console.log("photo frame debug: clicked on a thumbnail.  photo_filename, this.busy_selecting_safe_photos: ", photo_filename, this.busy_selecting_safe_photos);
+					}
 					if(this.busy_selecting_safe_photos){
 						if(this.privacy_mode_enabled){
 							if(node.classList.contains('extension-photo-frame-list-item-privacy-save')){
@@ -2351,7 +2388,7 @@
 
             }).catch((e) => {
                 console.error("Photo frame: caught error in delete response: ", e);
-                alert("Could not delete file - connection error?");
+                this.flash_message("Could not delete file - connection error?");
             });
 
         }
@@ -2512,7 +2549,7 @@
 									setTimeout(() => {
 										upload_progress_overlay_el.classList.add('extension-photo-frame-hidden');
 									},2000);
-		                            //alert("Error, could not upload the image. Perhaps it's too big.");     
+		                            this.flash_message("Error, could not upload the image. Perhaps it's too big.");     
 		                        });
 
 		                    };
@@ -2795,6 +2832,27 @@
 			sound.play();
 		}
 		
+		
+		
+		flash_message(message){
+			if(typeof message == 'string' && message.length){
+				let flash_message_el = document.getElementById('extension-candleappstore-flash-message-container');
+				if(!flash_message_el){
+					flash_message_el = document.createElement('div');
+					flash_message_el.setAttribute('id','extension-candleappstore-flash-message-container');
+					document.body.appendChild(flash_message_el);
+				}
+				if(flash_message_el){
+					flash_message_el.innerHTML = '<h3>' + message + '</h3>';
+					setTimeout(() => {
+						flash_message_el.innerHTML = '';
+					},3000);
+				}
+				else{
+					alert(message);
+				}
+			}
+		}
 		
 		
         // HELPER METHODS
