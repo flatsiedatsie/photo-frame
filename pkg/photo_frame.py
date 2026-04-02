@@ -252,8 +252,8 @@ class PhotoFrameAPIHandler(APIHandler):
             self.persistent_data['night_mode'] = False
             self.save_persistent_data()
         
-        
-        print("initial self.persistent_data: ", self.persistent_data)
+        if self.DEBUG:
+            print("initial self.persistent_data: ", self.persistent_data)
         
 
         self.manager_proxy.add_api_handler(self)
