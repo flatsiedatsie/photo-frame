@@ -79,7 +79,8 @@ class PhotoFrameAPIHandler(APIHandler):
         self.DEBUG = False
         
         
-            
+        self.persistent_data = {}
+        
         self.things = [] # Holds all the things, updated via the API. Used to display a nicer thing name instead of the technical internal ID.
         self.data_types_lookup_table = {}
             
@@ -216,8 +217,7 @@ class PhotoFrameAPIHandler(APIHandler):
         
         
         
-        # Get persistent data
-        self.persistent_data = {}
+       
         try:
             with open(self.persistence_file_path) as f:
                 self.persistent_data = json.load(f)
@@ -229,34 +229,38 @@ class PhotoFrameAPIHandler(APIHandler):
                 print("Could not load persistent data (if you just installed the add-on then this is normal). The error was: ", ex)
             self.persistent_data = {}
 
-        if not 'safe_photos' in self.persistent_data:
+        if not 'safe_photos' in self.persistent_data.keys():
             self.persistent_data['safe_photos'] = []
 
-        if not 'password_enabled' in self.persistent_data:
+        if not 'password_enabled' in self.persistent_data.keys():
             self.persistent_data['password_enabled'] = False
+            if self.DEBUG:
+                print("setting initial password_enabled in persistent_data to False")
         
-        if not 'password_hash' in self.persistent_data:
+        if not 'password_hash' in self.persistent_data.keys():
             self.persistent_data['password_hash'] = ''
             
-        if not 'password_length' in self.persistent_data:
+        if not 'password_length' in self.persistent_data.keys():
             self.persistent_data['password_length'] = None
+            if self.DEBUG:
+                print("setting initial password_length in persistent_data to None")
 
-        if not 'privacy_mode_end_time' in self.persistent_data:
+        if not 'privacy_mode_end_time' in self.persistent_data.keys():
             self.persistent_data['privacy_mode_end_time'] = 0
         
-        if not 'night_mode' in self.persistent_data:
+        if not 'night_mode' in self.persistent_data.keys():
             self.persistent_data['night_mode'] = False
             self.save_persistent_data()
         
         
-        #print("initial self.persistent_data: ", self.persistent_data)
+        print("initial self.persistent_data: ", self.persistent_data)
         
 
         self.manager_proxy.add_api_handler(self)
         
         # TODO: DEBUG TEST
         self.create_thing = True
-        self.DEBUG = True
+
 
         self.adapter = None  
         if self.create_thing:
@@ -303,7 +307,7 @@ class PhotoFrameAPIHandler(APIHandler):
                     os.system('cp ' + str(self.demo_photo_file_path) + ' ' + str(self.photos_data_dir_path))
                     os.system('cp ' + str(self.demo_photo2_file_path) + ' ' + str(self.photos_data_dir_path))
             
-                    self.persistent_data = {'demo_photo_copied':True} # this makes it possible to not show any photos at all (a black background)
+                    self.persistent_data['demo_photo_copied'] = True # this makes it possible to not show any photos at all (a black background)
                     self.save_persistent_data()
         except Exception as ex:
             if self.DEBUG:
@@ -472,7 +476,8 @@ class PhotoFrameAPIHandler(APIHandler):
                     
                     elif request.path == '/list':
                         if self.DEBUG:
-                            print("API: /list was called")
+                            print("API: /list was called.  self.persistent_data: ", self.persistent_data)
+                            
                         # Get the list of photos
                         try:
                             data = self.scan_photo_dir()
@@ -513,6 +518,11 @@ class PhotoFrameAPIHandler(APIHandler):
                                     print("\nERROR, somehow password_hash was not in self.persistent_data")
                                 self.persistent_data['password_hash'] = ''
                                 
+                            if not 'password_length' in self.persistent_data:
+                                if self.DEBUG:
+                                    print("\nERROR, somehow password_length was not in self.persistent_data")
+                                self.persistent_data['password_length'] = None
+                            
                             if not 'night_mode' in self.persistent_data:
                                 if self.DEBUG:
                                     print("\nERROR, somehow night_mode was not in self.persistent_data")

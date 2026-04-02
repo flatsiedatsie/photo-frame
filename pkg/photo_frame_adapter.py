@@ -84,6 +84,9 @@ class PhotoFrameDevice(Device):
         self.description = 'Thing to control Photo Frame'
         
         self.properties = {}
+        
+        if not 'night_mode' in self.adapter.api_handler.persistent_data.keys():
+            self.adapter.api_handler.persistent_data['night_mode'] = False
 
         try:
             """
@@ -120,7 +123,11 @@ class PhotoFrameDevice(Device):
                                 '@type': 'OnOffProperty',
                             },
                             False )
-                            
+            
+            self.add_action("Previous photo", {});
+            
+            self.add_action("Next photo", {});
+            
         except Exception as ex:
             print("caught error adding proto-frame properties: " + str(ex))
 

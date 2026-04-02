@@ -11,6 +11,8 @@
                 this.kiosk = true;
             }
 			
+			//console.log("photo frame: window.API: ", window.API);
+			
             this.debug = false;
 			this.developer = false;
 			
