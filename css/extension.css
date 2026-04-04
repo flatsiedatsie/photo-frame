@@ -1,3 +1,7 @@
+body#path-things-photo-frame #message-area a{
+	text-decoration:none;
+}
+
 #extension-photo-frame-view .clicked{
 	border-left:10px solid white;
 	background-color:rgba(255,255,255,.1);
@@ -1341,7 +1345,6 @@ body#path-extensions-photo-frame.extension-photo-frame-locked #extension-photo-f
 
 
 /*  NIGHT MODE  */
-
 body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode menu-button{
 	opacity:.1;
 }
@@ -1350,8 +1353,25 @@ body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #e
 	color:#550000;
 	position:relative;
 	margin-top: 20rem;
+	animation-name: extension-photo-frame-night-mode-burnin-prevention;
+	animation-duration: 600s;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+}
+body#path-extensions-photo-frame.developer.screensaver.extension-photo-frame-night-mode #extension-photo-frame-clock-container{
+	animation-duration: 60s;
+}
+@keyframes extension-photo-frame-night-mode-burnin-prevention {
+  0%    {margin-top: 24rem; left: 2rem}
+  25%   {bottom: 0rem; left: 2.5rem;}
+  50%   {margin-top: 18rem; left: 0rem;}
+  75%   {bottom: -2rem; left: -2rem;}
+  100%  {margin-top: 24rem; left: 2rem;}
 }
 
+body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #extension-photo-frame-clock{
+	font-size:8rem;
+}
 body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #extension-photo-frame-picture1,
 body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #extension-photo-frame-picture2{
 	visibility: hidden;

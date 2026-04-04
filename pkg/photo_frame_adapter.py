@@ -1,5 +1,5 @@
 try:
-    from gateway_addon import Adapter, Device, Property
+    from gateway_addon import Adapter, Device, Property, Action, Event
     #print("succesfully loaded APIHandler and APIResponse from gateway_addon")
 except:
     print("Could not load vital libraries to interact with the controller")
@@ -31,8 +31,8 @@ class PhotoFrameAdapter(Adapter):
         
         try:
             # Create the thing
-            photo_frame_device = PhotoFrameDevice(self) # ,"photo-frame","Photo frame" # are these last two parameters processed?
-            self.handle_device_added(photo_frame_device)
+            self.photo_frame_device = PhotoFrameDevice(self) # ,"photo-frame","Photo frame" # are these last two parameters processed?
+            self.handle_device_added(self.photo_frame_device)
             if self.DEBUG:
                 print("photo frame device added")
             self.devices['photo-frame'].connected = True
@@ -82,6 +82,7 @@ class PhotoFrameDevice(Device):
         self.name = 'photo-frame'
         self.title = 'Photo Frame'
         self.description = 'Thing to control Photo Frame'
+        #self.night_mode = False
         
         self.properties = {}
         
@@ -111,7 +112,8 @@ class PhotoFrameDevice(Device):
                                 'readOnly': False,
                             },
                             bool(self.adapter.api_handler.persistent_data['night_mode']) )
-                            
+            
+            
             if self.adapter.api_handler.is_64_bit:
                 self.properties["localsend"] = PhotoFrameProperty(
                             self,
@@ -124,9 +126,29 @@ class PhotoFrameDevice(Device):
                             },
                             False )
             
+            """
+            self.properties["current_photo_name"] = PhotoFrameProperty(
+                            self,
+                            "current_photo_name",
+                            {
+                                'title': "Current photo",
+                                'type': 'string',
+                                'readOnly': True
+                            },
+                            None)
+            """
+                            
+            self.add_event('Start screensaver',{})
+            self.add_event('Previous photo',{})
+            self.add_event('Next photo',{})
+            
+            self.add_action("Start screensaver", {});
+            
             self.add_action("Previous photo", {});
             
             self.add_action("Next photo", {});
+            
+            
             
         except Exception as ex:
             print("caught error adding proto-frame properties: " + str(ex))
@@ -173,9 +195,38 @@ class PhotoFrameDevice(Device):
 
 		"""
 		
+    def perform_action(self,action):
+        if self.DEBUG:
+            print("in perform_action")
+            if action:
+                print("perform_action: Action.as_dict(): ", action.as_dict())
+            print("perform_action: self.events: ", self.events)
+        action_to_perform = action.as_dict()
+        if 'name' in action_to_perform:
+            if self.DEBUG:
+                print("action to perform name: ", action_to_perform['name'])
+            
+            if str(action_to_perform['name']) == 'Next photo':
+                next_photo_event = Event(self,'Next photo')
+                self.event_notify(next_photo_event)
+                if self.adapter.api_handler.persistent_data['night_mode'] == True:
+                    self.set_property('night_mode',False,{'origin':'action'})
+                
+            elif str(action_to_perform['name']) == 'Previous photo':
+                previous_photo_event = Event(self,'Previous photo')
+                self.event_notify(previous_photo_event)
+                if self.adapter.api_handler.persistent_data['night_mode'] == True:
+                    self.set_property('night_mode',False,{'origin':'action'})
+                    
+            elif str(action_to_perform['name']) == 'Start screensaver':
+                start_screensaver_event = Event(self,'Start screensaver')
+                self.event_notify(start_screensaver_event)
+                
+            else:
+                if self.DEBUG:
+                    print("perform_action: fell through")
         
-
-
+        
 
 #
 # PROPERTY

@@ -211,7 +211,7 @@ class PhotoFrameAPIHandler(APIHandler):
         
         soft_link = 'ln -s ' + str(self.photos_data_dir_path) + " " + str(self.photos_dir_path)
         if self.DEBUG:
-            print("linking: " + soft_link)
+            print("debug: linking: " + soft_link)
         os.system('rm -rf ' + str(self.photos_dir_path))
         os.system(soft_link)
         
@@ -406,6 +406,16 @@ class PhotoFrameAPIHandler(APIHandler):
             if self.DEBUG:
                 print("-Localsend pin was in config: " + str(self.localsend_pin))
         
+
+
+    def update_photo_name_on_thing(self):
+        if self.DEBUG:
+            print("in update_photo_name_on_thing")
+            
+        #current_photo_name
+
+
+
 
 
     def handle_request(self, request):

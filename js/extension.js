@@ -25,7 +25,86 @@
 			this.poll_fail_count = 0; // set to a higher number if the voco actions update failed
 			
 			
+			this.websockets = {};
+			this.websocket_before_unload_added = false;
+			
 			this.night_mode = false;
+			
+			
+			// Add SNOOP listener, which receives Websocket updates without needing to create another websocket connection
+			if(typeof window.snoop_thing == 'undefined'){
+				window.snoop_thing = {};
+				console.log("created window.snoop_thing dict");
+			}
+			if(typeof window.snoop_thing['photo-frame'] == 'undefined'){
+				window.snoop_thing['photo-frame'] = [];
+				console.log("added 'photo-frame' to window.snoop_thing");
+			}
+			
+			window.snoop_thing['photo-frame'].push( (message) => {
+				//console.log('SNOOP DOGG. this, message: ', this, message);
+				//this.handle_snoop(message);
+				//console.warn("handle_snoop: this, message: ", this, message);
+				if(this.debug){
+					console.log("photo frame debug: handling snoop message.  message: ", message);
+				}
+				if(typeof message['messageType'] == 'string' && typeof message['data'] == 'object'){
+					if(message['messageType'] == 'event'){
+						if(typeof message['data']['Next photo'] != 'undefined'){
+							this.next_picture();
+						}
+						else if(typeof message['data']['Previous photo'] != 'undefined'){
+							this.previous_picture();
+						}
+						else if(typeof message['data']['Start screensaver'] != 'undefined'){
+							if(this.debug){
+								console.log("photo frame debug: snoop message -> Start screensaver now");
+							}
+							if(window.location.pathname == '/extensions/photo-frame'){
+								this.last_activity_time = 0;
+								this.do_screensaver_interval();
+							}
+						}
+						else{
+							if(this.debug){
+								console.log("photo frame debug: handling snoop message: unexpected event message name");
+							}
+						}
+					}
+					else if(message['messageType'] == 'propertyStatus'){
+						if(typeof message['data']['night_mode'] == 'boolean'){
+							this.night_mode = message['data']['night_mode'];
+							if(this.debug){
+								console.log("photo frame debug: snooped night_mode message. this.night_mode is now: ", this.night_mode);
+							}
+		                	if(this.night_mode){
+		                		document.body.classList.add('extension-photo-frame-night-mode');
+		                	}
+							else{
+								document.body.classList.remove('extension-photo-frame-night-mode');
+							}
+						}
+					}
+				}
+				
+			});
+			
+			
+			//console.log("window.snoop_thing: ", window.snoop_thing);
+			
+			//var b = function(message){
+			//	console.log("snoop_gateway message: ", message);
+			//}
+			//window.snoop_gateway = [b];
+			
+			//console.log("window.snoop_gateway: ", window.snoop_gateway);
+			
+			
+			//window.API.getThing('photo-frame').then((thing) => {
+			//	console.log('winow.API: getTthing:  photo-frame: ', thing);
+			//});
+			
+			
 
             // Screensaver allowed
 			this.screensaver_allowed_in_this_browser = false;
@@ -1608,30 +1687,35 @@
 			if(this.filenames.length){
 				let selected_photo_indicator_container_el = document.getElementById('extension-photo-frame-selected-photo-indicator-container');
 				this.hide_selected_photo_indicator_time = new Date().getTime() + 1000;
-				selected_photo_indicator_container_el.innerHTML = '';
+				if(selected_photo_indicator_container_el){
+					selected_photo_indicator_container_el.innerHTML = '';
+					
+					let indicator_container_el = document.createElement('div');
 			
-				let indicator_container_el = document.createElement('div');
-			
-				for (let i = 0; i < this.filenames.length; i++) {
-					let indicator_el = document.createElement('div');
+					for (let i = 0; i < this.filenames.length; i++) {
+						let indicator_el = document.createElement('div');
 				
-					if(i == this.current_photo_number){
-						if(this.debug){
-							console.log("photo frame debug: show_selected_photo_indicator: at current photo number: ", i);
+						if(i == this.current_photo_number){
+							if(this.debug){
+								console.log("photo frame debug: show_selected_photo_indicator: at current photo number: ", i);
+							}
+							indicator_el.classList.add('extension-photo-frame-selected-photo-indicator-current');
 						}
-						indicator_el.classList.add('extension-photo-frame-selected-photo-indicator-current');
-					}
 			
-					indicator_container_el.appendChild(indicator_el);
+						indicator_container_el.appendChild(indicator_el);
 				
-				}
-				selected_photo_indicator_container_el.appendChild(indicator_container_el);
-			
-				setTimeout(() => {
-					if( new Date().getTime() > this.hide_selected_photo_indicator_time){
-						selected_photo_indicator_container_el.innerHTML = '';
 					}
-				},1002);
+					selected_photo_indicator_container_el.appendChild(indicator_container_el);
+			
+					setTimeout(() => {
+						if( new Date().getTime() > this.hide_selected_photo_indicator_time){
+							selected_photo_indicator_container_el.innerHTML = '';
+						}
+					},1002);
+				}
+				
+			
+				
 			}
 			
 		}
@@ -2598,7 +2682,7 @@
 		do_screensaver_interval(){
 			this.screensaver_interval_busy = true;
             const current_time = new Date().getTime();
-			if(this.page_visible == false){
+			if(this.page_visible == false || window.location.pathname == '/things/photo-frame'){
 				this.last_activity_time = current_time;
 			}
             const delta = current_time - this.last_activity_time;
@@ -2826,6 +2910,363 @@
             }, true);
 
         }
+		
+		
+		
+		
+		
+		start_websocket_client(){
+			class WebSocketClient {
+			  constructor(url, thing_id, options = {}) {
+			    this.url = url;
+			    this.options = {
+			      reconnectInterval: 1000,
+			      maxReconnectAttempts: 50,
+			      heartbeatInterval: 30000,
+			      ...options,
+			    };
+			    this.reconnectAttempts = 0;
+			    this.messageQueue = [];
+			    this.eventHandlers = {};
+			    this.isConnected = false;
+				this.connecting = false;
+				this.thing_id = thing_id;
+
+			    this.connect();
+			  }
+
+			  connect() {
+				  this.reconnect_scheduled = false;
+				  //console.error("websocket client: in connect().  this.thing_id: ", this.thing_id);
+				  if(this.connecting == true){
+					  console.error("websocket client: already busy connecting!  this.thing_id: ", this.thing_id);
+					  return
+				  }
+				  this.connecting = true;
+			    //console.log(`Connecting to ${this.url}...`);
+			    try {
+			      this.ws = new WebSocket(this.url);
+			      this.setupEventHandlers();
+			    } catch (error) {
+			      console.error('dashboard: failed to create WebSocket:' + error);
+			      this.scheduleReconnect();
+			    }
+			  }
+
+			  setupEventHandlers() {
+			    this.ws.onopen = (event) => {
+			      //console.log('WebSocket connected');
+			      this.isConnected = true;
+				  this.connecting = false;
+			      this.reconnectAttempts = 0;
+
+			      // Send any queued messages
+			      while (this.messageQueue.length > 0) {
+			        const message = this.messageQueue.shift();
+			        this.send(message);
+			      }
+
+			      // Start heartbeat
+			      //this.startHeartbeat();
+
+			      // Trigger custom open handlers
+			      this.trigger('open', event);
+			    };
+
+			    this.ws.onmessage = (event) => {
+			      //console.log('Websocket message received:', event.data);
+
+			      // Try to parse JSON messages
+			      let data = event.data;
+			      try {
+			        data = JSON.parse(event.data);
+			      } catch (e) {
+			        // Not JSON, use as-is
+			      }
+
+			      // Handle ping/pong for heartbeat
+			      if (data.type === 'pong') {
+			        this.lastPong = Date.now();
+			        return;
+			      }
+
+			      // Trigger custom message handlers
+			      this.trigger('message', data);
+
+			      // Trigger typed message handlers
+			      if (data.type) {
+			        this.trigger(data.type, data);
+			      }
+			    };
+
+			    this.ws.onerror = (error) => {
+			      //console.error('dashboard: WebSocket error:', error);
+			      this.trigger('error', error);
+			    };
+
+			    this.ws.onclose = (event) => {
+			      //console.log(`dashboard: WebSocket closed: ${event.code} - ${event.reason}`, event);
+			      this.isConnected = false;
+				  this.connecting = false;
+				  this.reconnect_scheduled = false;
+			      this.stopHeartbeat();
+
+				  event['thing_id'] = this.thing_id;
+			      // Trigger custom close handlers
+			      this.trigger('close', event);
+				  /*
+			      // Attempt to reconnect if not a normal closure
+			      if (event.code !== 1000 && event.code !== 1001) {
+					console.warn("websocket client: unexpected connection closure. scheduling reconnect.");
+			        this.scheduleReconnect();
+			      }
+				  */
+			    };
+			  }
+
+			  send(message) {
+			    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+			      const data =
+			        typeof message === 'object' ? JSON.stringify(message) : message;
+			      this.ws.send(data);
+			    } else {
+			      // Queue message if not connected
+			      //console.error('dashboard: WebSocket not connected, queuing message');
+			      this.messageQueue.push(message);
+			    }
+			  }
+
+			  startHeartbeat() {
+				  return
+			    this.stopHeartbeat();
+			    this.heartbeatTimer = setInterval(() => {
+			      if (this.ws.readyState === WebSocket.OPEN) {
+			        this.send({ type: 'ping', timestamp: Date.now() });
+
+			        // Check for pong timeout
+			        setTimeout(() => {
+			          const timeSinceLastPong = Date.now() - (this.lastPong || 0);
+			          if (timeSinceLastPong > this.options.heartbeatInterval * 2) {
+			            console.log('Dashboard: websocket client: heartbeat timeout, reconnecting...');
+			            this.ws.close();
+			          }
+			        }, 5000);
+			      }
+			    }, this.options.heartbeatInterval);
+			  }
+
+			  stopHeartbeat() {
+				  return
+			    if (this.heartbeatTimer) {
+			      clearInterval(this.heartbeatTimer);
+			      this.heartbeatTimer = null;
+			    }
+			  }
+
+			  scheduleReconnect() {
+				  if(this.connecting){
+					  console.error("dashboard: websocket client: in scheduleReconnect, it seems the client is busy reconnecting? Aborting.");
+					  return
+				  }
+				  if(this.reconnect_scheduled){
+					  console.error("dashboard: websocket client: in scheduleReconnect, but a reconnect was already scheduled. Aborting.");
+					  return
+				  }
+			    if (this.reconnectAttempts >= this.options.maxReconnectAttempts) {
+			      console.error('Dashboard: websocket max reconnection attempts reached (50)');
+			      this.trigger('maxReconnectAttemptsReached');
+			      return;
+			    }
+
+			    this.reconnectAttempts++;
+			    const delay =
+			      this.options.reconnectInterval * Math.pow(2, this.reconnectAttempts - 1);
+				  console.warn(`Dashboard: websocket reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})...`);
+
+			    setTimeout(() => {
+					this.reconnect_scheduled = true;
+			      this.connect();
+			    }, delay);
+			  }
+
+			  on(event, handler) {
+			    if (!this.eventHandlers[event]) {
+			      this.eventHandlers[event] = [];
+			    }
+			    this.eventHandlers[event].push(handler);
+			  }
+
+			  off(event, handler) {
+			    if (this.eventHandlers[event]) {
+			      this.eventHandlers[event] = this.eventHandlers[event].filter(
+			        (h) => h !== handler
+			      );
+			    }
+			  }
+
+			  trigger(event, data) {
+			    if (this.eventHandlers[event]) {
+			      this.eventHandlers[event].forEach((handler) => {
+			        try {
+			          handler(data);
+			        } catch (error) {
+			          //console.error(`Dashboard: Error in ${event} handler:`, error);
+			        }
+			      });
+			    }
+			  }
+
+			  close() {
+			    this.reconnectAttempts = this.options.maxReconnectAttempts;
+			    this.stopHeartbeat();
+			    if (this.ws) {
+			      this.ws.close(1000, 'Dashboard: Client closing connection');
+			    }
+			  }
+			}
+			
+			
+			// Create instance
+			
+			const thing_id = 'photo-frame';
+			
+			let ws_protocol = 'ws';
+			let port = 8080;
+			if (location.protocol == 'https:') {
+				port = 4443;
+				ws_protocol = 'wss';
+			}
+
+			const thing_websocket_url = ws_protocol + '://' + window.location.hostname + ':' + port + '/things/' + thing_id + '?jwt=' + window.API.jwt; // /properties/temperature
+			//console.log("generate_widget_content: creating new websocket client:  new thing_websocket_url: ", thing_websocket_url);
+			
+			this.websockets[ thing_id ] = new WebSocketClient(thing_websocket_url, thing_id);
+
+			const client = this.websockets[ thing_id ];
+			//console.log("new client: ", client);
+
+			client.on('open', () => {
+				if(this.debug){
+					console.warn('\n\nphoto frame debug: a websocket is connected and ready.  thing_id: ' + client.thing_id + '\n\n');
+				}
+			});
+
+
+			client.on('error', (error) => {
+				if(this.debug){
+					console.error('photo frame debug: websocket connection error:', error);
+				}
+				setTimeout(() => {
+					client.scheduleReconnect();
+				},2000);
+			});
+
+			client.on('close', (event) => {
+			  if(this.debug){
+				  console.warn('photo frame debug: WEBSOCKET CLOSED:', event.code, event.reason, event.thing_id);
+			  }
+			  if(event.code != 1000){
+				  if(this.debug){
+					  console.error("photo frame debug: websocket client close seems unexpected. Will attempt to re-open it in a few seconds");
+				  }
+				  setTimeout(() => {
+					  client.scheduleReconnect();
+				  },5000 + (Math.floor(Math.random() * 1000)));
+			  }
+			  else if(typeof event.thing_id == 'string'){
+				  //console.log("websocket just closed, and it provided a thing_id so that it can potentially be re-opened: ", event.thing_id);
+				  if(typeof this.websockets[event.thing_id] != 'undefined'){
+					  if(this.debug){
+						  console.log("photo frame debug: websocket was closed. thing_id: ", event.thing_id);
+					  }
+					  
+					  try{
+						  if(client.connecting == false && client.isConnected == false){
+							  if(this.debug){
+								  console.log("photo frame debug: CALLING Websocket CLIENT.CONNECT after it was closed");
+							  }
+							  client.connect();
+						  }
+						  else{
+							  if(this.debug){
+								  console.error("\nphoto frame debug:  END.\n\nre-opening websocket after close: something beat me to it?");
+							  }
+						  }
+						  
+					  }
+					  catch(err){
+						  if(this.debug){
+							  console.error("photo frame debug: caught error trying to re-connect to websocket client: ", err);
+						  }
+					  }
+					  
+				  }
+				  else{
+					  if(this.debug){
+						  console.error("photo frame debug: websocket that just closed no longer exists in this.websockets? ", event.thing_id, this.websockets);
+					  }
+				  }
+				  //console.warn("OK, received thing_id from websocket client that finished closing: ", event.thing_id);
+			  }
+			});
+			
+
+			client.on('message', (data) => {
+				if(this.debug){
+					console.log('\n\n\nphoto frame debug: websocket message received:', JSON.stringify(data,null,2));
+				}
+				
+				
+				if(window.location.pathname == '/extensions/photo-frame' && this.view && typeof data['id'] == 'string' && data['id'] == thing_id && typeof data['messageType'] == 'string' && typeof data['data'] != 'undefined'){ // && data['messageType'] == 'propertyStatus'
+					//console.log(" -- the websocket message contains a propertyStatus");
+
+					if(this.debug){
+						console.log("photo frame debug: as expected, received a websocket message for this thing: " + thing_id + " with keys: " + JSON.stringify(Object.keys(data['data'])));
+					}
+					/*
+					for (let [property_id, property_value] of Object.entries( data['data'] )) {
+						
+					}
+					*/
+				}
+				
+			});
+			
+			//console.log("connect_websockets: this.websockets is now: ", this.websockets);
+			
+			if(this.websocket_before_unload_added == false){
+				this.websocket_before_unload_added = true;
+				window.addEventListener("beforeunload", (event) => {
+					this.close_all_websockets();
+				});
+			}
+			
+		}
+		
+		
+		close_all_websockets(){
+			for (const [websocket_thing_id, websocket_client] of Object.entries( this.websockets )) {
+				if(websocket_client){
+					websocket_client.close(websocket_thing_id);
+				}
+			}
+			
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		
