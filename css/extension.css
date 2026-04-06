@@ -1146,7 +1146,6 @@ body.screensaver .extension-photo-frame-effect{
 
 
 #extension-photo-frame-dropzone {
-	display:none;
     height: 10rem;
     border: 2px dashed #ccc;
     color: #ccc;
