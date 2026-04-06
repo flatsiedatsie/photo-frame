@@ -188,6 +188,8 @@ class PhotoFrameAPIHandler(APIHandler):
         
         self.demo_photo_file_path = os.path.join(self.addon_path, 'demo_photo.jpg')
         self.demo_photo2_file_path = os.path.join(self.addon_path, 'demo_photo2.jpg')
+        self.demo_photo3_file_path = os.path.join(self.addon_path, 'demo_photo3.jpg')
+        self.demo_photo4_file_path = os.path.join(self.addon_path, 'demo_photo4.jpg')
         self.external_picture_drop_dir = os.path.join(self.user_profile['dataDir'], 'privacy-manager', 'printme')
         self.display_toggle_path = os.path.join(self.user_profile['addonsDir'], 'display-toggle')
         self.localsend_path = os.path.join(self.addon_path,'localsend','localsend_cli64')
@@ -306,6 +308,8 @@ class PhotoFrameAPIHandler(APIHandler):
             
                     os.system('cp ' + str(self.demo_photo_file_path) + ' ' + str(self.photos_data_dir_path))
                     os.system('cp ' + str(self.demo_photo2_file_path) + ' ' + str(self.photos_data_dir_path))
+                    os.system('cp ' + str(self.demo_photo3_file_path) + ' ' + str(self.photos_data_dir_path))
+                    os.system('cp ' + str(self.demo_photo4_file_path) + ' ' + str(self.photos_data_dir_path))
             
                     self.persistent_data['demo_photo_copied'] = True # this makes it possible to not show any photos at all (a black background)
                     self.save_persistent_data()

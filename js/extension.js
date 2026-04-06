@@ -34,11 +34,11 @@
 			// Add SNOOP listener, which receives Websocket updates without needing to create another websocket connection
 			if(typeof window.snoop_thing == 'undefined'){
 				window.snoop_thing = {};
-				console.log("created window.snoop_thing dict");
+				//console.log("created window.snoop_thing dict");
 			}
 			if(typeof window.snoop_thing['photo-frame'] == 'undefined'){
 				window.snoop_thing['photo-frame'] = [];
-				console.log("added 'photo-frame' to window.snoop_thing");
+				//console.log("added 'photo-frame' to window.snoop_thing");
 			}
 			
 			window.snoop_thing['photo-frame'].push( (message) => {
@@ -2914,7 +2914,7 @@
 		
 		
 		
-		
+		// Not used. Created Snoop feature instead.
 		start_websocket_client(){
 			class WebSocketClient {
 			  constructor(url, thing_id, options = {}) {
