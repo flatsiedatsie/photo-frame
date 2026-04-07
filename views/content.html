@@ -6,7 +6,7 @@
             <div id="extension-photo-frame-picture1" class="extension-photo-frame-picture"></div>
             <div id="extension-photo-frame-picture2" class="extension-photo-frame-picture"></div>
             
-			<div id="extension-photo-frame-clock-container">
+			<div class="extension-photo-frame-zindex2" id="extension-photo-frame-clock-container">
                 <div id="extension-photo-frame-clock"></div>
                 <div id="extension-photo-frame-date">
                     <div id="extension-photo-frame-date-day"></div>
@@ -25,10 +25,11 @@
             
             
             <!--<div id="extension-photo-frame-picture-exit-container"><div id="extension-photo-frame-picture-exit">Overview</div></div>-->
-			<div id="extension-photo-frame-start-screensaver-button-container"><button id="extension-photo-frame-start-screensaver-button" class="icon-button"></button><div id="extension-photo-frame-start-screensaver-countdown-indicator"></div></div>
-			<div id="extension-photo-frame-next-photo-button-container"><button id="extension-photo-frame-next-photo-button" class="icon-button"></button></div>
-			<div id="extension-photo-frame-more-button-container"><button id="extension-photo-frame-more-button" class="icon-button"></button></div>
-			<div id="extension-photo-frame-print-button-container">
+			<div class="extension-photo-frame-zindex2" id="extension-photo-frame-night-mode-button-container"><button id="extension-photo-frame-night-mode-button" class="icon-button"></button><button id="extension-photo-frame-day-mode-button" class="icon-button"></button></div>
+			<div class="extension-photo-frame-zindex2 extension-photo-frame-fade-at-night" id="extension-photo-frame-start-screensaver-button-container"><button id="extension-photo-frame-start-screensaver-button" class="icon-button"></button><div id="extension-photo-frame-start-screensaver-countdown-indicator"></div></div>
+			<div class="extension-photo-frame-zindex2 extension-photo-frame-fade-at-night" id="extension-photo-frame-next-photo-button-container"><button id="extension-photo-frame-next-photo-button" class="icon-button"></button></div>
+			<div class="extension-photo-frame-zindex2 extension-photo-frame-fade-at-night" id="extension-photo-frame-more-button-container"><button id="extension-photo-frame-more-button" class="icon-button"></button></div>
+			<div class="extension-photo-frame-zindex2 extension-photo-frame-fade-at-night" id="extension-photo-frame-print-button-container">
 				<button id="extension-photo-frame-print-button" class="extension-photo-frame-icon-button"></button>
 				<div id="extension-photo-frame-print-button-confirm-container">
 					<button id="extension-photo-frame-print-confirm-button" class="extension-photo-frame-icon-button"></button>
@@ -57,7 +58,7 @@
 					<div id="extension-photo-frame-localsend-messages" class="extension-photo-frame-show-if-developer"></div>
 					<p><span style="opacity:.7;">Localsend is a popular open source app for mobile phones and laptops that allows for easy sharing of files between your devices.</span> <span class="text-button" id="extension-photo-frame-show-localsend-explanation-button">Learn more</span></p>
 					<div id="extension-photo-frame-localsend-explanation" class="extension-photo-frame-hidden">
-						<img src="/extensions/photo-frame/images/localsend.svg" alt="Localsend photo sharing">
+						<img loading="lazy" src="/extensions/photo-frame/images/localsend.svg" alt="Localsend photo sharing">
 						<p>Localsend is like Apple's Airdrop, but it's available for all phones, laptops and other devices. To use it you have to install the LocalSend app on your phone or laptop.</p>
 						<p>While Localsend it switched on, any device on your network that also has Localsend installed can upload photos to Photo Frame. When you're done, simply turn Localsend off again.</p>
 						<p>You can add an optional security pin code in this addon's settings. With that enabled the pin code must be entered before the Photo Frame will accept new files.</p>
@@ -89,7 +90,7 @@
 				<div>
 					<h3>Privacy mode</h3>
 					<div id="extension-photo-frame-privacy-mode-explanation-container" class="extension-photo-frame-flex-wrap-when-narrow extension-photo-frame-flex-between">
-						<div id="extension-photo-frame-privacy-mode-image-wrapper"><div id="extension-photo-frame-privacy-mode-speech-bubble"><span id="extension-photo-frame-privacy-mode-speech-bubble-text"></span></div><img src="/extensions/photo-frame/images/child_with_questions.svg" alt="A child with some questions"></div>
+						<div id="extension-photo-frame-privacy-mode-image-wrapper"><div id="extension-photo-frame-privacy-mode-speech-bubble"><span id="extension-photo-frame-privacy-mode-speech-bubble-text"></span></div><img loading="lazy" src="/extensions/photo-frame/images/child_with_questions.svg" alt="A child with some questions"></div>
 						<div id="extension-photo-frame-privacy-mode-explanation-text-wrapper"><p>Select some photos that are 'safe' to show no matter who your guests are. Then you can enable privacy mode, which will only show those 'safe' photos for a while.<br><br>During that time there will be no indication that privacy mode is active, and it will look like the 'unsafe' photos have been deleted. But don't worry, they're only hidden.</p><div style="text-align:right"><button class="text-button" id="extension-photo-frame-select-safe-photos-button">Select safe photos</button></div></div>
 					</div>
 					<div id="extension-photo-frame-privacy-mode-start-buttons-container-area" class="extension-photo-frame-area">

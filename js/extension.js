@@ -191,7 +191,7 @@
 				  this.page_visible = false;
 			  } else {
 				  if(this.debug){
-					  console.log("photo frame: page became visible");
+					  console.log("photo frame debug: page became visible");
 				  }
 				  this.page_visible = true;
 			  }
@@ -529,10 +529,74 @@
 				}
                 event.stopImmediatePropagation();
 				event.preventDefault();
-				this.interval_counter = 0
+				this.interval_counter = 0;
 				this.last_activity_time = new Date().getTime();
 				this.next_picture();
             });
+			
+			
+			// Night mode button
+			const night_mode_button_el = this.view.querySelector('#extension-photo-frame-night-mode-button');
+			if(night_mode_button_el){
+				night_mode_button_el.addEventListener('click', () => {
+					if(this.debug){
+						console.log("photo frame debug: night mode button clicked");
+					}
+	                event.stopImmediatePropagation();
+					event.preventDefault();
+					this.last_activity_time = 1;
+					this.night_mode = true;
+					document.body.classList.add('extension-photo-frame-night-mode');
+		            window.API.postJson(
+		                `/extensions/${this.id}/api/ajax`, {
+		                    'action': 'set_night_mode',
+							'state':true
+		                }
+		            ).then((body) => {
+			            this.parse_body(body);
+		            }).catch((err) => {
+		                if (this.debug) {
+							console.log("Photo frame: caught error calling set_night_mode: ", err);
+						}
+		            });
+				
+	            });
+			}
+			else{
+				console.error("photo frame: night mode button is missing?");
+			}
+			
+			// Disable night mode
+			const day_mode_button_el = this.view.querySelector('#extension-photo-frame-day-mode-button');
+			if(day_mode_button_el){
+				day_mode_button_el.addEventListener('click', () => {
+					if(this.debug){
+						console.log("photo frame debug: day mode button clicked");
+					}
+	                event.stopImmediatePropagation();
+					event.preventDefault();
+					this.last_activity_time = 1;
+					this.night_mode = false;
+					document.body.classList.remove('extension-photo-frame-day-mode');
+		            window.API.postJson(
+		                `/extensions/${this.id}/api/ajax`, {
+		                    'action': 'set_night_mode',
+							'state':false
+		                }
+		            ).then((body) => {
+			            this.parse_body(body);
+		            }).catch((err) => {
+		                if (this.debug) {
+							console.log("Photo frame: caught error calling API to disable night mode: ", err);
+						}
+		            });
+				
+	            });
+			}
+			else{
+				console.error("photo frame: day mode button is missing?");
+			}
+			
 			
 			
 			// start screensaver button
@@ -1424,7 +1488,7 @@
 			if(this.current_photo_number < 0){
 				this.current_photo_number = this.filenames.length - 1;
 			}
-			this.show_file( this.filenames[this.current_photo_number] );
+			this.show_file( this.filenames[this.current_photo_number], true); // true = instant change
 			if(this.debug){
 				console.log("photo-frame debug: previous_picture: after this.current_photo_number: ", this.current_photo_number);
 			}
@@ -1440,7 +1504,7 @@
 			if(this.current_photo_number >= this.filenames.length){
 				this.current_photo_number = 0;
 			}
-			this.show_file( this.filenames[this.current_photo_number] );
+			this.show_file( this.filenames[this.current_photo_number], true); // true = instant change
 			if(this.debug){
 				console.log("photo-frame debug: next_picture: after this.current_photo_number: ", this.current_photo_number);
 			}
@@ -1474,7 +1538,7 @@
         }
 
 
-        show_file(filename) {
+        show_file(filename,instant=false) {
 			if(this.debug){
 				console.log("photo-frame debug:  show_file. filename: ", filename);
 			}
@@ -1509,6 +1573,7 @@
 				//picture2.classList.remove('extension-photo-frame-fade-out');
 				picture1.classList.remove('extension-photo-frame-current-picture');
 				
+				
 				//picture2.classList.add('extension-photo-frame-current-top-picture');
 				//picture1.classList.remove('extension-photo-frame-current-top-picture');
 				
@@ -1517,10 +1582,20 @@
                     //picture1.classList.remove('extension-photo-frame-current-picture');
                 }, 500);
 				
-                setTimeout(() => {
-                    //picture2.classList.remove('extension-photo-frame-invisible')
-					//picture2.classList.add('extension-photo-frame-fade-out');
-                }, 4000);
+				if(instant){
+					picture1.classList.remove('extension-photo-frame-top-picture');
+					picture2.classList.add('extension-photo-frame-top-picture');
+				}
+				else{
+	                setTimeout(() => {
+	                    //picture2.classList.remove('extension-photo-frame-invisible')
+						//picture2.classList.add('extension-photo-frame-fade-out');
+						picture1.classList.remove('extension-photo-frame-top-picture');
+						picture2.classList.add('extension-photo-frame-top-picture');
+					
+	                }, 4000);
+				}
+                
 
                 // Also update the list of photos.
 
@@ -1535,6 +1610,21 @@
                 picture1.style.backgroundImage = "url(/extensions/photo-frame/photos/" + filename + ")";
                 picture1.classList.add('extension-photo-frame-current-picture');
 				picture2.classList.remove('extension-photo-frame-current-picture');
+				
+				if(instant){
+					picture1.classList.add('extension-photo-frame-top-picture');
+					picture2.classList.remove('extension-photo-frame-top-picture');
+				}
+				else{
+	                setTimeout(() => {
+	                    //picture2.classList.remove('extension-photo-frame-invisible')
+						//picture2.classList.add('extension-photo-frame-fade-out');
+						picture1.classList.add('extension-photo-frame-top-picture');
+						picture2.classList.remove('extension-photo-frame-top-picture');
+					
+	                }, 4000);
+				}
+				
 				//picture2.classList.add('extension-photo-frame-fade-out');
 				//picture1.classList.add('extension-photo-frame-current-top-picture');
 				//picture2.classList.remove('extension-photo-frame-current-top-picture');

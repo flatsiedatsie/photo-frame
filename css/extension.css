@@ -108,6 +108,9 @@ body.screensaver #extension-photo-frame-picture-holder{
 }
 
 
+.extension-photo-frame-picture{
+	background-color:black;
+}
 
 /*  Candle theme zoom support/fix  */
 
@@ -425,7 +428,7 @@ body.screensaver #extension-photo-frame-picture-holder{
 #extension-photo-frame-next-photo-button{
     width:5.6rem;
     height:5.6rem;
-    background: rgba(255,255,255,.15) no-repeat center/30% url(/images/right-arrow.png);
+    background: rgba(255,255,255,.15) no-repeat center/cover url(../images/next.svg);
     cursor:pointer;
 	margin-top:2rem;
 	cursor:pointer;
@@ -458,6 +461,56 @@ body.screensaver #extension-photo-frame-picture-holder{
 
 
 
+/*  NIGHT MODE BUTTON  */
+
+#extension-photo-frame-night-mode-button-container{
+    position: fixed;
+    /*bottom: 17.4rem;*/
+    right: 0rem;
+    width:7.6rem;
+    height:7.6rem;
+	bottom:25rem;
+    height:7.6rem;
+	
+}
+
+#extension-photo-frame-night-mode-button,
+#extension-photo-frame-day-mode-button{
+    width:5.6rem;
+    height:5.6rem;
+    background: rgba(255,255,255,.15) no-repeat center/100% url(../images/moon.svg);
+	margin-top:2rem;
+	cursor:pointer;
+}
+#extension-photo-frame-day-mode-button{
+	background-image:url(../images/sun.svg);
+}
+
+#extension-photo-frame-day-mode-button:hover,
+#extension-photo-frame-night-mode-button:hover{
+	background-color:rgba(255,255,255,.5);
+}
+
+body:not(.extension-photo-frame-night-mode) #extension-photo-frame-day-mode-button,
+body.extension-photo-frame-night-mode #extension-photo-frame-night-mode-button{
+	display:none;
+}
+
+body.extension-photo-frame-night-mode #extension-photo-frame-day-mode-button{
+	opacity:.5!important;
+}
+body.extension-photo-frame-night-mode #extension-photo-frame-day-mode-button:hover{
+	background-image:url(../images/sun_rising.svg);
+	opacity:1;
+}
+
+body.extension-photo-frame-night-mode .extension-photo-frame-picture{
+	/*opacity:.1!important;*/
+	filter: brightness(0.5);
+}
+
+
+
 /*  START SCREENSAVER BUTTON  */
 
 #extension-photo-frame-start-screensaver-button-container{
@@ -471,7 +524,9 @@ body.screensaver #extension-photo-frame-picture-holder{
 #extension-photo-frame-start-screensaver-button{
     width:5.6rem;
     height:5.6rem;
-    background: rgba(255,255,255,.15) no-repeat center/100% url(../images/moon.svg);
+	background-size:5rem;
+    background: rgba(255,255,255,.15) no-repeat center/100% url(../images/play.svg);
+	background-size: cover;
 	margin-top:2rem;
 	cursor:pointer;
 }
@@ -548,7 +603,14 @@ body:not(.screensaver) .extension-photo-frame-picture:not(.extension-photo-frame
     opacity:0;
     transition:opacity .1s; 
 }
-
+/*
+.extension-photo-frame-picture:not(.extension-photo-frame-top-picture){
+	z-index:-1;
+}
+*/
+.extension-photo-frame-top-picture{
+	z-index:1;
+}
 
 .slideshow .extension-photo-frame-picture{
 	/*transition:opacity 1s; */
@@ -579,7 +641,8 @@ body:not(.screensaver) .extension-photo-frame-picture:not(.extension-photo-frame
     /*bottom: 0rem;
     right: 9.6rem;*/
 	right:2rem;
-	bottom:23rem;
+	/*bottom:23rem;*/
+	bottom:30.6rem;
     height:7.6rem;
 	width:auto;
 }
@@ -640,7 +703,9 @@ body:not(.screensaver) #extension-photo-frame-view.extension-photo-frame-printer
 
 
 
-
+.extension-photo-frame-zindex2{
+	z-index:2;
+}
 
 /*   VOCO TIMERS LIST   */
 
@@ -1348,8 +1413,22 @@ body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode me
 	opacity:.1;
 }
 
-body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #extension-photo-frame-clock-container{
+body#path-extensions-photo-frame.extension-photo-frame-night-mode #extension-photo-frame-clock-container{
 	color:#550000;
+}
+body#path-extensions-photo-frame.extension-photo-frame-night-mode .extension-photo-frame-fade-at-night:not(:hover){
+	opacity:.15;
+}
+/*
+body#path-extensions-photo-frame.extension-photo-frame-night-mode #extension-photo-frame-night-mode-button-container{
+	opacity:.3;
+}
+*/
+body#path-extensions-photo-frame.extension-photo-frame-night-mode #menu-button:not(:hover){
+	filter: brightness(.3) grayscale(100%);
+}
+
+body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #extension-photo-frame-clock-container{
 	position:relative;
 	margin-top: 20rem;
 	animation-name: extension-photo-frame-night-mode-burnin-prevention;
@@ -1375,7 +1454,9 @@ body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #e
 body#path-extensions-photo-frame.screensaver.extension-photo-frame-night-mode #extension-photo-frame-picture2{
 	visibility: hidden;
 }
-
+body#path-extensions-photo-frame.extension-photo-frame-night-mode .extension-photo-frame-picture{
+	filter: grayscale(100%)
+}
 
 
 /*  LOCALSEND  */

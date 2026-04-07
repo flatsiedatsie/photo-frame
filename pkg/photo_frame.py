@@ -472,10 +472,22 @@ class PhotoFrameAPIHandler(APIHandler):
                                     state = True
                                     
                             elif action == 'set_localsend':
-                                if 'state' in request.body and isinstance(request.body['state'],(bool)):
+                                if 'state' in request.body and isinstance(request.body['state'],bool):
                                     self.set_localsend(request.body['state'])
                                     state = True
-                            
+                    
+                            elif action == 'set_night_mode':
+                                if 'state' in request.body and isinstance(request.body['state'],bool):
+                                    self.persistent_data['night_mode'] = request.body['state']
+                                    self.save_persistent_data()
+                                    if self.adapter and self.adapter.thing:
+                                        try:
+                                            self.adapter.thing.set_property('night_mode',self.persistent_data['night_mode'],{'origin':'Addon UI'})
+                                            state = True
+                                        except Exception as ex:
+                                            print("caught error changing value or night_mode property on Photo Frame thing: ", ex)
+                        
+                        
                         
                         return APIResponse(
                           status=200,
@@ -483,6 +495,7 @@ class PhotoFrameAPIHandler(APIHandler):
                           content=json.dumps({'state' : state,
                                               'safe_photos':self.persistent_data['safe_photos'],
                                               'privacy_mode_end_time':self.persistent_data['privacy_mode_end_time'],
+                                              'night_mode':self.persistent_data['night_mode'],
                                               'localsend_name':self.localsend_name
                                             }),
                         )

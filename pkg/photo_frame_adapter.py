@@ -2,7 +2,7 @@ try:
     from gateway_addon import Adapter, Device, Property, Action, Event
     #print("succesfully loaded APIHandler and APIResponse from gateway_addon")
 except:
-    print("Could not load vital libraries to interact with the controller")
+    print("ERROR, could not load vital libraries to interact with the controller")
 
 
 
@@ -40,7 +40,8 @@ class PhotoFrameAdapter(Adapter):
             self.thing = self.get_device("photo-frame")
             
         except Exception as ex:
-            print("caught error during photo frame adapter device init: " + str(ex))
+            if self.DEBUG:
+                print("caught error during photo frame adapter device init: " + str(ex))
 
         self.ready = True
 
@@ -53,7 +54,8 @@ class PhotoFrameAdapter(Adapter):
             self.handle_device_removed(obj)                     # Remove from device dictionary
 
         except Exception as ex:
-            print("Could not remove thing from PhotoFrame adapter devices: " + str(ex))
+            if self.DEBUG:
+                print("caught error: could not remove thing from PhotoFrame adapter devices: " + str(ex))
 
 
 
@@ -151,7 +153,8 @@ class PhotoFrameDevice(Device):
             
             
         except Exception as ex:
-            print("caught error adding proto-frame properties: " + str(ex))
+            if self.DEBUG:
+                print("caught error adding proto-frame properties: " + str(ex))
 
         if self.DEBUG:
             print("debug: PhotoFrame thing has been created")
@@ -237,6 +240,8 @@ class PhotoFrameProperty(Property):
     def __init__(self, device, name, description, value):
         Property.__init__(self, device, name, description)
         self.device = device
+        self.DEBUG = self.device.DEBUG
+        
         self.id = name
         self.name = name
         self.title = name
@@ -244,9 +249,11 @@ class PhotoFrameProperty(Property):
         self.value = value
         self.set_cached_value(value)
         self.device.notify_property_changed(self)
+        
 
-
-    def set_value(self, value):
+    def set_value(self, value, meta=None):
+        if self.DEBUG and meta != None:
+            print("property: set_value: received meta data.  self.title, meta: ", self.title, meta)
         #print("property: set_value called for " + str(self.title))
         #print("property: set value to: " + str(value))
         try:
@@ -296,7 +303,9 @@ class PhotoFrameProperty(Property):
 
 
 
-    def update(self, value):
+    def update(self, value, meta=None):
+        if self.DEBUG and meta != None:
+            print("property: update: unexpectedly received meta data.  self.title, meta: ", self.title, meta)
         #print("property -> update")
         if value != self.value:
             self.value = value
