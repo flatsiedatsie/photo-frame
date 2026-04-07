@@ -68,7 +68,6 @@
 				</div>
 				
 				<div class="extension-photo-frame-flex-between extension-photo-frame-flex-align-center">
-					<button id="extension-photo-frame-add-random-photo-button" class="text-button extension-photo-frame-hide-if-selecting-privacy-mode-photos">Add random photo</button>
 					<button id="extension-photo-frame-cancel-selecting-button" class="text-button extension-photo-frame-show-if-selecting-privacy-mode-photos">Cancel</button>
 					<button id="extension-photo-frame-done-selecting-button" class="text-button extension-photo-frame-show-if-selecting-privacy-mode-photos">Done</button>
 				</div>
@@ -76,13 +75,6 @@
 
             <input id="extension-photo-frame-photos-file-selector" accept=".gif,.png,.jpg,.jpeg,.webp,image/gif,image/png,image/jpeg,image/webp" type="file" multiple="multiple"/>
             <div id="extension-photo-frame-photos-file-selector-overlay">&nbsp;</div>
-            <!--
-            <button id="extension-photo-frame-back-button" class="back-button icon-button" data-l10n-id="back-button" aria-label="Back"></button>
-            -->
-           
-            <div id="extension-photo-frame-response">
-                <p id="extension-photo-frame-response-data"></p>
-            </div>
             
             <div id="extension-photo-frame-upload-progress-container"></div>
 			
@@ -95,6 +87,7 @@
 					</div>
 					<div id="extension-photo-frame-privacy-mode-start-buttons-container-area" class="extension-photo-frame-area">
 						<div id="extension-photo-frame-privacy-mode-start-buttons-container">
+							<button class="text-button extension-photo-frame-show-if-developer" id="extension-photo-frame-privacy-mode-2minutes-button">2 minutes</button>
 							<button class="text-button" id="extension-photo-frame-privacy-mode-1hour-button">1 hour</button>
 							<button class="text-button" id="extension-photo-frame-privacy-mode-4hours-button">4 hours</button>
 							<button class="text-button" id="extension-photo-frame-privacy-mode-9pm-button">Until 9 pm</button>
@@ -126,7 +119,10 @@
 				<!--
 				<div class="extension-photo-frame-area extension-photo-frame-hidden"><input type="checkbox" id="extension-photo-frame-create-thing-checkbox" name="extension-photo-frame-create-thing-checkbox"><label for="extension-photo-frame-create-thing-checkbox"></label><span>Create a thing to control photo frame</span></div>
 				// -->
-				<div style="text-align:right;margin:4rem 0 12rem 0"><a href="/extensions/candleappstore#photo-frame" class="text-button" style="text-decoration:none">More settings</a></div>
+				<div class="extension-photo-frame-flex-between extension-photo-frame-flex-align-center" style="margin-top:4rem">
+					<button id="extension-photo-frame-add-random-photo-button" class="text-button extension-photo-frame-hide-if-selecting-privacy-mode-photos">Add random photo</button>
+					<a href="/extensions/candleappstore#photo-frame" class="text-button" style="text-decoration:none">More settings</a>
+				</div>
 			</div>
 			
         </div>

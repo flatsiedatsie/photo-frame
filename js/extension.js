@@ -29,6 +29,7 @@
 			this.websocket_before_unload_added = false;
 			
 			this.night_mode = false;
+			this.added_a_photo = false;
 			
 			
 			// Add SNOOP listener, which receives Websocket updates without needing to create another websocket connection
@@ -457,8 +458,6 @@
 			}
 			*/
 
-
-            //const pre = document.getElementById('extension-photo-frame-response-data');
             const thing_list = document.getElementById('extension-photo-frame-thing-list');
 
 			const file_selector_el = this.view.querySelector('#extension-photo-frame-photos-file-selector');
@@ -815,7 +814,7 @@
 			
 		            }).catch((err) => {
 		                if (this.debug) {
-							console.error("Photo frame debug: caught error doing set_localsend request: ", err);
+							console.error("photo frame debug: caught error doing set_localsend request: ", err);
 						}
 		            });
 	            });
@@ -838,9 +837,17 @@
             });
 			
 			this.view.querySelector('#extension-photo-frame-select-safe-photos-button').addEventListener('click', () => {
-				this.busy_selecting_safe_photos = true;
-				overview_el.classList.add('extension-photo-frame-privacy-mode-selecting-photos');
-				this.view.querySelector('#extension-photo-frame-photos-list').scrollIntoView({ behavior: 'smooth' });
+				if(this.busy_selecting_safe_photos){
+					this.busy_selecting_safe_photos = false;
+					overview_el.classList.remove('extension-photo-frame-privacy-mode-selecting-photos');
+					this.update_privacy_mode_photos();
+				}
+				else{
+					this.busy_selecting_safe_photos = true;
+					overview_el.classList.add('extension-photo-frame-privacy-mode-selecting-photos');
+					this.view.querySelector('#extension-photo-frame-photos-list').scrollIntoView({ behavior: 'smooth' });
+				}
+				
             });
 			
 			this.view.querySelector('#extension-photo-frame-cancel-selecting-button').addEventListener('click', () => {
@@ -861,20 +868,29 @@
 				localStorage.setItem('extension-photo-frame-privacy-mode-only-in-this-browser', this.privacy_mode_only_in_this_browser);
             });
 			
-			
+			// 2 minutes privacy mode button
+			const two_mimnutes_button_el = this.view.querySelector('#extension-photo-frame-privacy-mode-2minutes-button');
+			if(two_mimnutes_button_el){
+				two_mimnutes_button_el.addEventListener('click', () => {
+					if (this.debug) {
+						console.log("photo frame debug: enabling privacy mode for 2 minutes");
+					}
+					this.start_privacy_mode((120000), two_mimnutes_button_el);
+				});
+			}
 			
 			this.view.querySelector('#extension-photo-frame-privacy-mode-1hour-button').addEventListener('click', () => {
-				console.log("enabling privacy mode for 1 hour");
+				//console.log("enabling privacy mode for 1 hour");
 				this.start_privacy_mode((3600000), this.view.querySelector('#extension-photo-frame-privacy-mode-1hour-button'));
 			});
 			
 			this.view.querySelector('#extension-photo-frame-privacy-mode-4hours-button').addEventListener('click', () => {
-				console.log("enabling privacy mode for 4 hours");
+				//console.log("enabling privacy mode for 4 hours");
 				this.start_privacy_mode((3600000 * 4), this.view.querySelector('#extension-photo-frame-privacy-mode-4hours-button'));
 			});
 			
 			this.view.querySelector('#extension-photo-frame-privacy-mode-9pm-button').addEventListener('click', () => {
-				console.log("enabling privacy mode until 9 pm");
+				//console.log("enabling privacy mode until 9 pm");
 				
 				let start_of_day = Date.now();
 				start_of_day = start_of_day - (start_of_day % (3600000 * 24));
@@ -883,7 +899,7 @@
 			});
 			
 			this.view.querySelector('#extension-photo-frame-privacy-mode-noon-tomorrow-button').addEventListener('click', () => {
-				console.log("enabling privacy mode until noon tomorrow");
+				//console.log("enabling privacy mode until noon tomorrow");
 				
 				let start_of_day = Date.now();
 				start_of_day = start_of_day - (start_of_day % (3600000 * 24));
@@ -892,7 +908,7 @@
 			});
 			
 			this.view.querySelector('#extension-photo-frame-privacy-mode-3days-button').addEventListener('click', () => {
-				console.log("enabling privacy mode for 3 days");
+				//console.log("enabling privacy mode for 3 days");
 				
 				let start_of_day = Date.now();
 				start_of_day = start_of_day - (start_of_day % (3600000 * 24));
@@ -1322,6 +1338,8 @@
 				if(this.debug){
 					console.log("photo frame debug: save_safe_photos_list response: ", body);
 				}
+				this.parse_body(body);
+				this.show_list();
 			
             }).catch((err) => {
                 if (this.debug) {
@@ -2087,6 +2105,13 @@
 				}
             }
 			
+			if(typeof body.added_a_photo == 'boolean'){
+				this.added_a_photo = body.added_a_photo;
+				if(this.added_a_photo){
+					this.view.classList.add('extension-photo-frame-added-a-photo');
+				}
+			}
+			
 			if(typeof body.localsend_name == 'string'){
 				const localsend_name_el = this.view.querySelector('#extension-photo-frame-localsend-name');
 				if(localsend_name_el){
@@ -2401,9 +2426,14 @@
 					return;
 				}
 			}
+			if(this.busy_selecting_safe_photos == true){
+				if(this.debug){
+					console.warn("aborting thumbnal redraw while busy_selecting_safe_photos is true");
+				}
+				return
+			}
 			
             //console.log("Updating photo list")
-            //const pre = document.getElementById('extension-photo-frame-response-data');
             const photo_list = this.view.querySelector('#extension-photo-frame-photos-list');
             const picture_holder = this.view.querySelector('#extension-photo-frame-picture-holder');
             const overview = this.view.querySelector('#extension-photo-frame-overview');
@@ -2438,6 +2468,9 @@
 				if(this.safe_photos.indexOf(photo_filename) != -1){
 					node.classList.add('extension-photo-frame-list-item-privacy-safe');
 				}
+				else{
+					node.classList.add('extension-photo-frame-list-item-privacy-hidden');
+				}
 
                 var img_container_node = document.createElement("div"); // Create a <li> node
                 img_container_node.setAttribute("class", "extension-photo-frame-list-thumbnail-container");
@@ -2451,6 +2484,13 @@
 						console.log("photo frame debug: clicked on a thumbnail.  photo_filename, this.busy_selecting_safe_photos: ", photo_filename, this.busy_selecting_safe_photos);
 					}
 					if(this.busy_selecting_safe_photos){
+						
+						if(node.classList.contains('extension-photo-frame-list-item-privacy-safe')){
+							node.classList.remove('extension-photo-frame-list-item-privacy-safe');
+						}else{
+							node.classList.add('extension-photo-frame-list-item-privacy-safe');
+						}
+						/*
 						if(this.privacy_mode_enabled){
 							if(node.classList.contains('extension-photo-frame-list-item-privacy-save')){
 								node.classList.remove('extension-photo-frame-list-item-privacy-save');
@@ -2465,6 +2505,7 @@
 								node.classList.add('extension-photo-frame-list-item-privacy-safe');
 							}
 						}
+						*/
 						
 					}
 					else{

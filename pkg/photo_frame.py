@@ -252,6 +252,9 @@ class PhotoFrameAPIHandler(APIHandler):
         
         if not 'night_mode' in self.persistent_data.keys():
             self.persistent_data['night_mode'] = False
+            
+        if not 'added_a_photo' in self.persistent_data.keys():
+            self.persistent_data['added_a_photo'] = False
             self.save_persistent_data()
         
         if self.DEBUG:
@@ -433,7 +436,7 @@ class PhotoFrameAPIHandler(APIHandler):
         
             if request.method != 'POST':
                 if self.DEBUG:
-                    print("api error, not post")
+                    print("api error: not a post request")
                 return APIResponse(status=404)
             
             if request.path == '/ajax' or request.path == '/init' or request.path == '/list' or request.path == '/poll' or request.path == '/delete' or request.path == '/save' or request.path == '/get_random' or request.path == '/wake' or request.path == '/print' or request.path == '/get_time':
@@ -525,7 +528,8 @@ class PhotoFrameAPIHandler(APIHandler):
                                 if self.localsend_process and self.localsend_process.poll() == None:
                                     localsend_running = True
                             except Exception as ex:
-                                print("/list caught error checking localsend process: ", ex)
+                                if self.DEBUG:
+                                    print("/list caught error checking localsend process: ", ex)
                             if self.DEBUG:
                                 print("localsend_running: ", localsend_running)
                             
@@ -560,6 +564,7 @@ class PhotoFrameAPIHandler(APIHandler):
                               content_type='application/json',
                               content=json.dumps({'state' : state, 
                                                   'data' : data, 
+                                                  'added_a_photo':self.persistent_data['added_a_photo'],
                                                   'safe_photos': self.persistent_data['safe_photos'],
                                                   'privacy_mode_end_time':self.persistent_data['privacy_mode_end_time'],
                                                   'interval':self.interval,
@@ -589,7 +594,8 @@ class PhotoFrameAPIHandler(APIHandler):
                                                 }),
                             )
                         except Exception as ex:
-                            print("caught error getting /list data: " + str(ex))
+                            if self.DEBUG:
+                                print("caught error getting /list data: " + str(ex))
                             return APIResponse(
                               status=500,
                               content_type='application/json',
@@ -712,7 +718,8 @@ class PhotoFrameAPIHandler(APIHandler):
                               content=json.dumps({'state' : state, 'data' : data}),
                             )
                         except Exception as ex:
-                            print("Error getting thing data: " + str(ex))
+                            if self.DEBUG:
+                                print("caught error getting thing data: " + str(ex))
                             return APIResponse(
                               status=500,
                               content_type='application/json',
@@ -739,7 +746,8 @@ class PhotoFrameAPIHandler(APIHandler):
                               content=json.dumps({'state' : state, 'data' : data}),
                             )
                         except Exception as ex:
-                            print("Error saving photo: " + str(ex))
+                            if self.DEBUG:
+                                print("caught error saving photo: " + str(ex))
                             return APIResponse(
                               status=500,
                               content_type='application/json',
@@ -760,7 +768,8 @@ class PhotoFrameAPIHandler(APIHandler):
                             dir_list = self.scan_photo_dir()
                             state = True
                         except Exception as ex:
-                            print("Error downloading random photo: " + str(ex))
+                            if self.DEBUG:
+                                print("caught error downloading random photo: " + str(ex))
                         
                         return APIResponse(
                           status=200,
@@ -788,7 +797,8 @@ class PhotoFrameAPIHandler(APIHandler):
                               content=json.dumps({'state' : 'woken'}),
                             )
                         except Exception as ex:
-                            print("Error waking dispay: " + str(ex))
+                            if self.DEBUG:
+                                print("caught error waking dispay: " + str(ex))
                             return APIResponse(
                               status=500,
                               content_type='application/json',
@@ -830,7 +840,8 @@ class PhotoFrameAPIHandler(APIHandler):
                                               }),
                             )
                         except Exception as ex:
-                            print("Error returning system time: " + str(ex))
+                            if self.DEBUG:
+                                print("caught error returning system time: " + str(ex))
                             return APIResponse(
                               status=500,
                               content_type='application/json',
@@ -877,7 +888,8 @@ class PhotoFrameAPIHandler(APIHandler):
                               content=json.dumps({'state':state}),
                             )
                         except Exception as ex:
-                            print("Error sending photo to printer: " + str(ex))
+                            if self.DEBUG:
+                                print("caught error sending photo to printer: " + str(ex))
                             return APIResponse(
                               status=500,
                               content_type='application/json',
@@ -895,7 +907,8 @@ class PhotoFrameAPIHandler(APIHandler):
                         
                         
                 except Exception as ex:
-                    print(str(ex))
+                    if self.DEBUG:
+                        print("caught error in API handler: ",str(ex))
                     return APIResponse(
                       status=500,
                       content_type='application/json',
@@ -903,11 +916,13 @@ class PhotoFrameAPIHandler(APIHandler):
                     )
                     
             else:
-                print("unknown API path")
+                if self.DEBUG:
+                    print("unknown API path")
                 return APIResponse(status=404)
                 
         except Exception as e:
-            print("Failed to handle UX extension API request: " + str(e))
+            if self.DEBUG:
+                print("Failed to handle UX extension API request: " + str(e))
         
         return APIResponse(
           status=500,
@@ -938,7 +953,8 @@ class PhotoFrameAPIHandler(APIHandler):
             os.remove(file_path)
             result = self.scan_photo_dir()
         except Exception as ex:
-            print("Error deleting photo: " + str(ex))
+            if self.DEBUG:
+                print("Error deleting photo: " + str(ex))
         
         return result
 
@@ -954,8 +970,15 @@ class PhotoFrameAPIHandler(APIHandler):
             for fname in os.listdir(self.photos_dir_path):
                 if fname.endswith(".jpg") or fname.endswith(".jpeg") or fname.endswith(".gif")  or fname.endswith(".png")  or fname.endswith(".webp"):
                     result.append(fname)
+            if len(result) > 4:
+                if self.persistent_data['added_a_photo'] == False:
+                    self.persistent_data['added_a_photo'] = True
+                    self.save_persistent_data()
         except Exception as ex:
-            print("scan_photo_dir: caught error scanning photo directory: ", ex)
+            if self.DEBUG:
+                print("scan_photo_dir: caught error scanning photo directory: ", ex)
+        
+    
         
         return result
 
@@ -1053,7 +1076,8 @@ class PhotoFrameAPIHandler(APIHandler):
             
 
         except Exception as ex:
-            print("\nERROR, caught error in set_localsend: "  + str(ex))
+            if self.DEBUG:
+                print("\nERROR, caught error in set_localsend: "  + str(ex))
         
         
 
@@ -1171,8 +1195,12 @@ class PhotoFrameAPIHandler(APIHandler):
                 with open(save_path, "wb") as fh:
                     fh.write(base64.b64decode(base64_data))
                 result = self.scan_photo_dir()
+                if self.persistent_data['added_a_photo'] == False:
+                    self.persistent_data['added_a_photo'] = True
+                    self.save_persistent_data()
         except Exception as ex:
-            print("Error saving data to file: " + str(ex))
+            if self.DEBUG:
+                print("caught error saving photo to file: " + str(ex))
 
         if self.DEBUG:
             print("photo saved")
@@ -1237,8 +1265,8 @@ def run_command(cmd, timeout_seconds=20):
                 return "Error: " + str(p.stderr) # + '\n' + "Command failed"   #.decode('utf-8'))
 
     except Exception as e:
-        print("Error running command: "  + str(e))
-        
+        print("photo frame caught error running command: "  + str(e))
+    return None
         
 def generate_random_string(length):
     letters = string.ascii_lowercase
