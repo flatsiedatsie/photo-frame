@@ -144,11 +144,11 @@ class PhotoFrameDevice(Device):
             self.add_event('Previous photo',{})
             self.add_event('Next photo',{})
             
-            self.add_action("Start screensaver", {});
+            self.add_action("Start screensaver", {})
             
-            self.add_action("Previous photo", {});
+            self.add_action("Previous photo", {})
             
-            self.add_action("Next photo", {});
+            self.add_action("Next photo", {})
             
             
             
@@ -201,10 +201,10 @@ class PhotoFrameDevice(Device):
     def perform_action(self,action):
         if self.DEBUG:
             print("in perform_action")
-            if action:
-                print("perform_action: Action.as_dict(): ", action.as_dict())
             print("perform_action: self.events: ", self.events)
         action_to_perform = action.as_dict()
+        if self.DEBUG:
+            print("perform_action: action as dict: ", action_to_perform)
         if 'name' in action_to_perform:
             if self.DEBUG:
                 print("action to perform name: ", action_to_perform['name'])
@@ -299,13 +299,14 @@ class PhotoFrameProperty(Property):
                 #self.update(value)
 
         except Exception as ex:
-            print("caught set_value error: " + str(ex))
+             if self.DEBUG:
+                 print("property: caught set_value error: " + str(ex))
 
 
 
     def update(self, value, meta=None):
         if self.DEBUG and meta != None:
-            print("property: update: unexpectedly received meta data.  self.title, meta: ", self.title, meta)
+            print("property: update: received meta data.  self.title, meta: ", self.title, meta)
         #print("property -> update")
         if value != self.value:
             self.value = value

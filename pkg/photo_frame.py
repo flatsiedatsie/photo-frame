@@ -157,7 +157,8 @@ class PhotoFrameAPIHandler(APIHandler):
                 print("self.manager_proxy = " + str(self.manager_proxy))
                 print("Created new API HANDLER: " + str(manifest['id']))
         except Exception as e:
-            print("Failed to init UX extension API handler: " + str(e))
+            if self.DEBUG:
+                print("Failed to init UX extension API handler: " + str(e))
         
         
         self.create_thing = False
@@ -166,7 +167,7 @@ class PhotoFrameAPIHandler(APIHandler):
         try:
             self.add_from_config()
         except Exception as ex:
-            print("Error loading config: " + str(ex))
+            print("caught error loading config: " + str(ex))
             
         
         
@@ -274,7 +275,8 @@ class PhotoFrameAPIHandler(APIHandler):
                 if self.DEBUG:
                     print("debug: ADAPTER created")
             except Exception as ex:
-                print("Failed to start ADAPTER. Error: " + str(ex))
+                if self.DEBUG:
+                    print("Failed to start ADAPTER. Error: " + str(ex))
 
 
         # Can we print photos?
@@ -488,7 +490,8 @@ class PhotoFrameAPIHandler(APIHandler):
                                             self.adapter.thing.set_property('night_mode',self.persistent_data['night_mode'],{'origin':'Addon UI'})
                                             state = True
                                         except Exception as ex:
-                                            print("caught error changing value or night_mode property on Photo Frame thing: ", ex)
+                                            if self.DEBUG:
+                                                print("caught error changing value or night_mode property on Photo Frame thing: ", ex)
                         
                         
                         
@@ -599,7 +602,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("Error while getting list data: " + str(ex)),
+                              content=json.dumps("state":False,"message:":"caught error while getting list data: " + str(ex)),
                             )
                             
                             
@@ -681,11 +684,12 @@ class PhotoFrameAPIHandler(APIHandler):
                                                 }),
                             )
                         except Exception as ex:
-                            print("Error getting poll data: " + str(ex))
+                            if self.DEBUG:
+                                print("caught error returning poll data: " + str(ex))
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("Error while getting thing data: " + str(ex)),
+                              content=json.dumps("state":False,"message:":"caught error while getting thing data: " + str(ex)),
                             )
                             
                             
@@ -723,7 +727,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("Error while changing point: " + str(ex)),
+                              content=json.dumps("state":False,"message:":"caught error while changing point: " + str(ex)),
                             )
                             
                             
@@ -751,7 +755,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("Error while saving photo: " + str(ex)),
+                              content=json.dumps("state":False,"message:":"caught error while saving photo: " + str(ex)),
                             )
                         
                     
@@ -774,7 +778,7 @@ class PhotoFrameAPIHandler(APIHandler):
                         return APIResponse(
                           status=200,
                           content_type='application/json',
-                          content=json.dumps({'state' : state, 'data' : dir_list}),
+                          content=json.dumps({'state': state, 'data': dir_list}),
                         )
                     
                     
@@ -802,7 +806,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("Error while waking up the display: " + str(ex)),
+                              content=json.dumps("state":False,"message:":"caught error while waking up the display: " + str(ex)),
                             )
 
                     
@@ -845,7 +849,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("Error while returning system time: " + str(ex)),
+                              content=json.dumps("state":False,"message:":"caught error while returning system time: " + str(ex)),
                             )
                     
                     
@@ -893,7 +897,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("Error while sending file to printer drop-off directory: " + str(ex)),
+                              content=json.dumps("state":False,"message:":"caught error while sending file to printer drop-off directory: " + str(ex)),
                             )
 
                         
@@ -902,7 +906,7 @@ class PhotoFrameAPIHandler(APIHandler):
                         return APIResponse(
                           status=404,
                           content_type='application/json',
-                          content=json.dumps("API error"),
+                          content=json.dumps("state":False,"message:":"API error"),
                         )
                         
                         
@@ -912,7 +916,7 @@ class PhotoFrameAPIHandler(APIHandler):
                     return APIResponse(
                       status=500,
                       content_type='application/json',
-                      content=json.dumps("Error"),
+                      content=json.dumps("state":False,"message:":"Error"),
                     )
                     
             else:
@@ -927,7 +931,7 @@ class PhotoFrameAPIHandler(APIHandler):
         return APIResponse(
           status=500,
           content_type='application/json',
-          content=json.dumps("API Error"),
+          content=json.dumps("state":False,"message:":"general API Error"),
         )
         
 
@@ -954,7 +958,7 @@ class PhotoFrameAPIHandler(APIHandler):
             result = self.scan_photo_dir()
         except Exception as ex:
             if self.DEBUG:
-                print("Error deleting photo: " + str(ex))
+                print("caught error deleting photo: " + str(ex))
         
         return result
 
@@ -976,7 +980,7 @@ class PhotoFrameAPIHandler(APIHandler):
                     self.save_persistent_data()
         except Exception as ex:
             if self.DEBUG:
-                print("scan_photo_dir: caught error scanning photo directory: ", ex)
+                print("caught error scanning photo directory: ", ex)
         
     
         
