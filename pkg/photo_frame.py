@@ -602,7 +602,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("state":False,"message:":"caught error while getting list data: " + str(ex)),
+                              content=json.dumps({"state":False,"message":"caught error while getting list data: " + str(ex)}),
                             )
                             
                             
@@ -689,7 +689,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("state":False,"message:":"caught error while getting thing data: " + str(ex)),
+                              content=json.dumps({"state":False,"message:":"caught error while getting thing data: " + str(ex)}),
                             )
                             
                             
@@ -727,7 +727,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("state":False,"message:":"caught error while changing point: " + str(ex)),
+                              content=json.dumps({"state":False,"message:":"caught error while changing point: " + str(ex)}),
                             )
                             
                             
@@ -755,7 +755,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("state":False,"message:":"caught error while saving photo: " + str(ex)),
+                              content=json.dumps({"state":False,"message:":"caught error while saving photo: " + str(ex)}),
                             )
                         
                     
@@ -806,7 +806,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("state":False,"message:":"caught error while waking up the display: " + str(ex)),
+                              content=json.dumps({"state":False,"message:":"caught error while waking up the display: " + str(ex)}),
                             )
 
                     
@@ -849,7 +849,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("state":False,"message:":"caught error while returning system time: " + str(ex)),
+                              content=json.dumps({"state":False,"message:":"caught error while returning system time: " + str(ex)}),
                             )
                     
                     
@@ -897,7 +897,7 @@ class PhotoFrameAPIHandler(APIHandler):
                             return APIResponse(
                               status=500,
                               content_type='application/json',
-                              content=json.dumps("state":False,"message:":"caught error while sending file to printer drop-off directory: " + str(ex)),
+                              content=json.dumps({"state":False,"message:":"caught error while sending file to printer drop-off directory: " + str(ex)}),
                             )
 
                         
@@ -906,7 +906,7 @@ class PhotoFrameAPIHandler(APIHandler):
                         return APIResponse(
                           status=404,
                           content_type='application/json',
-                          content=json.dumps("state":False,"message:":"API error"),
+                          content=json.dumps({"state":False,"message:":"API error"}),
                         )
                         
                         
@@ -916,7 +916,7 @@ class PhotoFrameAPIHandler(APIHandler):
                     return APIResponse(
                       status=500,
                       content_type='application/json',
-                      content=json.dumps("state":False,"message:":"Error"),
+                      content=json.dumps({"state":False,"message:":"Error"}),
                     )
                     
             else:
@@ -931,7 +931,7 @@ class PhotoFrameAPIHandler(APIHandler):
         return APIResponse(
           status=500,
           content_type='application/json',
-          content=json.dumps("state":False,"message:":"general API Error"),
+          content=json.dumps({"state":False,"message:":"general API Error"}),
         )
         
 
