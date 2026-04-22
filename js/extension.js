@@ -155,7 +155,7 @@
 			
 			this.current_photo_number = 0;
 			window.last_activity_time = new Date().getTime()
-            this.screensaver_delay = 120;
+            //this.screensaver_delay = 120;
             this.showing_screensaver = false;
             this.previous_last_activity_time = 0;
             this.screensaver_path = '/extensions/photo-frame';
@@ -318,10 +318,10 @@
                 }
 				
 				
-				
+				/*
                 if (typeof body.screensaver_delay == 'number') {
                     this.screensaver_delay = body.screensaver_delay;
-                    /*
+                    
 		            if (this.screensaver_delay > 1) {
 		                if(this.debug){
 							console.log('photo-frame debug: early init: calling start screensaver listeners');
@@ -333,9 +333,10 @@
 							console.log('photo-frame debug: early init:  screen saver is disabled');
 						}
 					}
-					*/
+					
 					
 				}
+				*/
 				
                 if (window.location.pathname == "/extensions/photo-frame") {
                     this.show();
@@ -470,6 +471,7 @@
 				if(this.debug){
 					console.log("photo frame debug: clicked on picture holder");
 				}
+				document.body.classList.remove('screensaver');
 			})
 
 			// manage photos button
@@ -604,11 +606,22 @@
                     this.screensaver_ignore_click = false;
                 },1000);
 				*/
-				setTimeout(() => {
-					window.last_activity_time = 1;
-				},1000);
-				window.last_activity_time = 1;
 				
+				document.body.classList.add('screensaver');
+				
+				let selected_screensaver_check = localStorage.getItem('candle_selected_screensaver');
+				if(typeof selected_screensaver_check == 'string' && selected_screensaver_check == '/extensions/photo-frame'){
+					setTimeout(() => {
+						window.last_activity_time = 1;
+					},1000);
+					window.last_activity_time = 1;
+				}
+				else{
+					// TODO: avoid the screensaver instead?
+				}
+				
+				
+				// Go fullscreen
 				if(this.kiosk == false && this.developer == false){
 					let photo_frame_content_el = document.getElementById('extension-photo-frame-content');
 					/*
