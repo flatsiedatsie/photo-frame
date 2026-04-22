@@ -76,12 +76,12 @@ class PhotoFrameDevice(Device):
         
         self._id = 'photo-frame'
         self.id = 'photo-frame'
+        self.name = 'photo-frame'
         self.adapter = adapter
         self.DEBUG = self.adapter.DEBUG
         
         self._type = ["OnOffSwitch"]
         
-        self.name = 'photo-frame'
         self.title = 'Photo Frame'
         self.description = 'Thing to control Photo Frame'
         #self.night_mode = False

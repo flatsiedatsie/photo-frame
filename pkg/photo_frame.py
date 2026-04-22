@@ -324,6 +324,8 @@ class PhotoFrameAPIHandler(APIHandler):
         
         
         self.ready = True
+        
+        return None
 
 
 

@@ -73,7 +73,7 @@
 							console.log("photo frame debug: snoop message -> Start screensaver now");
 						}
 						if(window.location.pathname == '/extensions/photo-frame'){
-							this.last_activity_time = 0;
+							window.last_activity_time = 0;
 							this.do_screensaver_interval();
 						}
 					}
@@ -91,7 +91,7 @@
             // Screensaver allowed
 			this.screensaver_allowed_in_this_browser = false;
 			this.screensaver_allowed_in_this_browser_once = false;
-			const screensaver_allowed_check = localStorage.getItem('extension-photo-frame-allow-screensaver');
+			const screensaver_allowed_check = localStorage.getItem('candle_screensaver_enabled');
 			if(typeof screensaver_allowed_check == 'string' && screensaver_allowed_check == 'true'){
 				this.screensaver_allowed_in_this_browser = true;
 			}
@@ -154,7 +154,7 @@
 			
 			
 			this.current_photo_number = 0;
-			this.last_activity_time = new Date().getTime()
+			window.last_activity_time = new Date().getTime()
             this.screensaver_delay = 120;
             this.showing_screensaver = false;
             this.previous_last_activity_time = 0;
@@ -433,7 +433,7 @@
 					console.log("photo frame debug: show: jumping directly into privacy mode");
 				}
 				//this.screensaver_allowed_in_this_browser = true;
-				//this.last_activity_time = 1;
+				//window.last_activity_time = 1;
 				//this.do_screensaver_interval();
 				this.start_privacy_mode();
 			}
@@ -510,7 +510,7 @@
                 event.stopImmediatePropagation();
 				event.preventDefault();
 				this.interval_counter = 0;
-				this.last_activity_time = new Date().getTime();
+				window.last_activity_time = new Date().getTime();
 				this.next_picture();
             });
 			
@@ -524,7 +524,7 @@
 					}
 	                event.stopImmediatePropagation();
 					event.preventDefault();
-					this.last_activity_time = 1;
+					window.last_activity_time = 1;
 					this.night_mode = true;
 					document.body.classList.add('extension-photo-frame-night-mode');
 		            window.API.postJson(
@@ -555,7 +555,7 @@
 					}
 	                event.stopImmediatePropagation();
 					event.preventDefault();
-					this.last_activity_time = 1;
+					window.last_activity_time = 1;
 					this.night_mode = false;
 					document.body.classList.remove('extension-photo-frame-day-mode');
 		            window.API.postJson(
@@ -580,7 +580,7 @@
 			
 			
 			// start screensaver button
-            this.view.querySelector('#extension-photo-frame-start-screensaver-button').addEventListener('click', () => {
+            this.view.querySelector('#extension-photo-frame-start-screensaver-button').addEventListener('click', (event) => {
                 event.stopImmediatePropagation();
 				event.preventDefault();
 				if(document.body.classList.contains('developer')){
@@ -598,12 +598,16 @@
 				
 				// Enables screensaver, but not permanently
 				this.screensaver_allowed_in_this_browser_once = true
-				
+				/*
                 this.screensaver_ignore_click = true; // ironically, the click the start the screensaver immediately disables it..
                 window.setTimeout(() => {
                     this.screensaver_ignore_click = false;
                 },1000);
-				this.last_activity_time = new Date().getTime() - (this.screensaver_delay * 1001);
+				*/
+				setTimeout(() => {
+					window.last_activity_time = 1;
+				},1000);
+				window.last_activity_time = 1;
 				
 				if(this.kiosk == false && this.developer == false){
 					let photo_frame_content_el = document.getElementById('extension-photo-frame-content');
@@ -641,7 +645,6 @@
 						    photo_frame_content_el.msRequestFullscreen();
 						}
 					}
-					
 					
 				}
 				
@@ -717,7 +720,7 @@
                     //menu_button.click(); //dispatchEvent('click');
                 }
 				if(!this.screensaver_ignore_click){
-					this.last_activity_time = new Date().getTime();
+					window.last_activity_time = new Date().getTime();
 				}
 				//this.next_photo();
             });
@@ -926,7 +929,8 @@
 			
 			
 			// Allow screensaver
-			const allow_screensaver_checkbox_el = this.view.querySelector('#extension-photo-frame-allow-screensaver-checkbox');
+			/*
+			const allow_screensaver_checkbox_el = this.view.querySelector('#candle_screensaver_enabled-checkbox');
 			if(this.debug){
 				console.log("photo frame debug: show: setting allow_screensaver checkbox to: ", this.screensaver_allowed_in_this_browser);
 			}
@@ -934,17 +938,18 @@
 			allow_screensaver_checkbox_el.addEventListener('change', () => {
 	            if(this.screensaver_allowed_in_this_browser == true){
 	            	this.screensaver_allowed_in_this_browser = false;
-					localStorage.setItem('extension-photo-frame-allow-screensaver', 'false');
+					localStorage.setItem('candle_screensaver_enabled', 'false');
 	            }
 				else{
 					this.screensaver_allowed_in_this_browser = true;
-					localStorage.setItem('extension-photo-frame-allow-screensaver', 'true');
+					localStorage.setItem('candle_screensaver_enabled', 'true');
 				}
 				if(this.debug){
 					console.log("photo frame debug: this.screensaver_allowed_in_this_browser is now: ", this.screensaver_allowed_in_this_browser);
 				}
 				
 			});
+			*/
 			
 			
 			/*
@@ -1135,7 +1140,8 @@
 					this.interval_counter++;
 					this.slow_interval_counter++
 				
-					const screensaver_allowed_check = localStorage.getItem('extension-photo-frame-allow-screensaver');
+					/*
+					const screensaver_allowed_check = localStorage.getItem('candle_screensaver_enabled');
 					if(typeof screensaver_allowed_check == 'string'){
 						if(screensaver_allowed_check == 'true'){
 							this.screensaver_allowed_in_this_browser = true;
@@ -1147,9 +1153,11 @@
 						this.screensaver_allowed_in_this_browser = false;
 					}
 					
+					
 					if(this.showing_screensaver && this.screensaver_allowed_in_this_browser == false && this.screensaver_allowed_in_this_browser_once == false){
-						this.last_activity_time = new Date().getTime();
+						window.last_activity_time = new Date().getTime();
 					}
+					*/
 					
 				
 					// change to new random picture after X seconds
@@ -1166,7 +1174,7 @@
 						this.get_list();
 					}
 		
-		
+					/*
 					if((this.screensaver_allowed_in_this_browser || this.screensaver_allowed_in_this_browser_once) && this.screensaver_delay){
 						
 						if(this.screensaver_listeners_added == false){
@@ -1174,8 +1182,8 @@
 						}
 		
 						if(this.screensaver_interval_busy == false){
-							console.log("calling do_screensaver_interval");
-							this.do_screensaver_interval();
+							//console.log("calling do_screensaver_interval");
+							//this.do_screensaver_interval();
 						}
 						else if(this.debug){
 							console.warn("photo frame debug: screensaver_interval was still busy, skipping calling it again");
@@ -1185,9 +1193,10 @@
 					}
 					else if(this.showing_screensaver){
 						// Run it one more time to clean it up
-						this.last_activity_time = new Date().getTime();
-						this.do_screensaver_interval();
+						window.last_activity_time = new Date().getTime();
+						//this.do_screensaver_interval();
 					}
+					*/
 					
 		
 		
@@ -1463,7 +1472,7 @@
 		
 		// swipe left or right on a photo to navigate between them
 		check_swipe_direction() {
-			//this.last_activity_time = new Date().getTime();
+			//window.last_activity_time = new Date().getTime();
 			if (this.touchendX < this.touchstartX - 20){
 				if(this.debug){
 					console.log('photo-frame: swiped left');
@@ -2279,26 +2288,29 @@
 			
 				this.view.querySelector('#extension-photo-frame-picture1').style['animation-duration'] = (this.interval+1) + 's';
 				this.view.querySelector('#extension-photo-frame-picture2').style['animation-duration'] = (this.interval+1) + 's';
-				
+				/*
 				if(this.view.querySelector('#extension-photo-frame-screensaver-indicator')){
 					this.view.querySelector('#extension-photo-frame-screensaver-indicator').style['animation-duration'] = this.screensaver_delay + 's';
 					this.view.querySelector('#extension-photo-frame-start-screensaver-countdown-indicator').style['animation-duration'] = this.screensaver_delay + 's';
 				}
+				*/
 				
             }
 			
 			// This does not parse the body, but checks if this value has been changed in a sibling browser window
-			const screensaver_allowed_check = localStorage.getItem('extension-photo-frame-allow-screensaver');
+			/*
+			const screensaver_allowed_check = localStorage.getItem('candle_screensaver_enabled');
 			if(typeof screensaver_allowed_check == 'string'){
 				if(screensaver_allowed_check == 'true' && this.screensaver_allowed_in_this_browser != true){
-					this.view.querySelector('#extension-photo-frame-allow-screensaver-checkbox').checked = true;
+					this.view.querySelector('#candle_screensaver_enabled-checkbox').checked = true;
 					this.screensaver_allowed_in_this_browser = true;
 				}
 				else if(screensaver_allowed_check == 'false' && this.screensaver_allowed_in_this_browser != false){
-					this.view.querySelector('#extension-photo-frame-allow-screensaver-checkbox').checked = false;
+					this.view.querySelector('#candle_screensaver_enabled-checkbox').checked = false;
 					this.screensaver_allowed_in_this_browser = false;
 				}
 			}
+			*/
 			
 			
 		}
@@ -2791,238 +2803,7 @@
 		
 		
 		
-		do_screensaver_interval(){
-			this.screensaver_interval_busy = true;
-            const current_time = new Date().getTime();
-			if(this.page_visible == false || window.location.pathname == '/things/photo-frame'){
-				this.last_activity_time = current_time;
-			}
-            const delta = current_time - this.last_activity_time;
-            //console.log('delta: ', delta);
-            if (delta > this.screensaver_delay * 1000) {
-                if (this.showing_screensaver == false) {
-					
-					let screensaver_allowed_check = localStorage.getItem('extension-photo-frame-allow-screensaver');
-					if(typeof screensaver_allowed_check == 'string'){
-						if(screensaver_allowed_check == 'true'){
-							this.screensaver_allowed_in_this_browser = true;
-						}
-						else{
-							this.screensaver_allowed_in_this_browser = false;
-						}
-					}else{
-						this.screensaver_allowed_in_this_browser = false;
-					}
-					
-					if(this.screensaver_allowed_in_this_browser || this.screensaver_allowed_in_this_browser_once){
-						if(this.debug){
-							console.log("Photo frame debug: STARTING SCREENSAVER");
-						}
-	                    this.screensaver_ignore_click = true;
-	                    window.setTimeout(() => {
-	                        this.screensaver_ignore_click = false; // ignore the click on the Photo Frame menu button, as that would immediately cancel the screensaver..
-	                    },10);
-	                    //console.log('should start screensaver');
-	                    this.screensaver_path = window.location.pathname;
-	                    //console.log("remembered path: ", this.screensaver_path);
-	                    this.showing_screensaver = true;
-	                    document.body.classList.add('screensaver');
-	                    if (this.screensaver_path != '/extensions/photo-frame') {
-	                        const photo_frame_menu_button = document.getElementById("extension-photo-frame-menu-item");
-	                        if (photo_frame_menu_button != null) {
-	                            photo_frame_menu_button.click();
-	                        }
-	                    }
-					}
-					
-                }
-            } 
-			else {
-                if (this.showing_screensaver == true) {
-					
-					try{
-						this.screensaver_allowed_in_this_browser_once = false;
-						
-	                    var short_path = "photo-frame";
-						// this.screensaver_path contains the location right before the screensaver started.
-	                    if (this.screensaver_path.startsWith('/extensions')) {
-	                        var short_path = this.screensaver_path.split('/')[2];
-	                    } else {
-	                        var short_path = this.screensaver_path.split('/')[1];
-	                    }
 
-
-						if(short_path != "photo-frame"){
-							if(this.debug){
-								console.log("photo-frame debug: screensaver: short_path to return to: ", short_path);
-							}
-
-	                        var spotted_in_menu = false;
-	                        const addon_name_css = short_path.replace(/_/g, "-");
-	                        //console.log(addon_name_css);
-	                        const menu_elements = document.querySelectorAll('#main-menu > ul > li > a');
-	                        var id_to_click_on = "extension-photo-frame-menu-item";
-	                        menu_elements.forEach(element => {
-	                            var link_id = element.getAttribute('id');
-								if(typeof link_id != 'string'){
-									return
-								}
-	                            var short_link_id = link_id.replace("-menu-item", "");
-	                            short_link_id = short_link_id.replace("extension-", "");
-	                            //short_link_id = link_id.replace("extension-", "");
-	                            //if(short_link_id.endsWith(addon_name_css)){
-	                            //console.log(" --> ", short_link_id);
-	                            if (short_link_id == addon_name_css) {
-	                                spotted_in_menu = true;
-	                                id_to_click_on = link_id;
-	                            }
-	                        });
-
-	                        if (spotted_in_menu == false) {
-	                            if (this.debug) {
-	                                console.log('photo frame debug: screensaver could not restore the page. addon_name_css: ', addon_name_css);
-	                            }
-	                            //window.location.pathname = this.screensaver_path;
-	                        } else {
-	                            const menu_link = document.getElementById(id_to_click_on);
-	                            menu_link.click(); //dispatchEvent('click');
-	                        }
-						}
-					}
-					catch(err){
-						console.error("photo frame: caught error stopping screensaver: ", err);
-					}
-                    
-					
-					document.body.classList.remove('screensaver');
-                    document.getElementById('menu-button').classList.remove('hidden'); // the menu button is no longer hidden?
-                    
-
-                }
-                this.showing_screensaver = false;
-            }
-			
-			
-
-            if (delta < 1500) {
-                if (document.body.classList.contains('developer')) {
-                    const indicator = document.getElementById("extension-photo-frame-screensaver-indicator");
-                    if (indicator != null) {
-                        indicator.parentNode.removeChild(indicator);
-                    }
-                    let indicator_element = document.createElement("div");
-                    indicator_element.setAttribute('id', 'extension-photo-frame-screensaver-indicator');
-					indicator_element.style['animation-duration'] = this.screensaver_delay + 's';
-                    document.body.append(indicator_element);
-					
-					const screensaver_button_indicator = document.getElementById("extension-photo-frame-start-screensaver-countdown-indicator");
-					if(screensaver_button_indicator != null){
-						//console.log("screensaver_button_indicator: ", screensaver_button_indicator);
-						screensaver_button_indicator.classList.remove('extension-photo-frame-screensaver-indicator');
-						setTimeout(() => {
-							screensaver_button_indicator.style['animation-duration'] = this.screensaver_delay + 's';
-							screensaver_button_indicator.classList.add('extension-photo-frame-screensaver-indicator');
-						},1);
-					}
-					
-                }
-            }
-			this.screensaver_interval_busy = false;
-		}
-		
-		
-		
-        //
-        //  SCREENSAVER LISTENERS
-        //
-
-		// If another view was active, the screensaver will try to jump back to that view if mouse activity is detected
-
-        start_screensaver_listeners() {
-			if(this.screensaver_listeners_added){
-				if(this.debug){
-					console.error("photo frame debug: start_screensaver_listeners was called again, but has already run");
-				}
-				return
-			}
-			this.screensaver_listeners_added = true;
-			if(this.screensaver_interval){
-				clearInterval(this.screensaver_interval);
-			}
-			
-			if(this.debug){
-				console.error("photo frame debug: adding screensaver listeners");
-			}
-			
-            //this.screensaver_interval = setInterval(myCallback, 500);
-			/*
-            this.screensaver_interval = setInterval(() => {
-
-				if(this.screensaver_interval_busy == false){
-					this.do_screensaver_interval();
-				}
-				else if(this.debug){
-					console.warn("photo frame debug: screensaver_interval was still busy, skipping calling it again");
-					this.screensaver_interval_busy = false; // but only skipping it once
-				}
-            }, 1000);
-			*/
-
-
-            //console.log('starting activity timeout check for screensaver. Delay seconds: ', this.screensaver_delay);
-
-            // Mouse
-            window.addEventListener('mousemove', () => {
-                if (!this.screensaver_ignore_click) {
-					this.last_activity_time = new Date().getTime();
-				}
-            }, {
-                passive: true
-            });
-            window.addEventListener('mousedown', () => {
-				if (!this.screensaver_ignore_click) {
-                	this.last_activity_time = new Date().getTime();
-				}
-            }, {
-                passive: true
-            });
-            window.addEventListener('click', () => {
-                if (this.screensaver_ignore_click) {
-                    if(this.debug){
-						console.log('ignoring click');
-                    }
-                } else {
-                    this.last_activity_time = new Date().getTime();
-                }
-            }, {
-                passive: true
-            });
-
-            // Touch
-            window.addEventListener('touchstart', () => {
-                if (!this.screensaver_ignore_click) {
-					this.last_activity_time = new Date().getTime();
-				}
-            }, {
-                passive: true
-            });
-            window.addEventListener('touchmove', () => {
-                if (!this.screensaver_ignore_click) {
-					this.last_activity_time = new Date().getTime();
-				}
-            }, {
-                passive: true
-            });
-
-            // Scroll
-            window.addEventListener('scroll', () => {
-                if (!this.screensaver_ignore_click) {
-					this.last_activity_time = new Date().getTime();
-				}
-            }, true);
-
-        }
-		
 		
 		
 		
