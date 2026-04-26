@@ -24,6 +24,7 @@
 			this.busy_polling = false;
 			this.poll_fail_count = 0; // set to a higher number if the voco actions update failed
 			
+			this.subscribed_to_thing = false;
 			
 			this.websockets = {};
 			this.websocket_before_unload_added = false;
@@ -31,59 +32,6 @@
 			this.night_mode = false;
 			this.added_a_photo = false;
 			
-			if(typeof this.subscribeToThingProperties === 'function'){
-				this.subscribeToThingProperties('photo-frame', (message) => {
-					
-					if(this.debug){
-						console.log("photo frame debug: handling snoop message.  message: ", message);
-					}
-					if(typeof message['night_mode'] == 'boolean'){
-						this.night_mode = message['night_mode'];
-						if(this.debug){
-							console.log("photo frame debug: snooped night_mode message. this.night_mode is now: ", this.night_mode);
-						}
-	                	if(this.night_mode){
-	                		document.body.classList.add('extension-photo-frame-night-mode');
-	                	}
-						else{
-							document.body.classList.remove('extension-photo-frame-night-mode');
-						}
-					}
-					
-				});
-			}
-
-
-			if(typeof this.subscribeToThingEvents === 'function'){
-				this.subscribeToThingEvents('photo-frame', (message) => {
-					if(typeof message['Next photo'] != 'undefined'){
-						if(this.debug){
-							console.log("photo frame debug: snoop message -> next photo");
-						}
-						this.next_picture();
-					}
-					else if(typeof message['Previous photo'] != 'undefined'){
-						if(this.debug){
-							console.log("photo frame debug: snoop message -> previous photo");
-						}
-						this.previous_picture();
-					}
-					else if(typeof message['Start screensaver'] != 'undefined'){
-						if(this.debug){
-							console.log("photo frame debug: snoop message -> Start screensaver now");
-						}
-						if(window.location.pathname == '/extensions/photo-frame'){
-							window.last_activity_time = 0;
-							this.do_screensaver_interval();
-						}
-					}
-					else{
-						if(this.debug){
-							console.log("photo frame debug: handling snoop message: unexpected event message name");
-						}
-					}
-				});
-			}
 			
 			
 			
@@ -1082,7 +1030,7 @@
 			
 			this.get_list();
             
-			
+			this.ensure_thing_subscription();
 			
 			
 			
@@ -1108,6 +1056,24 @@
 
 
         hide() {
+			try{
+				window.setTimeout(() => {
+					const photo_frame_main_menu_item_el = document.getElementById('extension-photo-frame-menu-item');
+					if(photo_frame_main_menu_item_el){
+						if(photo_frame_main_menu_item_el.classList.contains('selected') == false){
+							if(this.debug){
+								console.error("photo frame: hide(): clearing html");
+							}
+							this.view.innerHTML = "";
+						}
+					}
+				},1000);
+				
+			}
+			catch(err){
+				console.error("photo frame: caught error clearing HTML in hide: ", err);
+			}
+			
 			/*
             try {
                 window.clearInterval(this.photo_interval);
@@ -2816,8 +2782,79 @@
 		
 		
 		
+		ensure_thing_subscription(){
+			if (this.debug) {
+				console.log("photo frame debug: in ensure_thing_subscription.  this.subscribed_to_thing: ", this.subscribed_to_thing);
+			}
+			if (typeof this.subscribeToThingProperties == 'function' && this.subscribed_to_thing == false){
+				//console.warn("\n\n\nthis.subscribeToThingProperties is available");
+			
+				API.getThings().then((things) => {
+					//console.log('API: things: ', things);
+					let found_the_thing = false;
+					for(const index in things){
+						//console.log("things[index]['href']: ", things[index]['href']);
+						if(things[index]['href'] == '/things/photo-frame'){
 
-		
+							this.view.classList.add('extension-photo-frame-thing-available');
+							
+							this.subscribeToThingProperties('photo-frame', (message) => {
+				
+								if(this.debug){
+									console.log("photo frame debug: handling snoop message.  message: ", message);
+								}
+								if(typeof message['night_mode'] == 'boolean'){
+									this.night_mode = message['night_mode'];
+									if(this.debug){
+										console.log("photo frame debug: snooped night_mode message. this.night_mode is now: ", this.night_mode);
+									}
+				                	if(this.night_mode){
+				                		document.body.classList.add('extension-photo-frame-night-mode');
+				                	}
+									else{
+										document.body.classList.remove('extension-photo-frame-night-mode');
+									}
+								}
+				
+							});
+
+
+							if(typeof this.subscribeToThingEvents === 'function'){
+								this.subscribeToThingEvents('photo-frame', (message) => {
+									if(typeof message['Next photo'] != 'undefined'){
+										if(this.debug){
+											console.log("photo frame debug: snoop message -> next photo");
+										}
+										this.next_picture();
+									}
+									else if(typeof message['Previous photo'] != 'undefined'){
+										if(this.debug){
+											console.log("photo frame debug: snoop message -> previous photo");
+										}
+										this.previous_picture();
+									}
+									else if(typeof message['Start screensaver'] != 'undefined'){
+										if(this.debug){
+											console.log("photo frame debug: snoop message -> Start screensaver now");
+										}
+										if(window.location.pathname == '/extensions/photo-frame'){
+											window.last_activity_time = 0;
+											this.do_screensaver_interval();
+										}
+									}
+									else{
+										if(this.debug){
+											console.log("photo frame debug: handling snoop message: unexpected event message name");
+										}
+									}
+								});
+							}
+							
+						}
+					}
+				});
+			}
+		}
 		
 		
 		// Not used. Created Snoop feature instead.
