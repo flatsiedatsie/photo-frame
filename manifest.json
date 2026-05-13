@@ -95,7 +95,7 @@
     }
   },
   "short_name": "Photo",
-  "version": "2.2.7",
+  "version": "2.2.8",
   "web_accessible_resources": [
     "css/*.css",
     "images/*.svg",
