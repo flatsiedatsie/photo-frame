@@ -92,29 +92,29 @@ class PhotoFrameDevice(Device):
             self.adapter.api_handler.persistent_data['night_mode'] = False
 
         try:
-            """
-            self.properties["screensaver"] = PhotoFrameProperty(
+            
+            self.properties["state"] = PhotoFrameProperty(
                             self,
-                            "screensaver",
+                            "state",
                             {
                                 '@type': 'OnOffProperty',
-                                'title': "Screensaver",
+                                'title': "State",
                                 'type': 'boolean',
                                 'readOnly': False,
                             },
-                            False)
-            """
+                            not bool(self.adapter.api_handler.persistent_data['night_mode']))
             
+            """
             self.properties["night_mode"] = PhotoFrameProperty(
                             self,
                             "night_mode",
                             {
                                 'title': "Night mode",
                                 'type': 'boolean',
-                                'readOnly': False,
+                                'readOnly': True,
                             },
                             bool(self.adapter.api_handler.persistent_data['night_mode']) )
-            
+            """
             
             if self.adapter.api_handler.is_64_bit:
                 self.properties["localsend"] = PhotoFrameProperty(
@@ -124,7 +124,6 @@ class PhotoFrameDevice(Device):
                                 'title': "Localsend",
                                 'type': 'boolean',
                                 'readOnly': False,
-                                '@type': 'OnOffProperty',
                             },
                             False )
             
@@ -257,10 +256,12 @@ class PhotoFrameProperty(Property):
         #print("property: set_value called for " + str(self.title))
         #print("property: set value to: " + str(value))
         try:
-            if self.id == 'screensaver':
+            if self.id == 'state':
                 #self.device.adapter.api_handler.set_screensaver_state(bool(value))
                 #self.device.adapter.set_radio_state(True) # If the user changes the station, we also play it.
                 self.update(bool(value))
+                self.device.adapter.api_handler.persistent_data['night_mode'] = not bool(value)
+                self.device.adapter.api_handler.save_persistent_data()
 
             elif self.id == 'night_mode':
                 #self.device.adapter.api_handler.set_screensaver_state(bool(value))
@@ -268,6 +269,7 @@ class PhotoFrameProperty(Property):
                 
                 self.device.adapter.api_handler.persistent_data['night_mode'] = bool(value)
                 self.update(bool(value))
+                self.device.adapter.api_handler.save_persistent_data()
                 
                 
             elif self.id == 'localsend-cli':
