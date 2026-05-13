@@ -212,13 +212,15 @@ class PhotoFrameDevice(Device):
                 next_photo_event = Event(self,'Next photo')
                 self.event_notify(next_photo_event)
                 if self.adapter.api_handler.persistent_data['night_mode'] == True:
-                    self.set_property('night_mode',False,{'origin':'action'})
+                    self.set_property('state',True,{'origin':'action'})
+                    self.adapter.api_handler.persistent_data['night_mode'] = False
                 
             elif str(action_to_perform['name']) == 'Previous photo':
                 previous_photo_event = Event(self,'Previous photo')
                 self.event_notify(previous_photo_event)
                 if self.adapter.api_handler.persistent_data['night_mode'] == True:
-                    self.set_property('night_mode',False,{'origin':'action'})
+                    self.set_property('state',True,{'origin':'action'})
+                    self.adapter.api_handler.persistent_data['night_mode'] = False
                     
             elif str(action_to_perform['name']) == 'Start screensaver':
                 start_screensaver_event = Event(self,'Start screensaver')
@@ -263,10 +265,8 @@ class PhotoFrameProperty(Property):
                 self.device.adapter.api_handler.persistent_data['night_mode'] = not bool(value)
                 self.device.adapter.api_handler.save_persistent_data()
 
+            # Deprecated
             elif self.id == 'night_mode':
-                #self.device.adapter.api_handler.set_screensaver_state(bool(value))
-                #self.device.adapter.set_radio_state(True) # If the user changes the station, we also play it.
-                
                 self.device.adapter.api_handler.persistent_data['night_mode'] = bool(value)
                 self.update(bool(value))
                 self.device.adapter.api_handler.save_persistent_data()

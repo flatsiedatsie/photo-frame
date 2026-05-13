@@ -524,9 +524,6 @@ body:not(.screensaver) .extension-photo-frame-picture:not(.extension-photo-frame
 	z-index:1;
 }
 
-.slideshow .extension-photo-frame-picture{
-	/*transition:opacity 1s; */
-}
 
 
 #extension-photo-frame-picture-holder:not(.extension-photo-frame-has-animations) .extension-photo-frame-current-picture{
@@ -1516,7 +1513,7 @@ body#path-extensions-photo-frame.extension-photo-frame-night-mode .extension-pho
 }
 
 
-@-webkit-keyframes bg-slide {
+@keyframes bg-slide {
     from { transform: translateX(0); }
     to { transform: translateX(-50%); }
 }

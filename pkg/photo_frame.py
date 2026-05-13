@@ -489,11 +489,11 @@ class PhotoFrameAPIHandler(APIHandler):
                                     self.save_persistent_data()
                                     if self.adapter and self.adapter.thing:
                                         try:
-                                            self.adapter.thing.set_property('night_mode',self.persistent_data['night_mode'],{'origin':'Addon UI'})
+                                            self.adapter.thing.set_property('state',not self.persistent_data['night_mode'],{'origin':'Addon UI'})
                                             state = True
                                         except Exception as ex:
                                             if self.DEBUG:
-                                                print("caught error changing value or night_mode property on Photo Frame thing: ", ex)
+                                                print("caught error in set_night_mode: ", ex)
                         
                         
                         
